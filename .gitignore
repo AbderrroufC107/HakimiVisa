@@ -28,6 +28,7 @@ hakimi_flutter/*/ios/.symlinks/
 hakimi_flutter/*/ios/Flutter/Flutter.framework
 hakimi_flutter/*/ios/Flutter/Flutter.podspec
 hakimi_flutter/*/ios/Flutter/Generated.xcconfig
+hakimi_flutter/*.apk
 
 # Backend
 backend/dist/
