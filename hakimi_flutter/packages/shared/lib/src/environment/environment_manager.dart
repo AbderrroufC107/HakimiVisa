@@ -12,7 +12,7 @@ class EnvironmentManager {
   static EnvironmentManager get instance => _instance;
 
   static const String _cachedUrlKey = 'hakimi_dev_server_url';
-  static const String _productionUrl = 'https://api.hakimivisa.com/api';
+  static const String _productionUrl = 'https://hakimivisa.cloud/api';
   static const String _emulatorUrl = 'http://10.0.2.2:4000/api';
   static const Duration _healthCheckTimeout = Duration(seconds: 5);
 
