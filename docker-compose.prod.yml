@@ -18,7 +18,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ../docker/backend/Dockerfile.prod
+      dockerfile: Dockerfile.prod
     container_name: hakimi-backend
     restart: always
     ports:
