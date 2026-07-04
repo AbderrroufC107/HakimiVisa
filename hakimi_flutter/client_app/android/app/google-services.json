@@ -1,0 +1,51 @@
+﻿
+{
+  "project_info": {
+    "project_number": "57013904062",
+    "project_id": "hakimivisa-app",
+    "storage_bucket": "hakimivisa-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57013904062:android:bb41cff0d6003d8181f4ef",
+        "android_client_info": {
+          "package_name": "com.hakimi.visa.client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPJr5sG4LUaar4HhfoTGqZThFyOJHnABg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57013904062:android:4a1d30ce43aae88881f4ef",
+        "android_client_info": {
+          "package_name": "com.hakimi.visa.manager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPJr5sG4LUaar4HhfoTGqZThFyOJHnABg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+
+

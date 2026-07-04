@@ -1,0 +1,11 @@
+export { LoginPage } from './login-page';
+export { DashboardPage } from './dashboard-page';
+export { ClientsPage, ClientFormPage, ClientProfilePage } from './clients';
+export { VisaCasesPage, VisaCaseFormPage, VisaCaseDetailPage } from './visa-cases';
+export { KanbanPage } from './kanban-page';
+export { AppointmentsPage } from './appointments';
+export { TrackingPage } from './tracking-page';
+export { NotificationsPage } from './notifications/notifications-page';
+export { BackupCenterPage } from './backup/backup-center-page';
+export { SystemHealthPage } from './health/system-health-page';
+export { SystemLogsPage } from './system-logs/system-logs-page';

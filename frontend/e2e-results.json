@@ -1,0 +1,122 @@
+{
+  "protected": [
+    {
+      "route": "/dashboard",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/clients",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/kanban",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/visa-cases",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/appointments",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/notifications",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/audit-logs",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/pdf",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/backups",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/system-health",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/system-logs",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "route": "/settings",
+      "pass": true,
+      "finalUrl": "/login",
+      "apiCalls": 0,
+      "jsErrors": 0,
+      "consoleErrors": 0
+    }
+  ],
+  "public": [
+    {
+      "route": "/login",
+      "pass": true,
+      "finalUrl": "/login"
+    },
+    {
+      "route": "/tracking",
+      "pass": true,
+      "finalUrl": "/tracking"
+    }
+  ],
+  "networkLog": [],
+  "jsErrors": [],
+  "consoleErrors": [],
+  "summary": {
+    "allProtectedPass": true,
+    "allPublicPass": true,
+    "totalPassed": 14,
+    "totalFailed": 0,
+    "apiRequestsBlocked": true
+  }
+}

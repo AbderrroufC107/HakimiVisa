@@ -1,0 +1,12 @@
+name: hakimi_flutter
+publish_to: none
+resolution: workspace
+
+workspace:
+  - packages/shared
+  - packages/core
+  - manager_app
+  - client_app
+
+environment:
+  sdk: ^3.9.0

@@ -1,0 +1,217 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npm run build
+
+  backend-unit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test -- --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+  backend-integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: hakimi_visa_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+      - run: npm run prisma:seed
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+      - run: npm run test:e2e
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+      - run: npm ci
+      - run: npm run test -- --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: hakimi_visa_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    defaults:
+      run:
+        working-directory: ./e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - name: Install backend & frontend & e2e deps
+        run: |
+          cd ../backend && npm ci && npx prisma generate
+          cd ../frontend && npm ci
+          cd ../e2e && npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+      - name: Run database migrations
+        run: cd ../backend && npx prisma migrate deploy
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+      - name: Seed database
+        run: cd ../backend && npx ts-node prisma/seed.ts
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+      - name: Run E2E tests
+        run: npx playwright test
+        env:
+          DATABASE_URL: mysql://root:root@localhost:3306/hakimi_visa_test
+          API_URL: http://localhost:4000/api
+          BASE_URL: http://localhost:5173
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots
+          path: e2e/test-results/**/*.png
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-videos
+          path: e2e/test-results/**/*.webm
+          retention-days: 14
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run npm audit on backend
+        run: |
+          cd backend
+          npm audit --audit-level=high
+      - name: Run npm audit on frontend
+        run: |
+          cd frontend
+          npm audit --audit-level=high
+
+  coverage-report:
+    needs: [backend-unit-tests, frontend-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: coverage/backend
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/frontend
+      - name: Check coverage thresholds
+        run: |
+          echo "Backend coverage:"
+          cat coverage/backend/coverage-summary.json || echo "No summary"
+          echo "Frontend coverage:"
+          cat coverage/frontend/coverage-summary.json || echo "No summary"

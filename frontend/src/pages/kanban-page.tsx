@@ -1,0 +1,57 @@
+import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useMediaQuery } from '@/hooks';
+import { useKanbanBoard } from '@/hooks';
+import { KanbanBoard, KanbanFilters, CardDetailsDrawer } from '@/components/kanban';
+
+export function KanbanPage() {
+  const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  const {
+    columns,
+    isLoading,
+    filters,
+    setFilters,
+    activeCard,
+    selectedCard,
+    handleDragStart,
+    handleDragEnd,
+    openDrawer,
+    closeDrawer,
+    totalCards,
+  } = useKanbanBoard();
+
+  return (
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight" data-testid="page-heading">{t('nav:kanbanBoard')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('kanban:totalCases', { count: totalCards })}
+          </p>
+        </div>
+      </div>
+
+      <KanbanFilters filters={filters} onChange={setFilters} />
+
+      {isLoading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <div className={isMobile ? 'overflow-x-auto' : 'flex-1 overflow-hidden'}>
+          <KanbanBoard
+            columns={columns}
+            activeCard={activeCard}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onViewCard={openDrawer}
+          />
+        </div>
+      )}
+
+      <CardDetailsDrawer card={selectedCard} onClose={closeDrawer} />
+    </div>
+  );
+}

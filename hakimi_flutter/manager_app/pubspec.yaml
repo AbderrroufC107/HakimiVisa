@@ -1,0 +1,32 @@
+name: manager_app
+description: Hakimi Visa Manager Application
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  hakimi_shared:
+    path: ../packages/shared
+  hakimi_core:
+    path: ../packages/core
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.8.1
+  fl_chart: ^0.70.2
+  cupertino_icons: ^1.0.8
+  flutter_localizations:
+    sdk: flutter
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png

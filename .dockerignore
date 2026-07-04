@@ -1,0 +1,9 @@
+mobile
+mobile-client
+hakimi_flutter
+.git
+.vscode
+.idea
+*.log
+node_modules
+**/node_modules

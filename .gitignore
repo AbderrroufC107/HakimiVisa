@@ -1,0 +1,45 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+coverage/
+.turbo/
+.next/
+.vscode/
+.idea/
+*.iml
+
+# Flutter
+hakimi_flutter/*/build/
+hakimi_flutter/*/.dart_tool/
+hakimi_flutter/*/.flutter-plugins
+hakimi_flutter/*/.flutter-plugins-dependencies
+hakimi_flutter/*/.packages
+hakimi_flutter/*/pubspec.lock
+hakimi_flutter/*/android/.gradle/
+hakimi_flutter/*/android/app/build/
+hakimi_flutter/*/android/local.properties
+hakimi_flutter/*/ios/Pods/
+hakimi_flutter/*/ios/.symlinks/
+hakimi_flutter/*/ios/Flutter/Flutter.framework
+hakimi_flutter/*/ios/Flutter/Flutter.podspec
+hakimi_flutter/*/ios/Flutter/Generated.xcconfig
+
+# Backend
+backend/dist/
+backend/node_modules/
+backend/prisma/migrations/
+
+# Frontend
+frontend/dist/
+frontend/node_modules/
+
+# Docker
+docker/mysql-data/
+
+# Temp files
+*.tmp
