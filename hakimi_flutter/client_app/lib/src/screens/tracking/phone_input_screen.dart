@@ -37,6 +37,8 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       ref.invalidate(trackingSearchProvider(params));
       await ref.read(trackingSearchProvider(params).future);
 
+      PushNotificationService.instance.registerPhoneToken(phone);
+
       if (mounted) context.push('/tracking/results');
     } on ApiException catch (e) {
       if (mounted) context.showError(e.message);

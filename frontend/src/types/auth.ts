@@ -27,6 +27,7 @@ export interface AuthUser {
   lastName: string;
   role: UserRole;
   isActive: boolean;
+  createdAt?: string;
 }
 
 export interface LoginResponse {

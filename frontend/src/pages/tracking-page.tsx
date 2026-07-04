@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/shared/badge';
-import { Loader2, Search, Phone, FileText, Clock, MapPin, Calendar } from 'lucide-react';
+import { Loader2, Search, Phone, FileText, Clock, MapPin, Calendar, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VISA_STATUS_COLORS, type VisaStatus } from '@/types';
 import type { TrackingCase } from '@/types';
@@ -108,13 +108,19 @@ export function TrackingPage() {
   };
 
   return (
-    <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900" data-testid="tracking-heading">{t('tracking:title')}</h1>
-          <p className="mt-2 text-gray-600">{t('tracking:description')}</p>
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 animate-fade-in">
+        <div className="text-center space-y-2 pt-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+            <Search className="h-7 w-7 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="tracking-heading">
+            {t('tracking:title')}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t('tracking:description')}</p>
         </div>
 
-        <Card className="mb-8">
+        <Card>
           <CardContent className="pt-6">
             <div className="flex gap-3">
               <div className="relative flex-1">
@@ -137,8 +143,9 @@ export function TrackingPage() {
         </Card>
 
         {isLoading && (
-          <div className="flex justify-center py-12">
+          <div className="flex flex-col items-center justify-center gap-3 py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">{t('common:loading')}</p>
           </div>
         )}
 
@@ -164,7 +171,7 @@ export function TrackingPage() {
                 {searchResult.cases.map((c) => (
                   <div
                     key={c.id}
-                    className="flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-shadow hover:shadow-md"
+                    className="flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-all hover:bg-accent hover:shadow-sm"
                     onClick={() => setSelectedCase(c)}
                   >
                     <div className="min-w-0 flex-1">
@@ -185,8 +192,9 @@ export function TrackingPage() {
 
         {selectedCase && (
           <div className="space-y-4">
-            <Button variant="ghost" onClick={() => setSelectedCase(null)}>
-              ← {t('common:backToList')}
+            <Button variant="ghost" onClick={() => setSelectedCase(null)} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              {t('common:backToList')}
             </Button>
 
             {detailLoading ? (
@@ -285,6 +293,7 @@ export function TrackingPage() {
             </CardContent>
           </Card>
         )}
+      </div>
     </div>
   );
 }

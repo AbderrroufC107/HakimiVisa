@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -11,6 +11,45 @@ export class UsersService {
     private prisma: PrismaService,
     private auditLog: AuditLogService,
   ) {}
+
+  async listManagers() {
+    return this.prisma.user.findMany({
+      where: { role: UserRole.MANAGER },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async deleteManager(id: string, deletedBy: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, role: true },
+    });
+
+    if (!user || user.role !== UserRole.MANAGER) {
+      throw new NotFoundException('Manager not found');
+    }
+
+    await this.prisma.user.delete({ where: { id } });
+
+    await this.auditLog.log({
+      action: 'DELETE',
+      entity: 'User',
+      entityId: id,
+      userId: deletedBy,
+      metadata: { email: user.email, role: user.role },
+    });
+
+    return { success: true };
+  }
 
   async createManager(dto: CreateManagerDto, createdBy: string) {
     const existing = await this.prisma.user.findUnique({

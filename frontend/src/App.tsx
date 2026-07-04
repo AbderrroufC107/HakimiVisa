@@ -26,6 +26,7 @@ const SystemLogsPage = lazy(() => import('./pages/system-logs/system-logs-page')
 const AuditLogsPage = lazy(() => import('./pages/audit-logs/audit-logs-page').then((m) => ({ default: m.AuditLogsPage })));
 const PdfPrintingPage = lazy(() => import('./pages/pdf/pdf-printing-page').then((m) => ({ default: m.PdfPrintingPage })));
 const SettingsPage = lazy(() => import('./pages/settings/settings-page').then((m) => ({ default: m.SettingsPage })));
+const ManagersPage = lazy(() => import('./pages/managers/managers-page').then((m) => ({ default: m.ManagersPage })));
 
 function PageLoader() {
   return (
@@ -68,6 +69,7 @@ export function App() {
                       <Route path={ROUTES.AUDIT_LOGS} element={<AuditLogsPage />} />
                       <Route path={ROUTES.PDF} element={<PdfPrintingPage />} />
                       <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                      <Route path={ROUTES.USERS} element={<ManagersPage />} />
                       <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
                     </Route>
                   </Route>

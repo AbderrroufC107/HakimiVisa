@@ -49,6 +49,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { label: t('nav:notifications'), href: ROUTES.NOTIFICATIONS, icon: Bell },
     { label: t('nav:auditLogs'), href: ROUTES.AUDIT_LOGS, icon: ScrollText },
     { label: t('nav:pdfPrinting'), href: ROUTES.PDF, icon: FileDown },
+    { label: 'Managers', href: ROUTES.USERS, icon: Users },
     { label: t('nav:trackingPortal'), href: ROUTES.TRACKING, icon: MapPin },
     { label: t('nav:backupCenter'), href: ROUTES.BACKUP_CENTER, icon: Database },
     { label: t('nav:systemHealth'), href: ROUTES.SYSTEM_HEALTH, icon: Activity },

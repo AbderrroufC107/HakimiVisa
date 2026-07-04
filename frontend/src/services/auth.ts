@@ -35,6 +35,14 @@ export const authService = {
     return api.post<AuthUser>('/users/managers', data);
   },
 
+  async listManagers(): Promise<AuthUser[]> {
+    return api.get<AuthUser[]>('/users/managers');
+  },
+
+  async deleteManager(id: string): Promise<void> {
+    return api.delete<void>(`/users/managers/${id}`);
+  },
+
   async refreshToken(): Promise<LoginResponse> {
     const rt = getRefreshToken();
     const res = await api.post<LoginResponse>('/auth/refresh', { refreshToken: rt });
