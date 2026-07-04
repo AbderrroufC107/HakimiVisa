@@ -32,7 +32,7 @@ hakimi_flutter/*/ios/Flutter/Generated.xcconfig
 # Backend
 backend/dist/
 backend/node_modules/
-backend/prisma/migrations/
+
 
 # Frontend
 frontend/dist/
