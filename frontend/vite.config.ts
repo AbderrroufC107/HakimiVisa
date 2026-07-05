@@ -21,14 +21,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router'],
-          charts: ['recharts'],
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tooltip'],
-          query: ['@tanstack/react-query'],
-          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'vendor';
+            if (id.includes('zod') || id.includes('react-hook-form')) return 'forms';
+            if (id.includes('@tanstack')) return 'query';
+            if (id.includes('i18next')) return 'i18n';
+            return 'vendor-others';
+          }
         },
       },
     },
