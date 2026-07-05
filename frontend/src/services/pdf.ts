@@ -33,16 +33,25 @@ export const pdfService = {
       return new Promise<void>((resolve) => {
         iframe.onload = () => {
           setTimeout(() => {
-            try {
-              iframe.contentWindow?.print();
-            } finally {
+            const win = iframe.contentWindow;
+            if (!win) {
+              window.URL.revokeObjectURL(url);
+              try { document.body.removeChild(iframe); } catch {}
+              resolve();
+              return;
+            }
+
+            const cleanup = () => {
               window.URL.revokeObjectURL(url);
               setTimeout(() => {
-                document.body.removeChild(iframe);
+                try { document.body.removeChild(iframe); } catch {}
                 resolve();
-              }, 300);
-            }
-          }, 50);
+              }, 500);
+            };
+
+            win.addEventListener('afterprint', cleanup);
+            win.print();
+          }, 100);
         };
         iframe.src = url;
       });
