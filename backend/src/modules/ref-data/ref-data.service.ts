@@ -18,11 +18,11 @@ export class RefDataService {
   }
 
   async findAllVisaTypes() {
-    return this.prisma.visaTypeRecord.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.visaType.findMany({ orderBy: { name: 'asc' } });
   }
 
   async createVisaType(name: string) {
-    return this.prisma.visaTypeRecord.upsert({
+    return this.prisma.visaType.upsert({
       where: { name },
       create: { name },
       update: {},

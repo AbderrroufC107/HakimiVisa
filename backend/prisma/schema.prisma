@@ -103,11 +103,8 @@ model Client {
   passportNumber  String? @unique
   passportExpiry  DateTime?
   nationality     String?
-  passportExpiry DateTime?
-  notes         String?
-  price         Float?
-  isPaid        Boolean  @default(false)
-  createdBy     String
+  notes           String?
+  createdBy       String
   creator         User     @relation(fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -361,18 +358,4 @@ model TrackingEntry {
 
   @@index([timestamp])
   @@map("tracking_entries")
-}
-
-model Country {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  @@map("countries")
-}
-
-model VisaTypeRecord {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  @@map("visa_types")
 }
