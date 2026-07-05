@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Printer, FileText } from 'lucide-react';
+import { Search, Printer, FileText, Loader2 } from 'lucide-react';
 import { visaCasesService, pdfService } from '@/services';
 import { Badge } from '@/components/shared/badge';
 import { VISA_STATUS_COLORS } from '@/types';
@@ -11,6 +11,7 @@ import { VISA_STATUS_COLORS } from '@/types';
 export function PdfPrintingPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const [printingId, setPrintingId] = useState<string | null>(null);
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['visa-cases', { limit: 100 }],
@@ -78,8 +79,11 @@ export function PdfPrintingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="default" size="sm" onClick={() => pdfService.printBordereau(c.id)}>
-                      <Printer className="h-4 w-4 mr-1" />
+                    <Button variant="default" size="sm" disabled={printingId === c.id} onClick={async () => {
+                      setPrintingId(c.id);
+                      try { await pdfService.printBordereau(c.id); } finally { setPrintingId(null); }
+                    }}>
+                      {printingId === c.id ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Printer className="h-4 w-4 mr-1" />}
                       {t('common:print')}
                     </Button>
                   </div>

@@ -163,13 +163,19 @@ export function ClientProfilePage() {
     if (profile) copyToClipboard(profile.phoneNumber);
   }, [profile]);
 
+  const [printingId, setPrintingId] = useState<string | null>(null);
+
   const printBordereau = useCallback(async (visaCaseId: string) => {
+    if (printingId) return;
+    setPrintingId(visaCaseId);
     try {
       await pdfService.printBordereau(visaCaseId);
     } catch {
       toast.error(t('common:error'));
+    } finally {
+      setPrintingId(null);
     }
-  }, [t]);
+  }, [t, printingId]);
 
   const sortedTimeline = useMemo(() => {
     if (!timeline) return [];
@@ -507,9 +513,10 @@ export function ClientProfilePage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        disabled={printingId === vc.id}
                         onClick={() => printBordereau(vc.id)}
                       >
-                        <FileText className="h-3.5 w-3.5" />
+                        {printingId === vc.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
                       </Button>
                     </div>
                   </CardContent>

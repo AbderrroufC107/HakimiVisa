@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Clock, Printer, FileText } from 'lucide-react';
+import { ArrowLeft, Clock, Printer, FileText, Loader2 } from 'lucide-react';
 import { DetailSkeleton } from '@/components/shared';
 import { visaCasesService, pdfService, visaDetailsService, appointmentsService } from '@/services';
 import { ROUTES } from '@/constants';
@@ -23,6 +23,19 @@ export function VisaCaseDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [printing, setPrinting] = useState(false);
+
+  const handlePrint = useCallback(async () => {
+    if (!id || printing) return;
+    setPrinting(true);
+    try {
+      await pdfService.printBordereau(id);
+    } catch {
+      toast.error(t('common:error'));
+    } finally {
+      setPrinting(false);
+    }
+  }, [id, printing, t]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['visa-case', id],
@@ -102,8 +115,8 @@ export function VisaCaseDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button data-testid="bordereau-print" variant="default" size="sm" onClick={() => pdfService.printBordereau(id!)}>
-            <Printer className="h-4 w-4 mr-1" />
+          <Button data-testid="bordereau-print" variant="default" size="sm" disabled={printing} onClick={handlePrint}>
+            {printing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Printer className="h-4 w-4 mr-1" />}
             {t('common:print')}
           </Button>
         </div>
