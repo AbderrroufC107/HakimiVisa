@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { VISA_STATUS_COLORS, type VisaStatus, type EntryType } from '@/types';
 import { useTranslation } from 'react-i18next';
 
-const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE'];
+const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
@@ -24,6 +24,8 @@ export function VisaCaseDetailPage() {
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [printing, setPrinting] = useState(false);
+  const [price, setPrice] = useState<string>('');
+  const [isPaid, setIsPaid] = useState<boolean>(false);
 
   const handlePrint = useCallback(async () => {
     if (!id || printing) return;
@@ -68,6 +70,15 @@ export function VisaCaseDetailPage() {
     onError: () => toast.error(t('visaCases:updateFailed')),
   });
 
+  const priceMutation = useMutation({
+    mutationFn: (data: { price?: number; isPaid?: boolean }) => visaCasesService.update(id!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visa-case', id] });
+      toast.success(t('visaCases:caseUpdated'));
+    },
+    onError: () => toast.error(t('visaCases:updateFailed')),
+  });
+
   const createVisaDetailsMutation = useMutation({
     mutationFn: (data: { validFrom: string; validUntil: string; durationDays: number; entryType: EntryType; visaNumber?: string; notes?: string }) =>
       visaDetailsService.create(id!, data),
@@ -94,6 +105,9 @@ export function VisaCaseDetailPage() {
   if (!visaCase) {
     return <div className="py-16 text-center text-muted-foreground">{t('visaCases:caseNotFound')}</div>;
   }
+
+  const showPriceField = visaCase.currentStatus === 'RDV_OK';
+  const showPaidToggle = visaCase.currentStatus === 'VISA_OK' || visaCase.currentStatus === 'LIVREE';
 
   return (
     <div className="space-y-6">
@@ -182,6 +196,70 @@ export function VisaCaseDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {(showPriceField || showPaidToggle) && (
+        <Card>
+          <CardHeader><CardTitle>{t('visaCases:price')}</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            {showPriceField && (
+              <div className="flex items-center gap-4">
+                <div className="space-y-2 flex-1 max-w-xs">
+                  <Label htmlFor="price">{t('visaCases:price')}</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    min={0}
+                    value={price || visaCase.price?.toString() ?? ''}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const priceNum = price ? parseFloat(price) : undefined;
+                    priceMutation.mutate({ price: priceNum });
+                  }}
+                  disabled={priceMutation.isPending}
+                >
+                  {t('common:save')}
+                </Button>
+              </div>
+            )}
+            {showPaidToggle && (
+              <div className="flex items-center gap-4">
+                <div className="space-y-2">
+                  <Label>{t('visaCases:isPaid')}</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={visaCase.isPaid ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => priceMutation.mutate({ isPaid: true })}
+                      disabled={priceMutation.isPending}
+                    >
+                      {t('visaCases:isPaid')}
+                    </Button>
+                    <Button
+                      variant={!visaCase.isPaid ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => priceMutation.mutate({ isPaid: false })}
+                      disabled={priceMutation.isPending}
+                    >
+                      {t('visaCases:notPaid')}
+                    </Button>
+                  </div>
+                </div>
+                {visaCase.price != null && (
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">{t('visaCases:price')}: </span>
+                    <span className="font-medium">{visaCase.price}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {visaCase.currentStatus === 'VISA_OK' && (
         <Card>

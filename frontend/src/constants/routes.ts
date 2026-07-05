@@ -7,6 +7,7 @@ export const ROUTES = {
   VISA_CASES: '/visa-cases',
   VISA_CASES_NEW: '/visa-cases/new',
   VISA_CASES_DETAIL: (id: string) => `/visa-cases/${id}`,
+  VISA_DECISIONS: '/visa-decisions',
   KANBAN: '/kanban',
   APPOINTMENTS: '/appointments',
   NOTIFICATIONS: '/notifications',

@@ -25,6 +25,7 @@ import { SystemLogsModule } from './modules/system-logs/system-logs.module';
 import { AgencySettingsModule } from './modules/agency-settings/agency-settings.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { NotesModule } from './modules/notes/notes.module';
+import { RefDataModule } from './modules/ref-data/ref-data.module';
 import { SearchModule } from './modules/search/search.module';
 import { VisaExpirationModule } from './modules/visa-expiration/visa-expiration.module';
 import { ExcelModule } from './modules/excel/excel.module';
@@ -57,6 +58,7 @@ import configuration from './config/configuration';
     AgencySettingsModule,
     GatewayModule,
     NotesModule,
+    RefDataModule,
     VisaExpirationModule,
     ExcelModule,
     SearchModule,

@@ -46,6 +46,8 @@ export class VisaCasesService {
         visaType: dto.visaType,
         currentStatus: dto.currentStatus ?? 'EN_ATTENTE',
         notes: dto.notes,
+        price: dto.price,
+        isPaid: dto.isPaid ?? false,
         createdBy: userId,
       },
     });
@@ -85,6 +87,7 @@ export class VisaCasesService {
       where.OR = [
         { caseNumber: { contains: search } },
         { client: { fullName: { contains: search } } },
+        { client: { passportNumber: { contains: search } } },
       ];
     }
 

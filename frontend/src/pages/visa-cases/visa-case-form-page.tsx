@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { clientsService, visaCasesService } from '@/services';
+import { clientsService, visaCasesService, refDataService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const getValidationSchema = (t: (key: string) => string) =>
   z.object({
@@ -37,9 +44,29 @@ export function VisaCaseFormPage() {
   const { t } = useTranslation();
   const isEditing = !!id;
 
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientPassport, setNewClientPassport] = useState('');
+  const [newClientPassportExpiry, setNewClientPassportExpiry] = useState('');
+  const [newClientNationality, setNewClientNationality] = useState('');
+
+  const [countryInput, setCountryInput] = useState('');
+  const [visaTypeInput, setVisaTypeInput] = useState('');
+
   const { data: clientsData } = useQuery({
     queryKey: ['clients', 'all'],
     queryFn: () => clientsService.findAll({ limit: 200 }),
+  });
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ['ref-data', 'countries'],
+    queryFn: () => refDataService.getCountries(),
+  });
+
+  const { data: visaTypes = [] } = useQuery({
+    queryKey: ['ref-data', 'visa-types'],
+    queryFn: () => refDataService.getVisaTypes(),
   });
 
   const { data: existing } = useQuery({
@@ -54,10 +81,22 @@ export function VisaCaseFormPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<VisaCaseFormData>({
     resolver: zodResolver(visaCaseSchema),
   });
+
+  const watchedCountry = watch('visaCountry');
+  const watchedVisaType = watch('visaType');
+
+  useEffect(() => {
+    if (watchedCountry !== undefined) setCountryInput(watchedCountry || '');
+  }, [watchedCountry]);
+
+  useEffect(() => {
+    if (watchedVisaType !== undefined) setVisaTypeInput(watchedVisaType || '');
+  }, [watchedVisaType]);
 
   useEffect(() => {
     const clientId = searchParams.get('clientId');
@@ -75,6 +114,8 @@ export function VisaCaseFormPage() {
         visaType: vc.visaType,
         notes: vc.notes ?? '',
       });
+      setCountryInput(vc.visaCountry);
+      setVisaTypeInput(vc.visaType);
     }
   }, [existing, reset]);
 
@@ -94,12 +135,89 @@ export function VisaCaseFormPage() {
     },
   });
 
+  const addClientMutation = useMutation({
+    mutationFn: (data: { fullName: string; phoneNumber: string; passportNumber?: string; passportExpiry?: string; nationality?: string }) =>
+      clientsService.create(data),
+    onSuccess: (newClient) => {
+      queryClient.invalidateQueries({ queryKey: ['clients', 'all'] });
+      toast.success(t('clients:clientCreated'));
+      setValue('clientId', newClient.id);
+      setShowAddClient(false);
+      setNewClientName('');
+      setNewClientPhone('');
+      setNewClientPassport('');
+      setNewClientPassportExpiry('');
+      setNewClientNationality('');
+    },
+    onError: () => {
+      toast.error(t('clients:createFailed'));
+    },
+  });
+
+  const addCountryMutation = useMutation({
+    mutationFn: (name: string) => refDataService.addCountry(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ref-data', 'countries'] });
+    },
+  });
+
+  const addVisaTypeMutation = useMutation({
+    mutationFn: (name: string) => refDataService.addVisaType(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ref-data', 'visa-types'] });
+    },
+  });
+
   const onSubmit = (data: VisaCaseFormData) => {
     const cleaned = Object.fromEntries(
       Object.entries(data).filter(([_, v]) => v !== ''),
     );
     mutation.mutate(cleaned as VisaCaseFormData);
   };
+
+  const handleCountryChange = (value: string) => {
+    setCountryInput(value);
+    setValue('visaCountry', value, { shouldValidate: true });
+  };
+
+  const handleCountryBlur = async () => {
+    if (countryInput && !countries.includes(countryInput)) {
+      await addCountryMutation.mutateAsync(countryInput);
+    }
+  };
+
+  const handleVisaTypeChange = (value: string) => {
+    setVisaTypeInput(value);
+    setValue('visaType', value, { shouldValidate: true });
+  };
+
+  const handleVisaTypeBlur = async () => {
+    if (visaTypeInput && !visaTypes.includes(visaTypeInput)) {
+      await addVisaTypeMutation.mutateAsync(visaTypeInput);
+    }
+  };
+
+  const handleAddClient = () => {
+    if (!newClientName || !newClientPhone) {
+      toast.error(t('validation:clientRequired'));
+      return;
+    }
+    addClientMutation.mutate({
+      fullName: newClientName,
+      phoneNumber: newClientPhone,
+      passportNumber: newClientPassport || undefined,
+      passportExpiry: newClientPassportExpiry || undefined,
+      nationality: newClientNationality || undefined,
+    });
+  };
+
+  const filteredCountries = countryInput
+    ? countries.filter((c) => c.toLowerCase().includes(countryInput.toLowerCase()))
+    : countries;
+
+  const filteredVisaTypes = visaTypeInput
+    ? visaTypes.filter((v) => v.toLowerCase().includes(visaTypeInput.toLowerCase()))
+    : visaTypes;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -121,9 +239,20 @@ export function VisaCaseFormPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="clientId">
-                {t('clients:client')} <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="clientId">
+                  {t('clients:client')} <span className="text-destructive">*</span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddClient(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t('visaCases:addClient')}
+                </Button>
+              </div>
               <select
                 id="clientId"
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
@@ -146,7 +275,22 @@ export function VisaCaseFormPage() {
                 <Label htmlFor="visaCountry">
                   {t('visaCases:destinationCountry')} <span className="text-destructive">*</span>
                 </Label>
-                <Input id="visaCountry" {...register('visaCountry')} />
+                <div className="relative">
+                  <input
+                    id="visaCountry"
+                    type="text"
+                    list="countries-list"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+                    value={countryInput}
+                    onChange={(e) => handleCountryChange(e.target.value)}
+                    onBlur={handleCountryBlur}
+                  />
+                  <datalist id="countries-list">
+                    {filteredCountries.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
                 {errors.visaCountry && (
                   <p className="text-xs text-destructive">{errors.visaCountry.message}</p>
                 )}
@@ -155,7 +299,22 @@ export function VisaCaseFormPage() {
                 <Label htmlFor="visaType">
                   {t('visaCases:visaType')} <span className="text-destructive">*</span>
                 </Label>
-                <Input id="visaType" {...register('visaType')} />
+                <div className="relative">
+                  <input
+                    id="visaType"
+                    type="text"
+                    list="visa-types-list"
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+                    value={visaTypeInput}
+                    onChange={(e) => handleVisaTypeChange(e.target.value)}
+                    onBlur={handleVisaTypeBlur}
+                  />
+                  <datalist id="visa-types-list">
+                    {filteredVisaTypes.map((v) => (
+                      <option key={v} value={v} />
+                    ))}
+                  </datalist>
+                </div>
                 {errors.visaType && (
                   <p className="text-xs text-destructive">{errors.visaType.message}</p>
                 )}
@@ -182,6 +341,60 @@ export function VisaCaseFormPage() {
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={showAddClient} onOpenChange={setShowAddClient}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('visaCases:addClient')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t('clients:fullName')} <span className="text-destructive">*</span></Label>
+              <Input
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('clients:phone')} <span className="text-destructive">*</span></Label>
+              <Input
+                value={newClientPhone}
+                onChange={(e) => setNewClientPhone(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('clients:passportNumber')}</Label>
+              <Input
+                value={newClientPassport}
+                onChange={(e) => setNewClientPassport(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('visaCases:passportExpiry')}</Label>
+              <Input
+                type="date"
+                value={newClientPassportExpiry}
+                onChange={(e) => setNewClientPassportExpiry(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('clients:nationality')}</Label>
+              <Input
+                value={newClientNationality}
+                onChange={(e) => setNewClientNationality(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddClient(false)}>
+              {t('common:cancel')}
+            </Button>
+            <Button onClick={handleAddClient} disabled={addClientMutation.isPending}>
+              {addClientMutation.isPending ? t('common:creating') : t('common:create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

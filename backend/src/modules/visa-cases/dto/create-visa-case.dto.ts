@@ -2,6 +2,8 @@ import {
   IsString,
   IsOptional,
   IsEnum,
+  IsNumber,
+  IsBoolean,
   MinLength,
   MaxLength,
 } from 'class-validator';
@@ -30,4 +32,12 @@ export class CreateVisaCaseDto {
   @IsString()
   @MaxLength(2000)
   notes?: string;
+
+  @IsOptional()
+  @IsNumber()
+  price?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isPaid?: boolean;
 }

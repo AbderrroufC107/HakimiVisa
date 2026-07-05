@@ -20,6 +20,7 @@ enum VisaStatus {
   RDV_OK
   VISA_OK
   VISA_REFUSEE
+  LIVREE
 }
 
 enum AppointmentType {
@@ -100,9 +101,13 @@ model Client {
   whatsappNumber  String?
   email           String?
   passportNumber  String? @unique
+  passportExpiry  DateTime?
   nationality     String?
-  notes           String?
-  createdBy       String
+  passportExpiry DateTime?
+  notes         String?
+  price         Float?
+  isPaid        Boolean  @default(false)
+  createdBy     String
   creator         User     @relation(fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -126,6 +131,8 @@ model VisaCase {
   archived      Boolean    @default(false)
   openingDate   DateTime   @default(now())
   notes         String?
+  price          Float?
+  isPaid         Boolean  @default(false)
   createdBy     String
   creator       User       @relation(fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt     DateTime   @default(now())
@@ -329,6 +336,20 @@ model BackupSettings {
   @@map("backup_settings")
 }
 
+model Country {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  @@map("countries")
+}
+
+model VisaType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  @@map("visa_types")
+}
+
 model TrackingEntry {
   id        String   @id @default(cuid())
   caseNumber String  @unique
@@ -340,4 +361,18 @@ model TrackingEntry {
 
   @@index([timestamp])
   @@map("tracking_entries")
+}
+
+model Country {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  @@map("countries")
+}
+
+model VisaTypeRecord {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  @@map("visa_types")
 }

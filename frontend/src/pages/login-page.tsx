@@ -12,7 +12,7 @@ export function LoginPage() {
   const { t } = useTranslation();
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+    return <Navigate to={ROUTES.VISA_CASES} replace />;
   }
 
   const handleSubmit = async (data: LoginRequest) => {

@@ -16,6 +16,7 @@ const ClientProfilePage = lazy(() => import('./pages/clients/client-profile-page
 const VisaCasesPage = lazy(() => import('./pages/visa-cases/visa-cases-page').then((m) => ({ default: m.VisaCasesPage })));
 const VisaCaseFormPage = lazy(() => import('./pages/visa-cases/visa-case-form-page').then((m) => ({ default: m.VisaCaseFormPage })));
 const VisaCaseDetailPage = lazy(() => import('./pages/visa-cases/visa-case-detail-page').then((m) => ({ default: m.VisaCaseDetailPage })));
+const VisaDecisionsPage = lazy(() => import('./pages/visa-cases/visa-decisions-page').then((m) => ({ default: m.VisaDecisionsPage })));
 const KanbanPage = lazy(() => import('./pages/kanban-page').then((m) => ({ default: m.KanbanPage })));
 const AppointmentsPage = lazy(() => import('./pages/appointments/appointments-page').then((m) => ({ default: m.AppointmentsPage })));
 const TrackingPage = lazy(() => import('./pages/tracking-page').then((m) => ({ default: m.TrackingPage })));
@@ -60,6 +61,7 @@ export function App() {
                       <Route path={ROUTES.VISA_CASES} element={<VisaCasesPage />} />
                       <Route path={ROUTES.VISA_CASES_NEW} element={<VisaCaseFormPage />} />
                       <Route path={ROUTES.VISA_CASES_DETAIL(':id')} element={<VisaCaseDetailPage />} />
+                      <Route path={ROUTES.VISA_DECISIONS} element={<VisaDecisionsPage />} />
                       <Route path={ROUTES.KANBAN} element={<KanbanPage />} />
                       <Route path={ROUTES.APPOINTMENTS} element={<AppointmentsPage />} />
                       <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />

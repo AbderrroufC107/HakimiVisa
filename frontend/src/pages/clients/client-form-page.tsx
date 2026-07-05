@@ -32,6 +32,7 @@ export function ClientFormPage() {
     whatsappNumber: z.string().max(20).optional().or(z.literal('')),
     email: z.string().email(t('validation:emailRequired')).max(200).optional().or(z.literal('')),
     passportNumber: z.string().max(50).optional().or(z.literal('')),
+    passportExpiry: z.string().optional().or(z.literal('')),
     nationality: z.string().max(100).optional().or(z.literal('')),
     notes: z.string().max(2000).optional().or(z.literal('')),
   });
@@ -62,6 +63,7 @@ export function ClientFormPage() {
         whatsappNumber: c.whatsappNumber ?? '',
         email: c.email ?? '',
         passportNumber: c.passportNumber ?? '',
+        passportExpiry: c.passportExpiry ?? '',
         nationality: c.nationality ?? '',
         notes: c.notes ?? '',
       });
@@ -142,6 +144,10 @@ export function ClientFormPage() {
               <div className="space-y-2">
                 <Label htmlFor="passportNumber">{t('clients:passportNumber')}</Label>
                 <Input id="passportNumber" {...register('passportNumber')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="passportExpiry">{t('visaCases:passportExpiry')}</Label>
+                <Input id="passportExpiry" type="date" {...register('passportExpiry')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nationality">{t('clients:nationality')}</Label>

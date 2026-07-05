@@ -9,6 +9,7 @@ export interface Client {
   whatsappNumber: string | null;
   email: string | null;
   passportNumber: string | null;
+  passportExpiry: string | null;
   nationality: string | null;
   notes: string | null;
   createdBy: string;
@@ -95,6 +96,7 @@ export interface CreateClientRequest {
   whatsappNumber?: string;
   email?: string;
   passportNumber?: string;
+  passportExpiry?: string;
   nationality?: string;
   notes?: string;
 }

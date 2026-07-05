@@ -10,3 +10,4 @@ export { visaDetailsService } from './visa-details';
 export { notificationsService } from './notifications';
 export { searchService } from './search';
 export { bulkService } from './bulk';
+export { refDataService } from './ref-data';

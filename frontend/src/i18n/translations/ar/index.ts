@@ -72,6 +72,7 @@ export const ar = {
     dashboard: 'لوحة التحكم',
     clients: 'العملاء',
     visaCases: 'طلبات التأشيرة',
+    visaDecisions: 'قرارات التأشيرة',
     kanbanBoard: 'تتبع الملفات',
     appointments: 'المواعيد',
     notifications: 'الإشعارات',

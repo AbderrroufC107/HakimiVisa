@@ -25,6 +25,7 @@ export class ClientsService {
         email: dto.email,
         passportNumber: dto.passportNumber,
         nationality: dto.nationality,
+        passportExpiry: dto.passportExpiry ? new Date(dto.passportExpiry) : undefined,
         notes: dto.notes,
         createdBy: userId,
       },

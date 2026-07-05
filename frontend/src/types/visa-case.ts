@@ -1,4 +1,4 @@
-export type VisaStatus = 'EN_ATTENTE' | 'EN_TRAITEMENT' | 'RDV_OK' | 'VISA_OK' | 'VISA_REFUSEE';
+export type VisaStatus = 'EN_ATTENTE' | 'EN_TRAITEMENT' | 'RDV_OK' | 'VISA_OK' | 'VISA_REFUSEE' | 'LIVREE';
 
 export interface VisaCase {
   id: string;
@@ -14,6 +14,8 @@ export interface VisaCase {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  price?: number;
+  isPaid?: boolean;
   statusHistories?: StatusHistory[];
 }
 
@@ -46,6 +48,7 @@ export const VISA_STATUS_LABELS: Record<VisaStatus, string> = {
   RDV_OK: 'RDV OK',
   VISA_OK: 'VISA OK',
   VISA_REFUSEE: 'VISA Refusée',
+  LIVREE: 'Livrée',
 };
 
 export const VISA_STATUS_COLORS: Record<VisaStatus, string> = {
@@ -54,4 +57,5 @@ export const VISA_STATUS_COLORS: Record<VisaStatus, string> = {
   RDV_OK: 'bg-purple-50 text-purple-800 dark:bg-purple-950 dark:text-purple-300',
   VISA_OK: 'bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300',
   VISA_REFUSEE: 'bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-300',
+  LIVREE: 'bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-300',
 };

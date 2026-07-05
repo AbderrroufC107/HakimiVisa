@@ -20,6 +20,7 @@ import {
   Database,
   Activity,
   FileWarning,
+  CheckCircle,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { label: t('nav:dashboard'), href: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { label: t('nav:clients'), href: ROUTES.CLIENTS, icon: Users },
     { label: t('nav:visaCases'), href: ROUTES.VISA_CASES, icon: FileText },
+    { label: t('nav:visaDecisions'), href: ROUTES.VISA_DECISIONS, icon: CheckCircle },
     { label: t('nav:kanbanBoard'), href: ROUTES.KANBAN, icon: KanbanSquare },
     { label: t('nav:appointments'), href: ROUTES.APPOINTMENTS, icon: Calendar },
   ];
