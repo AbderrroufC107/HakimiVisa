@@ -36,7 +36,10 @@ export interface CreateVisaCaseRequest {
   notes?: string;
 }
 
-export type UpdateVisaCaseRequest = Partial<CreateVisaCaseRequest>;
+export interface UpdateVisaCaseRequest extends Partial<CreateVisaCaseRequest> {
+  price?: number;
+  isPaid?: boolean;
+}
 
 export interface UpdateStatusRequest {
   status: VisaStatus;

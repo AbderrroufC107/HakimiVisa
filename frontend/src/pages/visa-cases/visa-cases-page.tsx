@@ -27,7 +27,7 @@ const STATUS_TABS: { label: string; value: VisaStatus | 'ALL' | 'LIVREE' | 'LIVR
   { label: 'Livrée', value: 'LIVREE' },
 ];
 
-const LIVREE_SUB_TABS = [
+const LIVREE_SUB_TABS: { label: string; value: 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
   { label: 'Tous', value: 'LIVREE' },
   { label: 'Payée', value: 'LIVREE_PAID' },
   { label: 'Non Payée', value: 'LIVREE_UNPAID' },

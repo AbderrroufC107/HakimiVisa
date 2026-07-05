@@ -21,6 +21,7 @@ const statusColors: Record<VisaStatus, string> = {
   RDV_OK: 'bg-orange-100 text-orange-800',
   VISA_OK: 'bg-green-100 text-green-800',
   VISA_REFUSEE: 'bg-red-100 text-red-800',
+  LIVREE: 'bg-teal-100 text-teal-800',
 };
 
 function formatDate(dateStr: string, locale: string) {

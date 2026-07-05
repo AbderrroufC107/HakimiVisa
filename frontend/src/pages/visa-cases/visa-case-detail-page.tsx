@@ -25,7 +25,6 @@ export function VisaCaseDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [printing, setPrinting] = useState(false);
   const [price, setPrice] = useState<string>('');
-  const [isPaid, setIsPaid] = useState<boolean>(false);
 
   const handlePrint = useCallback(async () => {
     if (!id || printing) return;
@@ -209,7 +208,7 @@ export function VisaCaseDetailPage() {
                     id="price"
                     type="number"
                     min={0}
-                    value={price || visaCase.price?.toString() ?? ''}
+                    value={price || (visaCase.price?.toString() ?? '')}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="0"
                   />

@@ -321,6 +321,7 @@ export class VisaCasesService {
       RDV_OK: 'Rendez-vous programmé',
       VISA_OK: 'Visa accordé',
       VISA_REFUSEE: 'Visa refusé',
+      LIVREE: 'Dossier livré',
     };
     return titles[status] ?? 'Mise à jour de votre dossier';
   }
@@ -332,6 +333,7 @@ export class VisaCasesService {
       RDV_OK: 'Un rendez-vous a été programmé pour le dépôt de votre dossier.',
       VISA_OK: 'Félicitations, votre visa a été accordé.',
       VISA_REFUSEE: 'Votre demande de visa a été refusée.',
+      LIVREE: 'Votre dossier a été livré avec succès.',
     };
     return messages[status] ?? 'Le statut de votre dossier a été mis à jour.';
   }

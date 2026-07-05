@@ -8,6 +8,7 @@ const statusConfig: Record<VisaStatus, { className: string }> = {
   RDV_OK: { className: 'bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-300' },
   VISA_OK: { className: 'bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300' },
   VISA_REFUSEE: { className: 'bg-red-50 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300' },
+  LIVREE: { className: 'bg-teal-50 text-teal-800 border-teal-300 dark:bg-teal-950 dark:text-teal-300' },
 };
 
 interface StatusBadgeProps {
