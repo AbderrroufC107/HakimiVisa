@@ -127,7 +127,8 @@ class _InfoTab extends StatelessWidget {
           if (client.email != null)
             _InfoRow(icon: Icons.email, label: 'Email', value: client.email!),
           _InfoRow(icon: Icons.credit_card, label: 'Passeport', value: client.passportNumber),
-          _InfoRow(icon: Icons.flag, label: 'Nationalité', value: client.nationality),
+          if (client.nationality != null && client.nationality!.isNotEmpty)
+            _InfoRow(icon: Icons.flag, label: 'Nationalité', value: client.nationality!),
           if (client.notes != null && client.notes!.isNotEmpty)
             _InfoRow(icon: Icons.note, label: 'Notes', value: client.notes!),
           _InfoRow(

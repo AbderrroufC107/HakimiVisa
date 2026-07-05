@@ -7,7 +7,7 @@ class ClientModel {
   final String? whatsappNumber;
   final String? email;
   final String passportNumber;
-  final String nationality;
+  final String? nationality;
   final String? notes;
   final DateTime createdAt;
   final List<VisaCaseModel>? visaCases;
@@ -19,7 +19,7 @@ class ClientModel {
     this.whatsappNumber,
     this.email,
     required this.passportNumber,
-    required this.nationality,
+    this.nationality,
     this.notes,
     required this.createdAt,
     this.visaCases,
@@ -33,7 +33,7 @@ class ClientModel {
       whatsappNumber: (json['whatsapp_number'] ?? json['whatsappNumber']) as String?,
       email: json['email'] as String?,
       passportNumber: (json['passport_number'] ?? json['passportNumber'] ?? '') as String,
-      nationality: json['nationality'] as String,
+      nationality: json['nationality'] as String? ?? '',
       notes: json['notes'] as String?,
       createdAt: DateTime.parse((json['created_at'] ?? json['createdAt']) as String),
       visaCases: ((json['visa_cases'] ?? json['visaCases']) as List<dynamic>?)
