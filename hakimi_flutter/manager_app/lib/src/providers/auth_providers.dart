@@ -39,6 +39,10 @@ class AuthState {
           runtimeType == other.runtimeType &&
           status == other.status &&
           user?.id == other.user?.id &&
+          user?.firstName == other.user?.firstName &&
+          user?.lastName == other.user?.lastName &&
+          user?.email == other.user?.email &&
+          user?.role == other.user?.role &&
           error == other.error &&
           isLoading == other.isLoading;
 
@@ -84,14 +88,16 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       if (response.data != null) {
         final newUser = response.data!;
-        if (state.user?.id == newUser.id && state.status == AuthStatus.authenticated) {
-          state = state.copyWith(user: newUser);
-        } else {
-          state = AuthState(
-            status: AuthStatus.authenticated,
-            user: newUser,
-          );
+        if (state.user?.id == newUser.id &&
+            state.user?.firstName == newUser.firstName &&
+            state.user?.lastName == newUser.lastName &&
+            state.user?.email == newUser.email) {
+          return;
         }
+        state = AuthState(
+          status: AuthStatus.authenticated,
+          user: response.data,
+        );
       } else {
         state = const AuthState(status: AuthStatus.unauthenticated);
       }

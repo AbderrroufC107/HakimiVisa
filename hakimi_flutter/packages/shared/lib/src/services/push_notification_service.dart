@@ -1,54 +1,71 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/src/api/api_client.dart';
 
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+const _androidIcon = '@mipmap/ic_launcher';
+const _channelId = 'hakimi_notifications';
+const _channelName = 'Hakimi Visa Notifications';
+const _channelDesc = 'Notifications des visas, rendez-vous et messages';
 
-  final notification = message.notification;
-  if (notification == null) return;
+const _androidDetails = AndroidNotificationDetails(
+  _channelId,
+  _channelName,
+  channelDescription: _channelDesc,
+  importance: Importance.high,
+  priority: Priority.high,
+  playSound: true,
+  enableVibration: true,
+  channelShowBadge: true,
+  enableLights: true,
+);
 
+const _notificationDetails = NotificationDetails(android: _androidDetails);
+
+Future<FlutterLocalNotificationsPlugin> _initBackgroundLocalNotifications() async {
   final localNotifications = FlutterLocalNotificationsPlugin();
-
   const androidSettings = AndroidInitializationSettings(_androidIcon);
-  await localNotifications.initialize(
-    const InitializationSettings(android: androidSettings),
-  );
+  const initSettings = InitializationSettings(android: androidSettings);
+  await localNotifications.initialize(initSettings);
 
   final channel = AndroidNotificationChannel(
-    'hakimi_notifications',
-    'Hakimi Visa Notifications',
-    description: 'Notifications des visas, rendez-vous et messages',
+    _channelId,
+    _channelName,
+    description: _channelDesc,
     importance: Importance.high,
+    playSound: true,
+    enableVibration: true,
+    enableLights: true,
+    showBadge: true,
   );
   await localNotifications
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  await localNotifications.show(
-    id,
-    notification.title,
-    notification.body,
-    const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'hakimi_notifications',
-        'Hakimi Visa Notifications',
-        channelDescription: 'Notifications des visas, rendez-vous et messages',
-        importance: Importance.high,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-      ),
-    ),
-  );
+  return localNotifications;
 }
 
-const _androidIcon = '@mipmap/ic_launcher';
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+
+  final notification = message.notification;
+  if (notification == null) return;
+
+  try {
+    final localNotifications = await _initBackgroundLocalNotifications();
+    final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await localNotifications.show(
+      id,
+      notification.title,
+      notification.body,
+      _notificationDetails,
+    );
+  } catch (_) {}
+}
 
 class PushNotificationService {
   PushNotificationService._();
@@ -88,15 +105,15 @@ class PushNotificationService {
     await Firebase.initializeApp();
     _messaging = FirebaseMessaging.instance;
 
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    await _initLocalNotifications();
+
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
-
-    await _initLocalNotifications();
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     await _requestPermission();
 
@@ -154,9 +171,9 @@ class PushNotificationService {
     );
 
     final channel = AndroidNotificationChannel(
-      'hakimi_notifications',
-      'Hakimi Visa Notifications',
-      description: 'Notifications des visas, rendez-vous et messages',
+      _channelId,
+      _channelName,
+      description: _channelDesc,
       importance: Importance.high,
       playSound: true,
       enableVibration: true,
@@ -232,26 +249,13 @@ class PushNotificationService {
     if (notification == null) return;
 
     final data = message.data;
-    final androidDetails = AndroidNotificationDetails(
-      'hakimi_notifications',
-      'Hakimi Visa Notifications',
-      channelDescription: 'Notifications des visas, rendez-vous et messages',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-      channelShowBadge: true,
-      enableLights: true,
-    );
-    final details = NotificationDetails(android: androidDetails);
-
     if (_localNotifications == null) return;
     final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     _localNotifications!.show(
       id,
       notification.title,
       notification.body,
-      details,
+      _notificationDetails,
       payload: data.isNotEmpty ? _encodePayload(data) : null,
     );
   }

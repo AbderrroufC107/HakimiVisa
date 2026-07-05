@@ -33,8 +33,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               children: [
                 AvatarWidget(
-                  initials: authState.user != null
-                      ? '${authState.user!.firstName.isNotEmpty ? authState.user!.firstName[0] : '?'}${authState.user!.lastName.isNotEmpty ? authState.user!.lastName[0] : '?'}'
+                  initials: authState.user != null &&
+                          authState.user!.firstName.isNotEmpty &&
+                          authState.user!.lastName.isNotEmpty
+                      ? '${authState.user!.firstName[0]}${authState.user!.lastName[0]}'
                       : '?',
                   size: 72,
                 ),
