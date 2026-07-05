@@ -24,7 +24,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const url = API_URL ? API_URL.replace('/api', '') : 'http://localhost:4000';
+    const url = API_URL.replace('/api', '') || undefined;
     const token = getAccessToken();
     if (!token) return;
 

@@ -142,7 +142,7 @@ export function VisaCasesPage() {
       <SearchBar
         value={search}
         onChange={handleSearch}
-        placeholder={t('visaCases:searchCase')}
+        placeholder={t('visaCases:searchPlaceholder')}
       />
 
       <BulkActionToolbar
@@ -154,8 +154,8 @@ export function VisaCasesPage() {
       {!isLoading && cases.length === 0 && !search ? (
         <EmptyState
           icon={FileText}
-          title={t('visaCases:noCasesFound')}
-          description={t('visaCases:tryModifySearch')}
+          title={t('visaCases:noCases')}
+          description={t('visaCases:noCasesDesc')}
           actionLabel={t('visaCases:newCase')}
           onAction={() => navigate(ROUTES.VISA_CASES_NEW)}
         />

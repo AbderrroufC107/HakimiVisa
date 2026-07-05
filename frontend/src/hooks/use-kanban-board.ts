@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import i18next from 'i18next';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { kanbanService, visaCasesService } from '@/services';
 import type { KanbanColumn, KanbanFilters, VisaCase, VisaStatus } from '@/types';
@@ -139,7 +140,7 @@ export function useKanbanBoard() {
       if (context?.previous) {
         queryClient.setQueryData(['kanban', 'board'], context.previous);
       }
-      toast.error('Erreur lors du déplacement de la carte');
+      toast.error(i18next.t('kanban:moveError') || 'Erreur lors du déplacement de la carte');
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['kanban', 'board'] });

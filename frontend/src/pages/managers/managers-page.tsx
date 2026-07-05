@@ -52,10 +52,10 @@ export function ManagersPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => authService.deleteManager(id),
     onSuccess: () => {
-      toast.success('Manager deleted');
+      toast.success(t('settings:managerDeleted') || t('settings:managerCreated'));
       queryClient.invalidateQueries({ queryKey: ['managers'] });
     },
-    onError: () => toast.error('Failed to delete manager'),
+    onError: () => toast.error(t('settings:managerDeleteError') || t('settings:managerCreateError')),
   });
 
   const handleSubmit = (e: FormEvent) => {
@@ -68,9 +68,9 @@ export function ManagersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" data-testid="page-heading">
-            {t('nav:users') || 'Managers'}
+            {t('settings:managers') || 'Managers'}
           </h1>
-          <p className="text-sm text-muted-foreground">Manage admin managers</p>
+          <p className="text-sm text-muted-foreground">{t('settings:managersSubtitle') || 'Manage admin managers'}</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} data-testid="create-manager-btn">
           <UserPlus className="mr-2 h-4 w-4" />
@@ -86,7 +86,7 @@ export function ManagersPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
-            <p className="mt-4 text-muted-foreground">No managers found</p>
+            <p className="mt-4 text-muted-foreground">{t('settings:noManagers') || 'No managers found'}</p>
           </CardContent>
         </Card>
       ) : (
@@ -144,7 +144,7 @@ export function ManagersPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>{t('auth:firstName')}</Label>
+                <Label>{t('settings:firstName')}</Label>
                 <Input
                   value={form.firstName}
                   onChange={(e) => setForm({ ...form, firstName: e.target.value })}
@@ -152,7 +152,7 @@ export function ManagersPage() {
                 />
               </div>
               <div>
-                <Label>{t('auth:lastName')}</Label>
+                <Label>{t('settings:lastName')}</Label>
                 <Input
                   value={form.lastName}
                   onChange={(e) => setForm({ ...form, lastName: e.target.value })}
@@ -161,7 +161,7 @@ export function ManagersPage() {
               </div>
             </div>
             <div>
-              <Label>{t('auth:email')}</Label>
+              <Label>{t('settings:email')}</Label>
               <Input
                 type="email"
                 value={form.email}
@@ -170,7 +170,7 @@ export function ManagersPage() {
               />
             </div>
             <div>
-              <Label>{t('auth:password')}</Label>
+              <Label>{t('settings:password')}</Label>
               <Input
                 type="password"
                 value={form.password}

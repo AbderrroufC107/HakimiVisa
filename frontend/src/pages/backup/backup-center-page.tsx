@@ -148,7 +148,7 @@ export function BackupCenterPage() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatBytes(backup.size)}</span>
                       <span>·</span>
-                      <span>{format(new Date(backup.createdAt), 'dd/MM/yyyy HH:mm')}</span>
+                      <span>{format(new Date(backup.createdAt), 'dd/MM/yyyy HH:mm', { locale })}</span>
                       <span>·</span>
                       <span>{backup.createdBy.firstName} {backup.createdBy.lastName}</span>
                     </div>

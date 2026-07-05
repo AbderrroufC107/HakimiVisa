@@ -1,13 +1,8 @@
 import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '@/providers';
 import { ROUTES } from '@/constants';
-import { getAccessToken } from '@/services/api';
 
 export function ProtectedRoute() {
-  if (!getAccessToken()) {
-    return <Navigate to={ROUTES.LOGIN} replace />;
-  }
-
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {

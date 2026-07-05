@@ -27,7 +27,7 @@ export function ClientFormPage() {
   const isEditing = !!id;
 
   const clientSchema = z.object({
-    fullName: z.string().min(1, t('validation:lastNameRequired')).max(200),
+    fullName: z.string().min(1, t('validation:fullNameRequired')).max(200),
     phoneNumber: z.string().min(1, t('validation:phoneRequired')).max(20),
     whatsappNumber: z.string().max(20).optional().or(z.literal('')),
     email: z.string().email(t('validation:emailRequired')).max(200).optional().or(z.literal('')),

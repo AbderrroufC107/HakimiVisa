@@ -22,7 +22,7 @@ export function AuditLogsPage() {
 
   const filtered = logs.filter((log) => {
     const searchString = search.toLowerCase();
-    if (searchString && !log.entity.toLowerCase().includes(searchString) && !log.user?.firstName.toLowerCase().includes(searchString)) return false;
+    if (searchString && !log.entity.toLowerCase().includes(searchString) && !(log.user?.firstName?.toLowerCase().includes(searchString))) return false;
     if (actionFilter && log.action !== actionFilter) return false;
     return true;
   });

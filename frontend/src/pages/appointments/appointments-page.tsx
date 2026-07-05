@@ -125,7 +125,7 @@ export function AppointmentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       setShowCreateDialog(false);
-      toast.success(t('appointments:created'));
+      toast.success(t('appointments:appointmentCreated'));
     },
     onError: () => toast.error(t('appointments:createError')),
   });
@@ -134,7 +134,7 @@ export function AppointmentsPage() {
     mutationFn: (id: string) => appointmentsService.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success(t('appointments:deleted'));
+      toast.success(t('appointments:appointmentDeleted'));
     },
     onError: () => toast.error(t('appointments:deleteError')),
   });

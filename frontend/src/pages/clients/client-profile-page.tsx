@@ -169,7 +169,7 @@ export function ClientProfilePage() {
     } catch {
       toast.error(t('common:error'));
     }
-  }, []);
+  }, [t]);
 
   const sortedTimeline = useMemo(() => {
     if (!timeline) return [];
