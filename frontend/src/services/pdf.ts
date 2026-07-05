@@ -30,7 +30,7 @@ export const pdfService = {
           window.URL.revokeObjectURL(url);
           setTimeout(() => document.body.removeChild(iframe), 1000);
         }
-      }, 500);
+      }, 200);
     };
 
     iframe.src = url;
