@@ -10,53 +10,43 @@ import { readFileSync } from 'fs';
 @Injectable()
 export class PdfService {
   private readonly logger = new Logger(PdfService.name);
+  private logoBuffer: Buffer | null = null;
+  private qrCache = new Map<string, Buffer>();
+  private pdfCache = new Map<string, { buffer: Buffer; timestamp: number }>();
+  private readonly PDF_CACHE_TTL = 5 * 60 * 1000;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+    try {
+      const logoPath = join(process.cwd(), 'src', 'common', 'assets', 'logo.png');
+      this.logoBuffer = readFileSync(logoPath);
+      this.logger.log('Logo cached in memory');
+    } catch {
+      this.logger.warn('Logo not found, using text fallback');
+    }
+  }
 
   async generateBordereau(visaCaseId: string, res: Response) {
-    const visaCase = await this.prisma.visaCase.findUnique({
-      where: { id: visaCaseId },
-      include: {
-        client: true,
-        creator: { select: { id: true, firstName: true, lastName: true } },
-        appointments: { orderBy: { appointmentDate: 'asc' }, take: 1 },
-        visaDetails: true,
-      },
-    });
+    const cached = this.pdfCache.get(visaCaseId);
+    if (cached && Date.now() - cached.timestamp < this.PDF_CACHE_TTL) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="bordereau.pdf"`);
+      res.setHeader('X-Cache', 'HIT');
+      res.end(cached.buffer);
+      return;
+    }
 
-    if (!visaCase) throw new NotFoundException('Visa case not found');
+    const buffer = await this.generateBordereauBuffer(visaCaseId);
 
-    const appUrl = process.env.APP_URL || 'http://localhost:5173';
-    const qrData = `${appUrl}/tracking?case=${visaCase.caseNumber}`;
-    const qrBuffer = await QRCode.toBuffer(qrData, { width: 70, margin: 1 });
-
-    const doc = new PDFDocument({
-      size: 'A4',
-      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-      info: { Title: `Bordereau - ${visaCase.caseNumber}`, Author: 'HakimiVisa' },
-      bufferPages: false,
-      autoFirstPage: false,
-    });
+    this.pdfCache.set(visaCaseId, { buffer, timestamp: Date.now() });
+    if (this.pdfCache.size > 100) {
+      const oldest = this.pdfCache.keys().next().value!;
+      this.pdfCache.delete(oldest);
+    }
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="bordereau-${visaCase.caseNumber}.pdf"`);
-    doc.pipe(res);
-
-    doc.addPage({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 } });
-
-    this.drawHeader(doc, visaCase.caseNumber);
-    this.drawClientInfo(doc, visaCase.client);
-    this.drawVisaInfo(doc, visaCase);
-    if (visaCase.appointments.length > 0) {
-      this.drawAppointmentInfo(doc, visaCase.appointments[0]);
-    }
-    if (visaCase.visaDetails) {
-      this.drawVisaDetails(doc, visaCase.visaDetails);
-    }
-    this.drawQRCode(doc, qrBuffer);
-    this.drawFooter(doc);
-
-    doc.end();
+    res.setHeader('Content-Disposition', `inline; filename="bordereau.pdf"`);
+    res.setHeader('X-Cache', 'MISS');
+    res.end(buffer);
   }
 
   async generateBordereauBuffer(visaCaseId: string): Promise<Buffer> {
@@ -120,12 +110,10 @@ export class PdfService {
     const w = 525;
     let y = 20;
 
-    try {
-      const logoPath = join(process.cwd(), 'src', 'common', 'assets', 'logo.png');
-      const logoBuffer = readFileSync(logoPath);
-      doc.image(logoBuffer, cx + (w - 120) / 2, y, { width: 120, height: 120 });
+    if (this.logoBuffer) {
+      doc.image(this.logoBuffer, cx + (w - 120) / 2, y, { width: 120, height: 120 });
       y += 130;
-    } catch {
+    } else {
       doc.fontSize(22).font('Helvetica-Bold').fillColor('#000');
       doc.text('HAKIMI VISA', cx, y, { align: 'center', width: w });
       y += 26;
