@@ -293,6 +293,5 @@ export function TrackingPage() {
           </Card>
         )}
       </div>
-    </div>
   );
 }
