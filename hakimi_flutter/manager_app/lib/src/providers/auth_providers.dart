@@ -31,6 +31,19 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthState &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          user?.id == other.user?.id &&
+          error == other.error &&
+          isLoading == other.isLoading;
+
+  @override
+  int get hashCode => Object.hash(status, user?.id, error, isLoading);
 }
 
 class AuthNotifier extends Notifier<AuthState> {
@@ -70,15 +83,22 @@ class AuthNotifier extends Notifier<AuthState> {
         fromJsonT: (json) => UserModel.fromJson(json),
       );
       if (response.data != null) {
-        state = AuthState(
-          status: AuthStatus.authenticated,
-          user: response.data,
-        );
+        final newUser = response.data!;
+        if (state.user?.id == newUser.id && state.status == AuthStatus.authenticated) {
+          state = state.copyWith(user: newUser);
+        } else {
+          state = AuthState(
+            status: AuthStatus.authenticated,
+            user: newUser,
+          );
+        }
       } else {
         state = const AuthState(status: AuthStatus.unauthenticated);
       }
     } catch (_) {
-      state = const AuthState(status: AuthStatus.unauthenticated);
+      if (state.status != AuthStatus.authenticated) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      }
     }
   }
 

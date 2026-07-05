@@ -8,7 +8,44 @@ import 'package:hakimi_shared/src/api/api_client.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  await PushNotificationService.instance._handleBackgroundMessage(message);
+
+  final notification = message.notification;
+  if (notification == null) return;
+
+  final localNotifications = FlutterLocalNotificationsPlugin();
+
+  const androidSettings = AndroidInitializationSettings(_androidIcon);
+  await localNotifications.initialize(
+    const InitializationSettings(android: androidSettings),
+  );
+
+  final channel = AndroidNotificationChannel(
+    'hakimi_notifications',
+    'Hakimi Visa Notifications',
+    description: 'Notifications des visas, rendez-vous et messages',
+    importance: Importance.high,
+  );
+  await localNotifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  await localNotifications.show(
+    id,
+    notification.title,
+    notification.body,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'hakimi_notifications',
+        'Hakimi Visa Notifications',
+        channelDescription: 'Notifications des visas, rendez-vous et messages',
+        importance: Importance.high,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+    ),
+  );
 }
 
 const _androidIcon = '@mipmap/ic_launcher';
@@ -50,7 +87,16 @@ class PushNotificationService {
 
     await Firebase.initializeApp();
     _messaging = FirebaseMessaging.instance;
+
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     await _initLocalNotifications();
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     await _requestPermission();
 
@@ -74,8 +120,6 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationOpenedApp);
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
@@ -175,11 +219,6 @@ class PushNotificationService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     _notificationController.add(message);
-    _showLocalNotification(message);
-  }
-
-  Future<void> _handleBackgroundMessage(RemoteMessage message) async {
-    await _initLocalNotifications();
     _showLocalNotification(message);
   }
 

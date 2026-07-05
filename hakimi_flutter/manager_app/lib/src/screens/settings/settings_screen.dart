@@ -16,7 +16,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(authStateProvider.notifier).refreshProfile());
   }
 
   @override
@@ -35,7 +34,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 AvatarWidget(
                   initials: authState.user != null
-                      ? '${authState.user!.firstName[0]}${authState.user!.lastName[0]}'
+                      ? '${authState.user!.firstName.isNotEmpty ? authState.user!.firstName[0] : '?'}${authState.user!.lastName.isNotEmpty ? authState.user!.lastName[0] : '?'}'
                       : '?',
                   size: 72,
                 ),
