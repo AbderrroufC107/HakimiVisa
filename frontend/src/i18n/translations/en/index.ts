@@ -65,6 +65,7 @@ export const en = {
     past: 'Past',
     completed: 'Completed',
     failed: 'Failed',
+    newDossier: 'New File',
   },
   nav: {
     main: 'Main',
@@ -172,6 +173,10 @@ export const en = {
     avgDaysLabel: 'Avg Days',
     upcomingAppointments: 'Upcoming Appointments',
     pastAppointments: 'Past',
+    paid: 'Paid',
+    unpaid: 'Unpaid',
+    markPaid: 'Mark Paid',
+    markUnpaid: 'Mark Unpaid',
     pastAppointmentsDesc: 'Completed appointments',
     noUpcoming: 'No upcoming appointments',
     noPast: 'No past appointments',
@@ -298,6 +303,8 @@ export const en = {
     moveError: 'Error moving card',
     fullName: 'Full name',
     phone: 'Phone',
+    back: 'Back',
+    next: 'Next',
   },
   appointments: {
     title: 'Appointments',

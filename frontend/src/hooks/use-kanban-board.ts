@@ -181,6 +181,50 @@ export function useKanbanBoard() {
     setSelectedCard(null);
   }, []);
 
+  const moveCard = useCallback(
+    (caseId: string, newStatus: VisaStatus) => {
+      statusMutation.mutate({ id: caseId, status: newStatus });
+    },
+    [statusMutation],
+  );
+
+  const togglePaidMutation = useMutation({
+    mutationFn: ({ id, isPaid }: { id: string; isPaid: boolean }) =>
+      visaCasesService.update(id, { isPaid }),
+    onMutate: async ({ id, isPaid }) => {
+      await queryClient.cancelQueries({ queryKey: ['kanban', 'board'] });
+      const previous = queryClient.getQueryData<KanbanColumn[]>(['kanban', 'board']);
+
+      queryClient.setQueryData<KanbanColumn[]>(['kanban', 'board'], (old) => {
+        if (!old) return old;
+        return old.map((col) => ({
+          ...col,
+          cards: col.cards.map((c) =>
+            c.id === id ? { ...c, isPaid } : c,
+          ),
+        }));
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['kanban', 'board'], context.previous);
+      }
+      toast.error(i18next.t('kanban:moveError') || 'Erreur lors de la mise a jour');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['kanban', 'board'] });
+    },
+  });
+
+  const togglePaid = useCallback(
+    (caseId: string, isPaid: boolean) => {
+      togglePaidMutation.mutate({ id: caseId, isPaid });
+    },
+    [togglePaidMutation],
+  );
+
   return {
     columns: filteredColumns,
     isLoading,
@@ -192,6 +236,8 @@ export function useKanbanBoard() {
     handleDragEnd,
     openDrawer,
     closeDrawer,
+    moveCard,
+    togglePaid,
     totalCards: sortedColumns.reduce((sum, col) => sum + col.count, 0),
   };
 }

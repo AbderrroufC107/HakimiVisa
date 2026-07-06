@@ -65,6 +65,7 @@ export const ar = {
     past: 'السابقة',
     completed: 'مكتمل',
     failed: 'فشل',
+    newDossier: 'ملف جديد',
   },
   nav: {
     main: 'الرئيسية',
@@ -222,6 +223,10 @@ export const ar = {
     files: 'الملفات',
     phone: 'الهاتف',
     passport: 'جواز السفر',
+    paid: 'مدفوع',
+    unpaid: 'غير مدفوع',
+    markPaid: 'تحديد كمدفوع',
+    markUnpaid: 'تحديد كغير مدفوع',
   },
   visaCases: {
     title: 'طلبات التأشيرة',
@@ -311,6 +316,8 @@ export const ar = {
     moveError: 'خطأ في نقل البطاقة',
     fullName: 'الاسم الكامل',
     phone: 'الهاتف',
+    back: 'رجوع',
+    next: 'التالي',
   },
   appointments: {
     title: 'المواعيد',

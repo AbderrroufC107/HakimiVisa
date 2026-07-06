@@ -1,7 +1,7 @@
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import { KanbanColumn } from './kanban-column';
 import { VisaCaseCard } from './visa-case-card';
-import type { KanbanColumn as KanbanColumnType, VisaCase } from '@/types';
+import type { KanbanColumn as KanbanColumnType, VisaCase, VisaStatus } from '@/types';
 
 interface KanbanBoardProps {
   columns: KanbanColumnType[];
@@ -9,6 +9,8 @@ interface KanbanBoardProps {
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
   onViewCard: (card: VisaCase) => void;
+  onMoveCard: (caseId: string, newStatus: VisaStatus) => void;
+  onTogglePaid?: (caseId: string, isPaid: boolean) => void;
 }
 
 export function KanbanBoard({
@@ -17,6 +19,8 @@ export function KanbanBoard({
   onDragStart,
   onDragEnd,
   onViewCard,
+  onMoveCard,
+  onTogglePaid,
 }: KanbanBoardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -38,6 +42,8 @@ export function KanbanBoard({
             key={column.id}
             column={column}
             onViewCard={onViewCard}
+            onMoveCard={onMoveCard}
+            onTogglePaid={onTogglePaid}
           />
         ))}
       </div>
@@ -45,7 +51,7 @@ export function KanbanBoard({
       <DragOverlay>
         {activeCard && (
           <div className="w-72 rotate-3 opacity-90">
-            <VisaCaseCard card={activeCard} onView={() => {}} />
+            <VisaCaseCard card={activeCard} onView={() => {}} onMove={() => {}} />
           </div>
         )}
       </DragOverlay>

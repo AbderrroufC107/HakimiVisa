@@ -3,17 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { useDroppable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 import { VisaCaseCard } from './visa-case-card';
-import type { KanbanColumn as KanbanColumnType } from '@/types';
-import type { VisaCase } from '@/types';
+import type { KanbanColumn as KanbanColumnType, VisaCase, VisaStatus } from '@/types';
 
 interface KanbanColumnProps {
   column: KanbanColumnType;
   onViewCard: (card: VisaCase) => void;
+  onMoveCard: (caseId: string, newStatus: VisaStatus) => void;
+  onTogglePaid?: (caseId: string, isPaid: boolean) => void;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
   column,
   onViewCard,
+  onMoveCard,
+  onTogglePaid,
 }: KanbanColumnProps) {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({
@@ -51,7 +54,13 @@ export const KanbanColumn = memo(function KanbanColumn({
           </p>
         )}
         {column.cards.map((card) => (
-          <VisaCaseCard key={card.id} card={card} onView={onViewCard} />
+          <VisaCaseCard
+            key={card.id}
+            card={card}
+            onView={onViewCard}
+            onMove={onMoveCard}
+            onTogglePaid={onTogglePaid}
+          />
         ))}
       </div>
     </div>

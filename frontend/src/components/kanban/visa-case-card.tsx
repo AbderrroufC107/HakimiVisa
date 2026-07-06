@@ -4,12 +4,16 @@ import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/shared/badge';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Eye } from 'lucide-react';
+import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign } from 'lucide-react';
 import type { VisaCase, VisaStatus } from '@/types';
+
+const COLUMN_FLOW: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
 
 interface VisaCaseCardProps {
   card: VisaCase;
   onView: (card: VisaCase) => void;
+  onMove: (caseId: string, newStatus: VisaStatus) => void;
+  onTogglePaid?: (caseId: string, isPaid: boolean) => void;
 }
 
 function formatDate(dateStr: string, locale: string) {
@@ -32,6 +36,8 @@ const statusBadgeColors: Record<VisaStatus, string> = {
 export const VisaCaseCard = memo(function VisaCaseCard({
   card,
   onView,
+  onMove,
+  onTogglePaid,
 }: VisaCaseCardProps) {
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language?.replace('_', '-') ?? 'en-US';
@@ -51,6 +57,14 @@ export const VisaCaseCard = memo(function VisaCaseCard({
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
       }
     : undefined;
+
+  const currentIndex = COLUMN_FLOW.indexOf(card.currentStatus);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex >= 0 && currentIndex < COLUMN_FLOW.length - 1;
+  const prevStatus = hasPrev ? COLUMN_FLOW[currentIndex - 1] : null;
+  const nextStatus = hasNext ? COLUMN_FLOW[currentIndex + 1] : null;
+  const isLivree = card.currentStatus === 'LIVREE';
+  const isRdvOk = card.currentStatus === 'RDV_OK';
 
   return (
     <div
@@ -113,9 +127,82 @@ export const VisaCaseCard = memo(function VisaCaseCard({
         </Badge>
       </div>
 
+      {isRdvOk && card.price != null && card.price > 0 && (
+        <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-orange-700">
+          <CircleDollarSign className="h-3.5 w-3.5" />
+          <span>{card.price.toLocaleString()} DA</span>
+          {card.isPaid && (
+            <Badge className="ml-1 bg-green-100 text-green-700 text-[10px]">{t('clients:paid')}</Badge>
+          )}
+          {!card.isPaid && (
+            <Badge className="ml-1 bg-red-100 text-red-700 text-[10px]">{t('clients:unpaid')}</Badge>
+          )}
+        </div>
+      )}
+
+      {isLivree && (
+        <div className="mt-2 flex items-center gap-1.5">
+          {card.isPaid ? (
+            <Badge className="bg-green-100 text-green-700 text-[10px]">
+              <CheckCircle2 className="mr-0.5 h-3 w-3" />
+              {t('clients:paid')}
+            </Badge>
+          ) : (
+            <Badge className="bg-red-100 text-red-700 text-[10px]">
+              <CircleDollarSign className="mr-0.5 h-3 w-3" />
+              {t('clients:unpaid')}
+            </Badge>
+          )}
+          {onTogglePaid && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-5 px-1.5 text-[10px]"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePaid(card.id, !card.isPaid);
+              }}
+            >
+              {card.isPaid ? t('clients:markUnpaid') : t('clients:markPaid')}
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
         <span>{t('kanban:opened') + ':'} {formatDate(card.openingDate, dateLocale)}</span>
         <span>{t('kanban:updated') + ':'} {formatDate(card.updatedAt, dateLocale)}</span>
+      </div>
+
+      <div className="mt-2 flex items-center gap-1">
+        {hasPrev && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-6 flex-1 text-[10px] px-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMove(card.id, prevStatus!);
+            }}
+          >
+            <ChevronLeft className="h-3 w-3 mr-0.5" />
+            {t('kanban:back')}
+          </Button>
+        )}
+        {hasNext && (
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("h-6 flex-1 text-[10px] px-1", !hasPrev && "ml-auto")}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMove(card.id, nextStatus!);
+            }}
+          >
+            {t('kanban:next')}
+            <ChevronRight className="h-3 w-3 ml-0.5" />
+          </Button>
+        )}
       </div>
     </div>
   );

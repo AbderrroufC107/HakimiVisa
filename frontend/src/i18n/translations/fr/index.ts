@@ -65,6 +65,7 @@ export const fr = {
     past: 'Passé',
     completed: 'Terminé',
     failed: 'Échoué',
+    newDossier: 'Nouveau dossier',
   },
   nav: {
     main: 'Principal',
@@ -193,6 +194,10 @@ export const fr = {
     avgDaysLabel: 'Jours moy.',
     upcomingAppointments: 'Prochains rendez-vous',
     pastAppointments: 'Passés',
+    paid: 'Payé',
+    unpaid: 'Impayé',
+    markPaid: 'Marquer payé',
+    markUnpaid: 'Marquer impayé',
     pastAppointmentsDesc: 'Rendez-vous terminés',
     noUpcoming: 'Aucun rendez-vous à venir',
     noPast: 'Aucun rendez-vous passé',
@@ -319,6 +324,8 @@ export const fr = {
     moveError: 'Erreur lors du déplacement de la carte',
     fullName: 'Nom complet',
     phone: 'Téléphone',
+    back: 'Retour',
+    next: 'Suivant',
   },
   appointments: {
     title: 'Rendez-vous',
