@@ -68,7 +68,7 @@ export class FilesController {
     }
     res.set({
       'Content-Type': file.mimeType,
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+      'Content-Disposition': `inline; filename="${encodeURIComponent(file.originalName)}"`,
     });
     fs.createReadStream(file.path).pipe(res);
   }
