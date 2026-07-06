@@ -105,7 +105,7 @@ export function VisaCaseDetailPage() {
     return <div className="py-16 text-center text-muted-foreground">{t('visaCases:caseNotFound')}</div>;
   }
 
-  const showPriceField = visaCase.currentStatus === 'RDV_OK';
+  const showPriceField = visaCase.currentStatus === 'RDV_OK' || (visaCase.price != null && visaCase.price > 0);
   const showPaidToggle = visaCase.currentStatus === 'VISA_OK' || visaCase.currentStatus === 'LIVREE';
 
   return (

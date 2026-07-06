@@ -130,6 +130,14 @@ export function VisaCasesPage() {
       ),
     },
     {
+      header: t('visaCases:price'),
+      accessor: (vc) => vc.price != null && vc.price > 0 ? (
+        <span className="text-sm font-medium">{vc.price} {vc.isPaid ? '✅' : '⏳'}</span>
+      ) : (
+        <span className="text-xs text-muted-foreground">—</span>
+      ),
+    },
+    {
       header: t('common:createdAt'),
       accessor: (vc) =>
         new Date(vc.createdAt).toLocaleDateString(),
