@@ -51,6 +51,12 @@ export function VisaCaseFormPage() {
   const [newClientPassportExpiry, setNewClientPassportExpiry] = useState('');
   const [newClientNationality, setNewClientNationality] = useState('');
 
+  const [showAddCountry, setShowAddCountry] = useState(false);
+  const [newCountryName, setNewCountryName] = useState('');
+
+  const [showAddVisaType, setShowAddVisaType] = useState(false);
+  const [newVisaTypeName, setNewVisaTypeName] = useState('');
+
   const [countryInput, setCountryInput] = useState('');
   const [visaTypeInput, setVisaTypeInput] = useState('');
 
@@ -156,15 +162,31 @@ export function VisaCaseFormPage() {
 
   const addCountryMutation = useMutation({
     mutationFn: (name: string) => refDataService.addCountry(name),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ref-data', 'countries'] });
+      toast.success(t('visaCases:countryAdded'));
+      setCountryInput(variables);
+      setValue('visaCountry', variables, { shouldValidate: true });
+      setShowAddCountry(false);
+      setNewCountryName('');
+    },
+    onError: () => {
+      toast.error(t('visaCases:addCountryFailed'));
     },
   });
 
   const addVisaTypeMutation = useMutation({
     mutationFn: (name: string) => refDataService.addVisaType(name),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ref-data', 'visa-types'] });
+      toast.success(t('visaCases:visaTypeAdded'));
+      setVisaTypeInput(variables);
+      setValue('visaType', variables, { shouldValidate: true });
+      setShowAddVisaType(false);
+      setNewVisaTypeName('');
+    },
+    onError: () => {
+      toast.error(t('visaCases:addVisaTypeFailed'));
     },
   });
 
@@ -180,35 +202,9 @@ export function VisaCaseFormPage() {
     setValue('visaCountry', value, { shouldValidate: true });
   };
 
-  const handleCountryBlur = async () => {
-    if (countryInput && !countries.includes(countryInput)) {
-      await addCountryMutation.mutateAsync(countryInput);
-    }
-  };
-
   const handleVisaTypeChange = (value: string) => {
     setVisaTypeInput(value);
     setValue('visaType', value, { shouldValidate: true });
-  };
-
-  const handleVisaTypeBlur = async () => {
-    if (visaTypeInput && !visaTypes.includes(visaTypeInput)) {
-      await addVisaTypeMutation.mutateAsync(visaTypeInput);
-    }
-  };
-
-  const handleAddClient = () => {
-    if (!newClientName || !newClientPhone) {
-      toast.error(t('validation:clientRequired'));
-      return;
-    }
-    addClientMutation.mutate({
-      fullName: newClientName,
-      phoneNumber: newClientPhone,
-      passportNumber: newClientPassport || undefined,
-      passportExpiry: newClientPassportExpiry || undefined,
-      nationality: newClientNationality || undefined,
-    });
   };
 
   const filteredCountries = countryInput
@@ -245,11 +241,12 @@ export function VisaCaseFormPage() {
                 </Label>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
+                  className="h-7 text-xs"
                   onClick={() => setShowAddClient(true)}
                 >
-                  <Plus className="h-4 w-4 mr-1" />
+                  <Plus className="h-3.5 w-3.5 mr-1" />
                   {t('visaCases:addClient')}
                 </Button>
               </div>
@@ -272,9 +269,21 @@ export function VisaCaseFormPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="visaCountry">
-                  {t('visaCases:destinationCountry')} <span className="text-destructive">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="visaCountry">
+                    {t('visaCases:destinationCountry')} <span className="text-destructive">*</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowAddCountry(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    {t('visaCases:addCountry')}
+                  </Button>
+                </div>
                 <div className="relative">
                   <input
                     id="visaCountry"
@@ -283,7 +292,6 @@ export function VisaCaseFormPage() {
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
                     value={countryInput}
                     onChange={(e) => handleCountryChange(e.target.value)}
-                    onBlur={handleCountryBlur}
                   />
                   <datalist id="countries-list">
                     {filteredCountries.map((c) => (
@@ -296,9 +304,21 @@ export function VisaCaseFormPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="visaType">
-                  {t('visaCases:visaType')} <span className="text-destructive">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="visaType">
+                    {t('visaCases:visaType')} <span className="text-destructive">*</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setShowAddVisaType(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    {t('visaCases:addVisaType')}
+                  </Button>
+                </div>
                 <div className="relative">
                   <input
                     id="visaType"
@@ -307,7 +327,6 @@ export function VisaCaseFormPage() {
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
                     value={visaTypeInput}
                     onChange={(e) => handleVisaTypeChange(e.target.value)}
-                    onBlur={handleVisaTypeBlur}
                   />
                   <datalist id="visa-types-list">
                     {filteredVisaTypes.map((v) => (
@@ -356,7 +375,7 @@ export function VisaCaseFormPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>{t('clients:phone')} <span className="text-destructive">*</span></Label>
+              <Label>{t('clients:phoneNumber')} <span className="text-destructive">*</span></Label>
               <Input
                 value={newClientPhone}
                 onChange={(e) => setNewClientPhone(e.target.value)}
@@ -389,8 +408,84 @@ export function VisaCaseFormPage() {
             <Button variant="outline" onClick={() => setShowAddClient(false)}>
               {t('common:cancel')}
             </Button>
-            <Button onClick={handleAddClient} disabled={addClientMutation.isPending}>
+            <Button onClick={() => {
+              if (!newClientName || !newClientPhone) {
+                toast.error(t('validation:clientRequired'));
+                return;
+              }
+              addClientMutation.mutate({
+                fullName: newClientName,
+                phoneNumber: newClientPhone,
+                passportNumber: newClientPassport || undefined,
+                passportExpiry: newClientPassportExpiry || undefined,
+                nationality: newClientNationality || undefined,
+              });
+            }} disabled={addClientMutation.isPending}>
               {addClientMutation.isPending ? t('common:creating') : t('common:create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddCountry} onOpenChange={setShowAddCountry}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('visaCases:addCountry')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t('visaCases:destinationCountry')} <span className="text-destructive">*</span></Label>
+              <Input
+                value={newCountryName}
+                onChange={(e) => setNewCountryName(e.target.value)}
+                placeholder={t('visaCases:countryPlaceholder')}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddCountry(false)}>
+              {t('common:cancel')}
+            </Button>
+            <Button onClick={() => {
+              if (!newCountryName.trim()) {
+                toast.error(t('validation:countryRequired'));
+                return;
+              }
+              addCountryMutation.mutate(newCountryName.trim());
+            }} disabled={addCountryMutation.isPending}>
+              {addCountryMutation.isPending ? t('common:creating') : t('common:create')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAddVisaType} onOpenChange={setShowAddVisaType}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('visaCases:addVisaType')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t('visaCases:visaType')} <span className="text-destructive">*</span></Label>
+              <Input
+                value={newVisaTypeName}
+                onChange={(e) => setNewVisaTypeName(e.target.value)}
+                placeholder={t('visaCases:visaTypePlaceholder')}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddVisaType(false)}>
+              {t('common:cancel')}
+            </Button>
+            <Button onClick={() => {
+              if (!newVisaTypeName.trim()) {
+                toast.error(t('validation:visaTypeRequired'));
+                return;
+              }
+              addVisaTypeMutation.mutate(newVisaTypeName.trim());
+            }} disabled={addVisaTypeMutation.isPending}>
+              {addVisaTypeMutation.isPending ? t('common:creating') : t('common:create')}
             </Button>
           </DialogFooter>
         </DialogContent>
