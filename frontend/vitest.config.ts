@@ -13,6 +13,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    exclude: ['**/e2e-auth-redirect.test.mjs', '**/node_modules/**'],
     css: false,
     coverage: {
       provider: 'v8',

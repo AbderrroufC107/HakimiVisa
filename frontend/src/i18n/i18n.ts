@@ -46,6 +46,8 @@ i18next
     fallbackLng: DEFAULT_LANG,
     interpolation: {
       escapeValue: false,
+      prefix: '{',
+      suffix: '}',
     },
     detection: {
       order: ['localStorage', 'navigator'],

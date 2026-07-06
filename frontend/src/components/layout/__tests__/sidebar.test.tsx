@@ -59,7 +59,7 @@ describe('Sidebar', () => {
     const onToggle = vi.fn();
     const user = userEvent.setup();
     render(<Sidebar collapsed={false} onToggle={onToggle} />);
-    const toggleBtn = screen.getByRole('button', { name: 'Fermer le menu' });
+    const toggleBtn = screen.getByRole('button', { name: 'Collapse menu' });
     await user.click(toggleBtn);
     expect(onToggle).toHaveBeenCalledOnce();
   });

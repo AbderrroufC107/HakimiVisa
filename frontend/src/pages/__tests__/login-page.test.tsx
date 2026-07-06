@@ -28,7 +28,7 @@ describe('LoginPage', () => {
 
   it('renders login form with branding', () => {
     render(<LoginPage />);
-    expect(screen.getByText('Hakimi Visa')).toBeInTheDocument();
+    expect(screen.getByText('Hakimi Visa Services')).toBeInTheDocument();
     expect(screen.getByText('Visa Management Solutions')).toBeInTheDocument();
     expect(screen.getByText('Welcome back')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();

@@ -36,7 +36,7 @@ export const pdfService = {
             const win = iframe.contentWindow;
             if (!win) {
               window.URL.revokeObjectURL(url);
-              try { document.body.removeChild(iframe); } catch {}
+              try { document.body.removeChild(iframe); } catch { /* ignore */ }
               resolve();
               return;
             }
@@ -44,7 +44,7 @@ export const pdfService = {
             const cleanup = () => {
               window.URL.revokeObjectURL(url);
               setTimeout(() => {
-                try { document.body.removeChild(iframe); } catch {}
+                try { document.body.removeChild(iframe); } catch { /* ignore */ }
                 resolve();
               }, 500);
             };

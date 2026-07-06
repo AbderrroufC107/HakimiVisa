@@ -1,6 +1,7 @@
 import { render, type RenderOptions } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { type ReactElement } from 'react';
+import '@/i18n/i18n';
 
 function AllProviders({ children }: { children: React.ReactNode }) {
   return (

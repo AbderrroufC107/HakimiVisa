@@ -72,7 +72,7 @@ describe('DataTable', () => {
         onPageChange={onPageChange}
       />,
     );
-    expect(screen.getByText('30')).toBeInTheDocument();
+    expect(screen.getByText('30 total results')).toBeInTheDocument();
     expect(screen.getByLabelText('Previous page')).toBeInTheDocument();
     expect(screen.getByLabelText('Next page')).toBeInTheDocument();
     expect(screen.getByLabelText('Page 1')).toBeInTheDocument();
