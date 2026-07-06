@@ -17,7 +17,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('Files')
-@Controller('api/clients/:clientId/files')
+@Controller('clients/:clientId/files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
