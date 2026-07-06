@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@/constants';
-import { Bell, LogOut, Moon, Settings, Sun, User, CheckCheck, Search, Users, FileText, Calendar } from 'lucide-react';
+import { Bell, LogOut, Moon, Plus, Settings, Sun, User, CheckCheck, Search, Users, FileText, Calendar } from 'lucide-react';
 import type { Notification } from '@/types';
 
 export function Navbar() {
@@ -223,6 +223,15 @@ export function Navbar() {
           </div>
         )}
       </div>
+
+      <Button
+        size="sm"
+        onClick={() => navigate(ROUTES.VISA_CASES_NEW)}
+        className="shrink-0"
+      >
+        <Plus className="h-4 w-4 mr-1" />
+        {t('common:newDossier')}
+      </Button>
 
       <Button
         variant="ghost"

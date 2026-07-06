@@ -1,15 +1,11 @@
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
 import { useMediaQuery } from '@/hooks';
 import { useKanbanBoard } from '@/hooks';
-import { ROUTES } from '@/constants';
-import { Button } from '@/components/ui/button';
 import { KanbanBoard, KanbanFilters, CardDetailsDrawer } from '@/components/kanban';
 
 export function KanbanPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   const {
@@ -37,10 +33,6 @@ export function KanbanPage() {
             {t('kanban:totalCases', { count: totalCards })}
           </p>
         </div>
-        <Button onClick={() => navigate(ROUTES.VISA_CASES_NEW)}>
-          <Plus className="h-4 w-4 mr-1" />
-          {t('common:newDossier')}
-        </Button>
       </div>
 
       <KanbanFilters filters={filters} onChange={setFilters} />
