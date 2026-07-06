@@ -22,8 +22,6 @@ const STATUS_TABS: { label: string; value: VisaStatus | 'ALL' | 'LIVREE' | 'LIVR
   { label: 'En attente', value: 'EN_ATTENTE' },
   { label: 'En traitement', value: 'EN_TRAITEMENT' },
   { label: 'RDV OK', value: 'RDV_OK' },
-  { label: 'Visa OK', value: 'VISA_OK' },
-  { label: 'Visa Refusée', value: 'VISA_REFUSEE' },
   { label: 'Livrée', value: 'LIVREE' },
 ];
 
