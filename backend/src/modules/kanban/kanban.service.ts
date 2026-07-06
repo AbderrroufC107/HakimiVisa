@@ -58,8 +58,7 @@ export class KanbanService {
       EN_ATTENTE: [],
       EN_TRAITEMENT: [],
       RDV_OK: [],
-      VISA_OK: [],
-      VISA_REFUSEE: [],
+      LIVREE: [],
     };
 
     for (const c of cases) {
@@ -75,16 +74,14 @@ export class KanbanService {
       EN_ATTENTE: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       EN_TRAITEMENT: 'bg-blue-100 text-blue-800 border-blue-300',
       RDV_OK: 'bg-orange-100 text-orange-800 border-orange-300',
-      VISA_OK: 'bg-green-100 text-green-800 border-green-300',
-      VISA_REFUSEE: 'bg-red-100 text-red-800 border-red-300',
+      LIVREE: 'bg-teal-100 text-teal-800 border-teal-300',
     };
 
     const columnLabels: Record<string, string> = {
       EN_ATTENTE: 'En Attente',
       EN_TRAITEMENT: 'En Traitement',
       RDV_OK: 'RDV OK',
-      VISA_OK: 'VISA OK',
-      VISA_REFUSEE: 'VISA Refusée',
+      LIVREE: 'Livrée',
     };
 
     const columns = Object.entries(grouped).map(([id, cards]) => ({
