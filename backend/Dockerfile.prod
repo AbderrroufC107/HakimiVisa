@@ -11,7 +11,7 @@ COPY src ./src/
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
-RUN npm ci && npx prisma generate && npm run build
+RUN npm install && npx prisma generate && npm run build
 
 RUN chown -R node:node /app
 
