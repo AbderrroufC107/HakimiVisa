@@ -245,6 +245,27 @@ export function ClientProfilePage() {
     setPreviewUrl(null);
   }, [previewUrl]);
 
+  const handleDownloadFile = useCallback(async (fileId: string, fileName: string) => {
+    try {
+      const token = localStorage.getItem('hakimi-token');
+      const res = await fetch(filesService.getDownloadUrl(id!, fileId), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t('common:error'));
+    }
+  }, [id, t]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -946,11 +967,9 @@ export function ClientProfilePage() {
                               variant="ghost"
                               size="icon"
                               className="shrink-0"
-                              asChild
+                              onClick={() => handleDownloadFile(file.id, file.originalName)}
                             >
-                              <a href={filesService.getDownloadUrl(id!, file.id)} download>
-                                <Download className="h-3.5 w-3.5" />
-                              </a>
+                              <Download className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
