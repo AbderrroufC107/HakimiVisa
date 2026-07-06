@@ -39,6 +39,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/secrets:/app/secrets:ro
+      - client_uploads:/app/uploads
     networks:
       - hakimi
 
@@ -68,3 +69,4 @@ networks:
 
 volumes:
   mysql_data:
+  client_uploads:

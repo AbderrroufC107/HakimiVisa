@@ -29,6 +29,7 @@ import { RefDataModule } from './modules/ref-data/ref-data.module';
 import { SearchModule } from './modules/search/search.module';
 import { VisaExpirationModule } from './modules/visa-expiration/visa-expiration.module';
 import { ExcelModule } from './modules/excel/excel.module';
+import { FilesModule } from './modules/files/files.module';
 import { LoggerModule } from './logger/logger.module';
 import configuration from './config/configuration';
 
@@ -61,6 +62,7 @@ import configuration from './config/configuration';
     RefDataModule,
     VisaExpirationModule,
     ExcelModule,
+    FilesModule,
     SearchModule,
     AuditLogsModule,
     PdfModule,

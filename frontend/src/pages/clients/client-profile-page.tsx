@@ -22,8 +22,13 @@ import {
   XCircle,
   Loader2,
   Send,
+  Upload,
+  Download,
+  Image,
+  File,
 } from 'lucide-react';
-import { clientsService, pdfService } from '@/services';
+import { clientsService, pdfService, filesService } from '@/services';
+import type { ClientFile } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -90,7 +95,7 @@ export function ClientProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'timeline' | 'visa-history' | 'appointments' | 'notes'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'visa-history' | 'appointments' | 'notes' | 'files'>('timeline');
   const [noteInput, setNoteInput] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState('');
@@ -158,6 +163,38 @@ export function ClientProfilePage() {
     },
     onError: () => toast.error(t('clients:deleteNoteFailed')),
   });
+
+  const { data: clientFiles = [], refetch: refetchFiles } = useQuery({
+    queryKey: ['client-files', id],
+    queryFn: () => filesService.getFiles(id!),
+    enabled: !!id,
+  });
+
+  const uploadFileMutation = useMutation({
+    mutationFn: (file: File) => filesService.uploadFile(id!, file),
+    onSuccess: () => {
+      refetchFiles();
+      toast.success(t('clients:fileUploaded'));
+    },
+    onError: () => toast.error(t('clients:uploadFailed')),
+  });
+
+  const deleteFileMutation = useMutation({
+    mutationFn: (fileId: string) => filesService.deleteFile(id!, fileId),
+    onSuccess: () => {
+      refetchFiles();
+      toast.success(t('clients:fileDeleted'));
+    },
+    onError: () => toast.error(t('clients:deleteFailed')),
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadFileMutation.mutate(file);
+      e.target.value = '';
+    }
+  };
 
   const handleCopyPhone = useCallback(() => {
     if (profile) copyToClipboard(profile.phoneNumber);
@@ -321,7 +358,7 @@ export function ClientProfilePage() {
 
       <div className="border-b border-border">
         <nav className="flex gap-6">
-          {(['timeline', 'visa-history', 'appointments', 'notes'] as const).map((tab) => (
+          {(['timeline', 'visa-history', 'appointments', 'notes', 'files'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -336,6 +373,7 @@ export function ClientProfilePage() {
               {tab === 'visa-history' && `${t('clients:visaCases')} (${profile.visaCases.length})`}
               {tab === 'appointments' && t('nav:appointments')}
               {tab === 'notes' && `${t('common:notes')} (${notes.length})`}
+              {tab === 'files' && `${t('clients:uploadedFiles')} (${clientFiles.length})`}
             </button>
           ))}
         </nav>
@@ -708,6 +746,113 @@ export function ClientProfilePage() {
                   </CardContent>
                 </Card>
               )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'files' && (
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <div>
+                    <CardTitle>{t('clients:uploadedFiles')}</CardTitle>
+                    <CardDescription>{t('clients:filesDescription')}</CardDescription>
+                  </div>
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      onChange={handleFileUpload}
+                    />
+                    <Button size="sm" asChild>
+                      <span>
+                        {uploadFileMutation.isPending ? (
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        {t('clients:uploadFile')}
+                      </span>
+                    </Button>
+                  </label>
+                </CardHeader>
+                <CardContent>
+                  {clientFiles.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                      <File className="h-12 w-12 mb-3" />
+                      <p>{t('clients:noFiles')}</p>
+                      <p className="text-xs mt-1">{t('clients:noFilesHint')}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(clientFiles as ClientFile[]).map((file) => (
+                        <div key={file.id} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                          {file.mimeType === 'application/pdf' ? (
+                            <FileText className="h-8 w-8 text-red-500 shrink-0" />
+                          ) : file.mimeType.startsWith('image/') ? (
+                            <Image className="h-8 w-8 text-blue-500 shrink-0" />
+                          ) : (
+                            <File className="h-8 w-8 text-gray-500 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{file.originalName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(file.size / 1024).toFixed(0)} KB · {new Date(file.createdAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0"
+                              asChild
+                            >
+                              <a href={filesService.getDownloadUrl(id!, file.id)} download>
+                                <Download className="h-3.5 w-3.5" />
+                              </a>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm(t('common:confirm'))) {
+                                  deleteFileMutation.mutate(file.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('clients:uploadTips')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>{t('clients:tipAccepted')}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>{t('clients:tipMaxSize')}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <span>{t('clients:tipOrganized')}</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
