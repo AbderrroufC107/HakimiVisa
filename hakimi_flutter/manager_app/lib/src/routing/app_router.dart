@@ -14,6 +14,8 @@ import '../screens/appointments/create_appointment_screen.dart';
 import '../screens/notifications/notifications_list_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/visa_cases/visa_case_detail_screen.dart';
+import '../screens/visa_cases/create_visa_case_screen.dart';
+import '../screens/visa_cases/visa_cases_list_screen.dart';
 import '../widgets/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -108,11 +110,23 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const DevSettingsScreen(),
           ),
           GoRoute(
-            path: '/visa-cases/:id',
-            name: 'visa-case-detail',
-            builder: (context, state) => VisaCaseDetailScreen(
-              caseId: state.pathParameters['id']!,
-            ),
+            path: '/visa-cases',
+            name: 'visa-cases',
+            builder: (context, state) => const VisaCasesListScreen(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'create-visa-case',
+                builder: (context, state) => const CreateVisaCaseScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'visa-case-detail',
+                builder: (context, state) => VisaCaseDetailScreen(
+                  caseId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
         ],
       ),
