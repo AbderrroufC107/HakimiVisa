@@ -11,8 +11,7 @@ const COLUMN_ORDER: VisaStatus[] = [
   'EN_ATTENTE',
   'EN_TRAITEMENT',
   'RDV_OK',
-  'VISA_OK',
-  'VISA_REFUSEE',
+  'LIVREE',
 ];
 
 const defaultFilters: KanbanFilters = {

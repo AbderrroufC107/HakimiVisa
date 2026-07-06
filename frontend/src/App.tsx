@@ -72,7 +72,7 @@ export function App() {
                       <Route path={ROUTES.PDF} element={<PdfPrintingPage />} />
                       <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
                       <Route path={ROUTES.USERS} element={<ManagersPage />} />
-                      <Route path="/" element={<Navigate to={ROUTES.VISA_CASES} replace />} />
+                      <Route path="/" element={<Navigate to={ROUTES.KANBAN} replace />} />
                     </Route>
                   </Route>
                   <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
