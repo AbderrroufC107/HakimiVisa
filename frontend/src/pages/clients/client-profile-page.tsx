@@ -43,7 +43,7 @@ function SecureImage({ src, alt, className }: { src: string; alt: string; classN
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('hakimi-token');
+    const token = localStorage.getItem('hakimi_accessToken');
     fetch(src, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load');
@@ -247,7 +247,7 @@ export function ClientProfilePage() {
 
   const handleDownloadFile = useCallback(async (fileId: string, fileName: string) => {
     try {
-      const token = localStorage.getItem('hakimi-token');
+      const token = localStorage.getItem('hakimi_accessToken');
       const res = await fetch(filesService.getDownloadUrl(id!, fileId), {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
