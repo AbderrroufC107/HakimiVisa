@@ -17,7 +17,6 @@ describe('Sidebar', () => {
     expect(screen.getByText('Notifications')).toBeInTheDocument();
     expect(screen.getByText('Audit Logs')).toBeInTheDocument();
     expect(screen.getByText('PDF Printing')).toBeInTheDocument();
-    expect(screen.getByText('Tracking Portal')).toBeInTheDocument();
     expect(screen.getByText('Backup Center')).toBeInTheDocument();
     expect(screen.getByText('System Health')).toBeInTheDocument();
     expect(screen.getByText('System Logs')).toBeInTheDocument();

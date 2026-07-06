@@ -2,13 +2,13 @@ import { api } from './api';
 import type { TrackingResult, TrackingCaseDetail } from '@/types';
 
 export const trackingService = {
-  async findByPhone(phone: string, caseNumber?: string): Promise<TrackingResult> {
+  async findByPhone(phone: string, reference?: string): Promise<TrackingResult> {
     const params: Record<string, string> = { phone };
-    if (caseNumber) params.case = caseNumber;
-    return api.get<TrackingResult>('/tracking', params);
+    if (reference) params.reference = reference;
+    return api.get<TrackingResult>('/public/tracking', params);
   },
 
-  async findOne(id: string): Promise<TrackingCaseDetail> {
-    return api.get<TrackingCaseDetail>(`/tracking/${id}`);
+  async findOne(caseNumber: string): Promise<TrackingCaseDetail> {
+    return api.get<TrackingCaseDetail>(`/public/tracking/${caseNumber}`);
   },
 };

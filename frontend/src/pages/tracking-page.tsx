@@ -96,8 +96,8 @@ export function TrackingPage() {
   });
 
   const { data: caseDetail, isLoading: detailLoading } = useQuery({
-    queryKey: ['tracking-detail', selectedCase?.id],
-    queryFn: () => trackingService.findOne(selectedCase!.id),
+    queryKey: ['tracking-detail', selectedCase?.caseNumber],
+    queryFn: () => trackingService.findOne(selectedCase!.caseNumber),
     enabled: !!selectedCase,
   });
 
@@ -108,7 +108,17 @@ export function TrackingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card">
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="HV" className="h-8 w-auto" />
+            <span className="text-lg font-semibold tracking-tight">HakimiVisa</span>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
       <div className="text-center space-y-2 pt-4">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
             <Search className="h-7 w-7 text-primary" />
@@ -292,6 +302,7 @@ export function TrackingPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
+    </div>
   );
 }

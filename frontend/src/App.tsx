@@ -50,8 +50,8 @@ export function App() {
                 <ErrorBoundary>
                   <Routes>
                   <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                  <Route path={ROUTES.TRACKING} element={<TrackingPage />} />
                   <Route element={<DashboardLayout />}>
-                    <Route path={ROUTES.TRACKING} element={<TrackingPage />} />
                     <Route element={<ProtectedRoute />}>
                       <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
                       <Route path={ROUTES.CLIENTS} element={<ClientsPage />} />
