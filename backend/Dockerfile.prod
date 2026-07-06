@@ -12,8 +12,7 @@ COPY src ./src/
 RUN npm ci && npx prisma generate && npm run build
 
 RUN chown -R node:node /app
-USER node
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "mkdir -p /app/uploads/logos /app/uploads/client-files && chown -R node:node /app/uploads && su -s /bin/sh -c 'npx prisma migrate deploy && node dist/src/main.js' node"]
