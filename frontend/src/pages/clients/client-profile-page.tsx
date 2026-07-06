@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -38,6 +38,35 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { ClientProfile, ClientTimelineEvent, ClientStats, ClientNote, ClientDocument } from '@/types';
 import type { VisaStatus } from '@/types';
+
+function SecureImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('hakimi-token');
+    fetch(src, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load');
+        return res.blob();
+      })
+      .then((blob) => setBlobUrl(URL.createObjectURL(blob)))
+      .catch(() => setBlobUrl(null));
+
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [src]);
+
+  if (!blobUrl) {
+    return (
+      <div className={cn('flex items-center justify-center bg-muted rounded', className)}>
+        <File className="h-4 w-4 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return <img src={blobUrl} alt={alt} className={className} />;
+}
 
 function getInitials(name: string): string {
   return name
@@ -893,11 +922,10 @@ export function ClientProfilePage() {
                       {(clientFiles as ClientFile[]).map((file) => (
                         <div key={file.id} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
                           {file.mimeType.startsWith('image/') ? (
-                            <img
+                            <SecureImage
                               src={filesService.getDownloadUrl(id!, file.id)}
                               alt={file.originalName}
                               className="h-10 w-10 rounded object-cover shrink-0"
-                              loading="lazy"
                             />
                           ) : file.mimeType === 'application/pdf' ? (
                             <FileText className="h-8 w-8 text-red-500 shrink-0" />
