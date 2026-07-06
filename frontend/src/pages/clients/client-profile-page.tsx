@@ -24,7 +24,6 @@ import {
   Send,
   Upload,
   Download,
-  Image,
   File,
 } from 'lucide-react';
 import { clientsService, pdfService, filesService } from '@/services';
@@ -188,6 +187,8 @@ export function ClientProfilePage() {
     onError: () => toast.error(t('clients:deleteFailed')),
   });
 
+  const [dragOver, setDragOver] = useState(false);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -195,6 +196,15 @@ export function ClientProfilePage() {
       e.target.value = '';
     }
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      uploadFileMutation.mutate(file);
+    }
+  }, [uploadFileMutation]);
 
   const handleCopyPhone = useCallback(() => {
     if (profile) copyToClipboard(profile.phoneNumber);
@@ -779,6 +789,23 @@ export function ClientProfilePage() {
                   </label>
                 </CardHeader>
                 <CardContent>
+                  <div
+                    className={`mb-4 flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                      dragOver
+                        ? 'border-primary bg-primary/5'
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                    }`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                  >
+                    <Upload className="mb-2 h-8 w-8 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">
+                      {t('clients:dragDropHint') || 'Glissez un fichier ici ou cliquez pour sélectionner'}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground/60">PDF, JPG, PNG, WEBP — Max 10 MB</p>
+                  </div>
+
                   {clientFiles.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <File className="h-12 w-12 mb-3" />
@@ -789,17 +816,25 @@ export function ClientProfilePage() {
                     <div className="space-y-2">
                       {(clientFiles as ClientFile[]).map((file) => (
                         <div key={file.id} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
-                          {file.mimeType === 'application/pdf' ? (
+                          {file.mimeType.startsWith('image/') ? (
+                            <img
+                              src={filesService.getDownloadUrl(id!, file.id)}
+                              alt={file.originalName}
+                              className="h-10 w-10 rounded object-cover shrink-0"
+                              loading="lazy"
+                            />
+                          ) : file.mimeType === 'application/pdf' ? (
                             <FileText className="h-8 w-8 text-red-500 shrink-0" />
-                          ) : file.mimeType.startsWith('image/') ? (
-                            <Image className="h-8 w-8 text-blue-500 shrink-0" />
                           ) : (
                             <File className="h-8 w-8 text-gray-500 shrink-0" />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{file.originalName}</p>
                             <p className="text-xs text-muted-foreground">
-                              {(file.size / 1024).toFixed(0)} KB · {new Date(file.createdAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {file.size >= 1024 * 1024
+                                ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+                                : `${(file.size / 1024).toFixed(0)} KB`
+                              } · {new Date(file.createdAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </p>
                           </div>
                           <div className="flex gap-1">
@@ -850,6 +885,10 @@ export function ClientProfilePage() {
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                     <span>{t('clients:tipOrganized')}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                    <span>{t('clients:tipCompressed') || 'Images are automatically compressed to save space'}</span>
                   </div>
                 </CardContent>
               </Card>

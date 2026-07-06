@@ -2,8 +2,12 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as sharp from 'sharp';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'client-files');
+const COMPRESS_THRESHOLD = 100 * 1024;
+const IMAGE_QUALITY = 80;
+const IMAGE_MAX_WIDTH = 1920;
 
 @Injectable()
 export class FilesService {
@@ -12,6 +16,33 @@ export class FilesService {
   constructor(private prisma: PrismaService) {
     if (!fs.existsSync(UPLOAD_DIR)) {
       fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+  }
+
+  private isImage(mimetype: string): boolean {
+    return ['image/jpeg', 'image/png', 'image/webp'].includes(mimetype);
+  }
+
+  private async compressImage(buffer: Buffer, mimetype: string): Promise<Buffer> {
+    try {
+      const image = sharp(buffer);
+      const metadata = await image.metadata();
+
+      let pipeline = image;
+      if (metadata.width && metadata.width > IMAGE_MAX_WIDTH) {
+        pipeline = pipeline.resize(IMAGE_MAX_WIDTH, null, { withoutEnlargement: true });
+      }
+
+      if (mimetype === 'image/jpeg' || mimetype === 'image/webp') {
+        pipeline = pipeline.jpeg({ quality: IMAGE_QUALITY, mozjpeg: true });
+      } else if (mimetype === 'image/png') {
+        pipeline = pipeline.png({ compressionLevel: 9, effort: 10 });
+      }
+
+      return await pipeline.toBuffer();
+    } catch (err) {
+      this.logger.warn('Image compression failed, using original');
+      return buffer;
     }
   }
 
@@ -24,11 +55,19 @@ export class FilesService {
       fs.mkdirSync(clientDir, { recursive: true });
     }
 
+    let buffer = file.buffer;
+    let savedSize = file.size;
+
+    if (this.isImage(file.mimetype) && file.size > COMPRESS_THRESHOLD) {
+      buffer = await this.compressImage(buffer, file.mimetype);
+      savedSize = buffer.length;
+    }
+
     const ext = path.extname(file.originalname);
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
     const filePath = path.join(clientDir, fileName);
 
-    fs.writeFileSync(filePath, file.buffer);
+    fs.writeFileSync(filePath, buffer);
 
     return this.prisma.clientFile.create({
       data: {
@@ -36,7 +75,7 @@ export class FilesService {
         fileName,
         originalName: file.originalname,
         mimeType: file.mimetype,
-        size: file.size,
+        size: savedSize,
         path: filePath,
       },
     });
