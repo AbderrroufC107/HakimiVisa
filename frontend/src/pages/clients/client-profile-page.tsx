@@ -188,11 +188,38 @@ export function ClientProfilePage() {
   });
 
   const [dragOver, setDragOver] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleFileSelect = useCallback((file: File) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPendingFile(file);
+    if (file.type.startsWith('image/')) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [previewUrl]);
+
+  const handleConfirmUpload = useCallback(() => {
+    if (pendingFile) {
+      uploadFileMutation.mutate(pendingFile);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPendingFile(null);
+      setPreviewUrl(null);
+    }
+  }, [pendingFile, previewUrl, uploadFileMutation]);
+
+  const handleCancelUpload = useCallback(() => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPendingFile(null);
+    setPreviewUrl(null);
+  }, [previewUrl]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadFileMutation.mutate(file);
+      handleFileSelect(file);
       e.target.value = '';
     }
   };
@@ -202,9 +229,9 @@ export function ClientProfilePage() {
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      uploadFileMutation.mutate(file);
+      handleFileSelect(file);
     }
-  }, [uploadFileMutation]);
+  }, [handleFileSelect]);
 
   const handleCopyPhone = useCallback(() => {
     if (profile) copyToClipboard(profile.phoneNumber);
@@ -806,7 +833,56 @@ export function ClientProfilePage() {
                     <p className="mt-1 text-xs text-muted-foreground/60">PDF, JPG, PNG, WEBP — Max 10 MB</p>
                   </div>
 
-                  {clientFiles.length === 0 ? (
+                  {pendingFile && (
+                    <div className="mb-4 rounded-lg border-2 border-primary/30 bg-primary/5 p-4">
+                      <div className="flex items-center gap-3">
+                        {previewUrl ? (
+                          <img src={previewUrl} alt={pendingFile.name} className="h-16 w-16 rounded-lg object-cover" />
+                        ) : pendingFile.type === 'application/pdf' ? (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                            <FileText className="h-8 w-8 text-red-500" />
+                          </div>
+                        ) : (
+                          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-muted">
+                            <File className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{pendingFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {pendingFile.size >= 1024 * 1024
+                              ? `${(pendingFile.size / (1024 * 1024)).toFixed(1)} MB`
+                              : `${(pendingFile.size / 1024).toFixed(0)} KB`
+                            }
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleConfirmUpload}
+                            disabled={uploadFileMutation.isPending}
+                          >
+                            {uploadFileMutation.isPending ? (
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Upload className="mr-1.5 h-3.5 w-3.5" />
+                            )}
+                            {t('common:confirm') || 'Confirmer'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCancelUpload}
+                            disabled={uploadFileMutation.isPending}
+                          >
+                            {t('common:cancel') || 'Annuler'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {clientFiles.length === 0 && !pendingFile ? (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <File className="h-12 w-12 mb-3" />
                       <p>{t('clients:noFiles')}</p>
