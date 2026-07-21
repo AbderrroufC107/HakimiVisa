@@ -14,16 +14,21 @@ export class PublicTrackingService {
       select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
     });
 
-    // Verify passport expiry matches (same calendar day)
-    const expiryDate = new Date(expiry);
-    const matches =
-      client?.passportExpiry != null &&
-      client.passportExpiry.getUTCFullYear() === expiryDate.getUTCFullYear() &&
-      client.passportExpiry.getUTCMonth() === expiryDate.getUTCMonth() &&
-      client.passportExpiry.getUTCDate() === expiryDate.getUTCDate();
-
-    if (!client || !matches) {
+    if (!client) {
       throw new NotFoundException('Aucun dossier trouvé avec ces informations de passeport');
+    }
+
+    // Verify passport expiry matches if both are provided
+    if (expiry && client.passportExpiry) {
+      const expiryDate = new Date(expiry);
+      const matches =
+        client.passportExpiry.getUTCFullYear() === expiryDate.getUTCFullYear() &&
+        client.passportExpiry.getUTCMonth() === expiryDate.getUTCMonth() &&
+        client.passportExpiry.getUTCDate() === expiryDate.getUTCDate();
+
+      if (!matches) {
+        throw new NotFoundException('Aucun dossier trouvé avec ces informations de passeport');
+      }
     }
 
     const where: Record<string, unknown> = {

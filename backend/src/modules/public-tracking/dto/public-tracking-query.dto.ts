@@ -4,8 +4,9 @@ export class PublicTrackingQueryDto {
   @IsString()
   passport: string;
 
+  @IsOptional()
   @IsDateString()
-  expiry: string;
+  expiry?: string;
 
   @IsOptional()
   @IsString()
