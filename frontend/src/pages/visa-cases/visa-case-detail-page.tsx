@@ -12,10 +12,17 @@ import { Badge } from '@/components/shared/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { VISA_STATUS_COLORS, type VisaStatus, type EntryType } from '@/types';
 import { useTranslation } from 'react-i18next';
 
-const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
+const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
@@ -58,16 +65,31 @@ export function VisaCaseDetailPage() {
     enabled: !!id,
   });
 
+  const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
+  const [incompleteReason, setIncompleteReason] = useState('');
+
   const statusMutation = useMutation({
-    mutationFn: (status: VisaStatus) => visaCasesService.updateStatus(id!, { status }),
+    mutationFn: ({ status, reason }: { status: VisaStatus; reason?: string }) =>
+      visaCasesService.updateStatus(id!, { status, reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['visa-case', id] });
       queryClient.invalidateQueries({ queryKey: ['visa-cases'] });
       toast.success(t('visaCases:statusUpdated'));
       setSelectedStatus('');
+      setIncompleteDialogOpen(false);
+      setIncompleteReason('');
     },
     onError: () => toast.error(t('visaCases:updateFailed')),
   });
+
+  const handleStatusSelect = (value: string) => {
+    const status = value as VisaStatus;
+    if (status === 'DOSSIER_INCOMPLET') {
+      setIncompleteDialogOpen(true);
+      return;
+    }
+    statusMutation.mutate({ status });
+  };
 
   const priceMutation = useMutation({
     mutationFn: (data: { price?: number; isPaid?: boolean }) => visaCasesService.update(id!, data),
@@ -139,7 +161,7 @@ export function VisaCaseDetailPage() {
         <div className="flex-1">
           <p className="text-sm text-muted-foreground">{t('common:status')}</p>
         </div>
-        <Select value={selectedStatus} onValueChange={(value) => statusMutation.mutate(value as VisaStatus)}>
+        <Select value={selectedStatus} onValueChange={handleStatusSelect}>
           <SelectTrigger className="w-[200px]" data-testid="status-select">
             <SelectValue placeholder={t('visaCases:selectStatus')} />
           </SelectTrigger>
@@ -181,6 +203,12 @@ export function VisaCaseDetailPage() {
               <span className="text-sm text-muted-foreground">{t('visaCases:createdBy')}</span>
               <span className="text-sm font-medium">{visaCase.creator?.firstName} {visaCase.creator?.lastName}</span>
             </div>
+            {visaCase.currentStatus === 'DOSSIER_INCOMPLET' && visaCase.incompleteReason && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 dark:bg-amber-950/40">
+                <p className="text-xs font-medium text-amber-800 dark:text-amber-300">{t('visaCases:incompleteReason')}</p>
+                <p className="text-sm text-amber-700 dark:text-amber-200">{visaCase.incompleteReason}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -394,6 +422,38 @@ export function VisaCaseDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Incomplete dossier reason dialog */}
+      <Dialog open={incompleteDialogOpen} onOpenChange={(open) => { if (!open) { setIncompleteDialogOpen(false); setIncompleteReason(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('kanban:incompleteTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="detail-incomplete-reason">{t('kanban:incompleteReasonLabel')}</Label>
+            <textarea
+              id="detail-incomplete-reason"
+              className="flex min-h-[90px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
+              placeholder={t('kanban:incompleteReasonPlaceholder')}
+              value={incompleteReason}
+              onChange={(e) => setIncompleteReason(e.target.value)}
+              maxLength={500}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIncompleteDialogOpen(false); setIncompleteReason(''); }}>
+              {t('common:cancel')}
+            </Button>
+            <Button
+              disabled={!incompleteReason.trim() || statusMutation.isPending}
+              onClick={() => statusMutation.mutate({ status: 'DOSSIER_INCOMPLET', reason: incompleteReason.trim() })}
+            >
+              {t('common:save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

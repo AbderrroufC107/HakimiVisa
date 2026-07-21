@@ -30,6 +30,7 @@ import { SearchModule } from './modules/search/search.module';
 import { VisaExpirationModule } from './modules/visa-expiration/visa-expiration.module';
 import { ExcelModule } from './modules/excel/excel.module';
 import { FilesModule } from './modules/files/files.module';
+import { TemplatesModule } from './modules/templates/templates.module';
 import { LoggerModule } from './logger/logger.module';
 import configuration from './config/configuration';
 
@@ -63,6 +64,7 @@ import configuration from './config/configuration';
     VisaExpirationModule,
     ExcelModule,
     FilesModule,
+    TemplatesModule,
     SearchModule,
     AuditLogsModule,
     PdfModule,

@@ -20,6 +20,7 @@ import {
   Activity,
   FileWarning,
   CheckCircle,
+  MessageSquareText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   ];
 
   const secondaryNavItems: NavItem[] = [
+    { label: t('nav:templates'), href: ROUTES.TEMPLATES, icon: MessageSquareText },
     { label: t('nav:notifications'), href: ROUTES.NOTIFICATIONS, icon: Bell },
     { label: t('nav:auditLogs'), href: ROUTES.AUDIT_LOGS, icon: ScrollText },
     { label: t('nav:pdfPrinting'), href: ROUTES.PDF, icon: FileDown },

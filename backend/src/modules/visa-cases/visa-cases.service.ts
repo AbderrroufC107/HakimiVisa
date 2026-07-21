@@ -98,8 +98,19 @@ export class VisaCasesService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          client: { select: { id: true, fullName: true, phoneNumber: true } },
+          client: { select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true } },
           creator: { select: { id: true, firstName: true, lastName: true } },
+          appointments: {
+            orderBy: { appointmentDate: 'desc' as const },
+            take: 1,
+            select: {
+              id: true,
+              appointmentDate: true,
+              appointmentTime: true,
+              appointmentCenter: true,
+              appointmentType: true,
+            },
+          },
         },
       }),
       this.prisma.visaCase.count({ where }),
@@ -197,7 +208,11 @@ export class VisaCasesService {
     const [visaCase] = await this.prisma.$transaction([
       this.prisma.visaCase.update({
         where: { id },
-        data: { currentStatus: newStatus },
+        data: {
+          currentStatus: newStatus,
+          incompleteReason:
+            newStatus === 'DOSSIER_INCOMPLET' ? (dto.reason ?? null) : null,
+        },
       }),
       this.prisma.statusHistory.create({
         data: {

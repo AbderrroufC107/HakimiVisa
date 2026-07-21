@@ -16,11 +16,17 @@ enum UserRole {
 
 enum VisaStatus {
   EN_ATTENTE
+  DOSSIER_INCOMPLET
   EN_TRAITEMENT
   RDV_OK
   VISA_OK
   VISA_REFUSEE
   LIVREE
+}
+
+enum TemplateChannel {
+  WHATSAPP
+  EMAIL
 }
 
 enum AppointmentType {
@@ -141,6 +147,7 @@ model VisaCase {
   visaCountry   String
   visaType      String
   currentStatus VisaStatus @default(EN_ATTENTE)
+  incompleteReason String?
   archived      Boolean    @default(false)
   openingDate   DateTime   @default(now())
   notes         String?
@@ -374,4 +381,19 @@ model TrackingEntry {
 
   @@index([timestamp])
   @@map("tracking_entries")
+}
+
+model MessageTemplate {
+  id              String          @id @default(cuid())
+  name            String
+  channel         TemplateChannel @default(WHATSAPP)
+  country         String?
+  visaType        String?
+  appointmentType String?
+  subject         String?
+  body            String          @db.Text
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@map("message_templates")
 }

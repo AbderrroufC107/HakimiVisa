@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { clientsService, appointmentsService, visaCasesService } from '@/services';
 import { ROUTES } from '@/constants';
@@ -12,13 +12,14 @@ import {
 } from 'recharts';
 import type { PieLabelRenderProps } from 'recharts';
 import {
-  Users, FileText, Clock, CheckCircle2, XCircle,
-  CalendarCheck, Calendar, AlertTriangle,
+  FileText, Clock, CheckCircle2, XCircle,
+  CalendarCheck, Calendar, AlertTriangle, FilePlus2, FileWarning, PackageCheck, Loader2,
 } from 'lucide-react';
 import { VISA_STATUS_COLORS, type VisaStatus, type VisaCase } from '@/types';
 import { format, addDays } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
+import { useSocket } from '@/providers/websocket-provider';
 
 const STATUS_PIE_COLORS: Record<string, string> = {
   EN_ATTENTE: '#EAB308',
@@ -61,14 +62,34 @@ function BarChartSkeleton() {
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
   const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const { socket } = useSocket();
 
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => clientsService.getDashboardStats(),
     refetchInterval: 30_000,
   });
+
+  // Live updates: refresh stats instantly on websocket events
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    };
+    socket.on('visaCase:statusChange', refresh);
+    socket.on('appointment:created', refresh);
+    socket.on('appointment:updated', refresh);
+    socket.on('appointment:deleted', refresh);
+    return () => {
+      socket.off('visaCase:statusChange', refresh);
+      socket.off('appointment:created', refresh);
+      socket.off('appointment:updated', refresh);
+      socket.off('appointment:deleted', refresh);
+    };
+  }, [socket, queryClient]);
 
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['dashboard', 'analytics'],
@@ -118,14 +139,16 @@ export function DashboardPage() {
   }, [analytics?.topCountries]);
 
   const statCards = useMemo(() => [
-    { title: t('dashboard:totalClients'), value: stats?.totalClients ?? 0, icon: Users, href: ROUTES.CLIENTS, color: 'text-blue-600', bg: 'bg-blue-100' },
     { title: t('dashboard:totalCases'), value: stats?.totalCases ?? 0, icon: FileText, href: ROUTES.VISA_CASES, color: 'text-indigo-600', bg: 'bg-indigo-100' },
+    { title: t('dashboard:newCases'), value: stats?.newCases ?? 0, icon: FilePlus2, href: ROUTES.VISA_CASES, color: 'text-cyan-600', bg: 'bg-cyan-100' },
     { title: t('dashboard:enAttente'), value: stats?.enAttente ?? 0, icon: Clock, href: ROUTES.KANBAN, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-    { title: t('dashboard:enTraitement'), value: stats?.enTraitement ?? 0, icon: FileText, href: ROUTES.KANBAN, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { title: t('dashboard:rdvOk'), value: stats?.rdvOk ?? 0, icon: CalendarCheck, href: ROUTES.KANBAN, color: 'text-orange-600', bg: 'bg-orange-100' },
+    { title: t('dashboard:enTraitement'), value: stats?.enTraitement ?? 0, icon: Loader2, href: ROUTES.KANBAN, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { title: t('dashboard:rdvOk'), value: stats?.rdvOk ?? 0, icon: CalendarCheck, href: ROUTES.KANBAN, color: 'text-purple-600', bg: 'bg-purple-100' },
+    { title: t('dashboard:incomplete'), value: stats?.incomplete ?? 0, icon: FileWarning, href: ROUTES.KANBAN, color: 'text-amber-600', bg: 'bg-amber-100' },
+    { title: t('dashboard:livree'), value: stats?.livree ?? 0, icon: PackageCheck, href: ROUTES.VISA_CASES, color: 'text-teal-600', bg: 'bg-teal-100' },
     { title: t('dashboard:visaOk'), value: stats?.visaOk ?? 0, icon: CheckCircle2, href: ROUTES.VISA_CASES, color: 'text-green-600', bg: 'bg-green-100' },
     { title: t('dashboard:visaRefused'), value: stats?.refuse ?? 0, icon: XCircle, href: ROUTES.VISA_CASES, color: 'text-red-600', bg: 'bg-red-100' },
-  ], [t, stats?.totalClients, stats?.totalCases, stats?.enAttente, stats?.enTraitement, stats?.rdvOk, stats?.visaOk, stats?.refuse]);
+  ], [t, stats?.totalCases, stats?.newCases, stats?.enAttente, stats?.enTraitement, stats?.rdvOk, stats?.incomplete, stats?.livree, stats?.visaOk, stats?.refuse]);
 
   const totalCount = useMemo(
     () => statusDistribution.reduce((sum, d) => sum + d.count, 0),
@@ -158,8 +181,8 @@ export function DashboardPage() {
       </div>
 
       {statsLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 7 }).map((_, i) => (
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {Array.from({ length: 9 }).map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="skeleton-shimmer h-4 w-24 rounded" />
@@ -172,7 +195,7 @@ export function DashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (

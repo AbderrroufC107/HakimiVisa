@@ -1,8 +1,11 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class PublicTrackingQueryDto {
   @IsString()
-  phone: string;
+  passport: string;
+
+  @IsDateString()
+  expiry: string;
 
   @IsOptional()
   @IsString()

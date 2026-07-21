@@ -1,6 +1,7 @@
 import {
   Injectable,
   NotFoundException,
+  ConflictException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -17,6 +18,29 @@ export class ClientsService {
   ) {}
 
   async create(dto: CreateClientDto, userId: string) {
+    // Prevent duplicate clients (same passport or same phone)
+    if (dto.passportNumber) {
+      const existingByPassport = await this.prisma.client.findUnique({
+        where: { passportNumber: dto.passportNumber },
+        select: { id: true, fullName: true },
+      });
+      if (existingByPassport) {
+        throw new ConflictException(
+          `Un client existe déjà avec ce passeport: ${existingByPassport.fullName}`,
+        );
+      }
+    }
+
+    const existingByPhone = await this.prisma.client.findFirst({
+      where: { phoneNumber: dto.phoneNumber },
+      select: { id: true, fullName: true },
+    });
+    if (existingByPhone) {
+      throw new ConflictException(
+        `Un client existe déjà avec ce numéro de téléphone: ${existingByPhone.fullName}`,
+      );
+    }
+
     const client = await this.prisma.client.create({
       data: {
         fullName: dto.fullName,
@@ -365,20 +389,29 @@ export class ClientsService {
   }
 
   async getDashboardStats() {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       totalClients,
       totalCases,
+      newCases,
       enAttente,
       enTraitement,
       rdvOk,
+      incomplete,
+      livree,
       visaOk,
       refuse,
     ] = await Promise.all([
       this.prisma.client.count(),
       this.prisma.visaCase.count(),
+      this.prisma.visaCase.count({ where: { createdAt: { gte: monthStart } } }),
       this.prisma.visaCase.count({ where: { currentStatus: 'EN_ATTENTE' } }),
       this.prisma.visaCase.count({ where: { currentStatus: 'EN_TRAITEMENT' } }),
       this.prisma.visaCase.count({ where: { currentStatus: 'RDV_OK' } }),
+      this.prisma.visaCase.count({ where: { currentStatus: 'DOSSIER_INCOMPLET' } }),
+      this.prisma.visaCase.count({ where: { currentStatus: 'LIVREE' } }),
       this.prisma.visaCase.count({ where: { currentStatus: 'VISA_OK' } }),
       this.prisma.visaCase.count({ where: { currentStatus: 'VISA_REFUSEE' } }),
     ]);
@@ -386,9 +419,12 @@ export class ClientsService {
     return {
       totalClients,
       totalCases,
+      newCases,
       enAttente,
       enTraitement,
       rdvOk,
+      incomplete,
+      livree,
       visaOk,
       refuse,
     };

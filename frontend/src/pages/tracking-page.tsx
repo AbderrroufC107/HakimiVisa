@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { trackingService } from '@/services';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/shared/badge';
-import { Loader2, Search, Phone, FileText, Clock, MapPin, Calendar, ArrowLeft } from 'lucide-react';
+import { Loader2, Search, FileText, Clock, MapPin, Calendar, ArrowLeft, BookUser, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VISA_STATUS_COLORS, type VisaStatus } from '@/types';
-import type { TrackingCase } from '@/types';
+import type { TrackingCase, ApiError } from '@/types';
 
 function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: VisaStatus; newStatus: VisaStatus; changedAt: string }[] }) {
   const { t, i18n } = useTranslation();
@@ -25,20 +26,22 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
   const steps: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK'];
   const currentStatus = statusHistories ? statusHistories[statusHistories.length - 1]?.newStatus : 'EN_ATTENTE';
   const isRefused = currentStatus === 'VISA_REFUSEE';
+  const isIncomplete = currentStatus === 'DOSSIER_INCOMPLET';
 
   return (
     <div className="space-y-2">
       {steps.map((step, idx) => {
         const historyEntry = statusHistories.find((h) => h.newStatus === step);
         const isActive = step === currentStatus;
-        const isPast = steps.indexOf(currentStatus as VisaStatus) >= idx || (isRefused && idx <= steps.indexOf(currentStatus as VisaStatus));
+        const currentIdx = steps.indexOf(currentStatus as VisaStatus);
+        const isPast = currentIdx >= idx || (isRefused && idx <= currentIdx) || (isIncomplete && idx === 0);
         const isLast = idx === steps.length - 1;
 
         return (
           <div key={step} className="flex items-start gap-4 relative">
             {!isLast && (
-              <div 
-                className={cn('absolute left-[11px] top-6 bottom-[-8px] w-0.5', isPast ? 'bg-green-500' : 'bg-muted')} 
+              <div
+                className={cn('absolute left-[11px] top-6 bottom-[-8px] w-0.5', isPast ? 'bg-green-500' : 'bg-muted')}
               />
             )}
             <div className="flex flex-col items-center relative z-10">
@@ -62,6 +65,14 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
           </div>
         );
       })}
+      {isIncomplete && (
+        <div className="flex items-start gap-3">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-white text-xs font-bold">!</div>
+          <div>
+            <p className="text-sm font-medium text-amber-600">{t('status:DOSSIER_INCOMPLET')}</p>
+          </div>
+        </div>
+      )}
       {isRefused && (() => {
         const refusedHistory = statusHistories.find((h) => h.newStatus === 'VISA_REFUSEE');
         return (
@@ -84,14 +95,15 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
 
 export function TrackingPage() {
   const { t, i18n } = useTranslation();
-  const [phone, setPhone] = useState('');
-  const [searchedPhone, setSearchedPhone] = useState('');
+  const [passport, setPassport] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [searched, setSearched] = useState<{ passport: string; expiry: string } | null>(null);
   const [selectedCase, setSelectedCase] = useState<TrackingCase | null>(null);
 
   const { data: searchResult, isLoading, isError, error } = useQuery({
-    queryKey: ['tracking', searchedPhone],
-    queryFn: () => trackingService.findByPhone(searchedPhone),
-    enabled: searchedPhone.length >= 8,
+    queryKey: ['tracking', searched?.passport, searched?.expiry],
+    queryFn: () => trackingService.findByPassport(searched!.passport, searched!.expiry),
+    enabled: !!searched,
     retry: false,
   });
 
@@ -101,11 +113,15 @@ export function TrackingPage() {
     enabled: !!selectedCase,
   });
 
+  const canSearch = passport.trim().length >= 5 && expiry.length === 10;
+
   const handleSearch = () => {
-    if (phone.length < 8) return;
-    setSearchedPhone(phone);
+    if (!canSearch) return;
+    setSearched({ passport: passport.trim(), expiry });
     setSelectedCase(null);
   };
+
+  const notFoundMessage = 'Aucun dossier trouvé avec ces informations de passeport';
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,33 +137,44 @@ export function TrackingPage() {
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
       <div className="text-center space-y-2 pt-4">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <Search className="h-7 w-7 text-primary" />
+            <BookUser className="h-7 w-7 text-primary" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="tracking-heading">
             {t('tracking:title')}
           </h1>
-          <p className="text-sm text-muted-foreground">{t('tracking:description')}</p>
+          <p className="text-sm text-muted-foreground">{t('tracking:descriptionPassport')}</p>
         </div>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <CardContent className="pt-6 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="tracking-passport" className="text-xs">{t('tracking:passportNumber')}</Label>
                 <Input
-                  data-testid="tracking-phone-input"
-                  placeholder={t('tracking:enterNumber')}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  id="tracking-passport"
+                  data-testid="tracking-passport-input"
+                  placeholder={t('tracking:enterPassport')}
+                  value={passport}
+                  onChange={(e) => setPassport(e.target.value.toUpperCase())}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-9"
                 />
               </div>
-              <Button data-testid="tracking-search-btn" onClick={handleSearch} disabled={phone.length < 8}>
-                <Search className="h-4 w-4 mr-1" />
-                {t('common:search')}
-              </Button>
+              <div className="space-y-1">
+                <Label htmlFor="tracking-expiry" className="text-xs">{t('tracking:passportExpiry')}</Label>
+                <Input
+                  id="tracking-expiry"
+                  data-testid="tracking-expiry-input"
+                  type="date"
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
             </div>
+            <Button data-testid="tracking-search-btn" onClick={handleSearch} disabled={!canSearch} className="w-full">
+              <Search className="h-4 w-4 mr-1" />
+              {t('common:search')}
+            </Button>
           </CardContent>
         </Card>
 
@@ -161,7 +188,7 @@ export function TrackingPage() {
         {isError && !isLoading && (
           <Card data-testid="tracking-error">
             <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground">{error && 'message' in error && (error as { message: string }).message === 'Aucun dossier trouvé avec ce numéro de téléphone'
+              <p className="text-muted-foreground">{(error as unknown as ApiError)?.message === notFoundMessage
                 ? t('tracking:noCaseFound')
                 : t('tracking:searchError')}
               </p>
@@ -186,7 +213,7 @@ export function TrackingPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-mono text-sm font-semibold">{c.caseNumber}</span>
+                        <span className="font-mono text-sm font-semibold">{searchResult.passport}</span>
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{c.visaCountry} - {c.visaType}</p>
                       <p className="text-xs text-muted-foreground">{t('tracking:lastUpdate')}: {new Date(c.updatedAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</p>
@@ -213,7 +240,7 @@ export function TrackingPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{caseDetail.caseNumber}</CardTitle>
+                      <CardTitle className="text-lg">{caseDetail.client.passportNumber ?? caseDetail.caseNumber}</CardTitle>
                       <Badge className={VISA_STATUS_COLORS[caseDetail.currentStatus]}>
                         {t('status:' + caseDetail.currentStatus)}
                       </Badge>
@@ -230,6 +257,16 @@ export function TrackingPage() {
                       <div><span className="text-muted-foreground">{t('visaCases:submissionDate')}:</span> {new Date(caseDetail.openingDate).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</div>
                       <div><span className="text-muted-foreground">{t('tracking:lastUpdate')}:</span> {new Date(caseDetail.updatedAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</div>
                     </div>
+
+                    {caseDetail.currentStatus === 'DOSSIER_INCOMPLET' && caseDetail.incompleteReason && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 dark:bg-amber-950/40">
+                        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{t('tracking:incompleteReason')}</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-200">{caseDetail.incompleteReason}</p>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -294,7 +331,7 @@ export function TrackingPage() {
           </div>
         )}
 
-        {!searchResult && !isLoading && !isError && searchedPhone.length === 0 && (
+        {!searchResult && !isLoading && !isError && !searched && (
           <Card data-testid="tracking-empty-state">
             <CardContent className="py-12 text-center">
               <Search className="mx-auto h-12 w-12 text-muted-foreground/40" />

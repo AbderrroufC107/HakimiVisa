@@ -76,9 +76,12 @@ export const clientsService = {
   async getDashboardStats(): Promise<{
     totalClients: number;
     totalCases: number;
+    newCases: number;
     enAttente: number;
     enTraitement: number;
     rdvOk: number;
+    incomplete: number;
+    livree: number;
     visaOk: number;
     refuse: number;
   }> {

@@ -17,6 +17,7 @@ interface CardDetailsDrawerProps {
 
 const statusColors: Record<VisaStatus, string> = {
   EN_ATTENTE: 'bg-yellow-100 text-yellow-800',
+  DOSSIER_INCOMPLET: 'bg-amber-100 text-amber-800',
   EN_TRAITEMENT: 'bg-blue-100 text-blue-800',
   RDV_OK: 'bg-orange-100 text-orange-800',
   VISA_OK: 'bg-green-100 text-green-800',

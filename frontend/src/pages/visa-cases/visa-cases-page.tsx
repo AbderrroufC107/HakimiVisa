@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, FileText, Trash2 } from 'lucide-react';
+import { Plus, FileText, Trash2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { visaCasesService } from '@/services';
+import { visaCasesService, appointmentsService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/shared/data-table';
@@ -17,12 +17,13 @@ import { BulkActionToolbar } from '@/components/bulk/bulk-action-toolbar';
 import { VISA_STATUS_COLORS, type VisaStatus } from '@/types';
 import type { VisaCase } from '@/types';
 
-const STATUS_TABS: { label: string; value: VisaStatus | 'ALL' | 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
-  { label: 'Tous', value: 'ALL' },
-  { label: 'En attente', value: 'EN_ATTENTE' },
-  { label: 'En traitement', value: 'EN_TRAITEMENT' },
-  { label: 'RDV OK', value: 'RDV_OK' },
-  { label: 'Livrée', value: 'LIVREE' },
+const STATUS_TABS: { labelKey: string; value: VisaStatus | 'ALL' | 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
+  { labelKey: 'statusTabs:all', value: 'ALL' },
+  { labelKey: 'statusTabs:EN_ATTENTE', value: 'EN_ATTENTE' },
+  { labelKey: 'statusTabs:DOSSIER_INCOMPLET', value: 'DOSSIER_INCOMPLET' },
+  { labelKey: 'statusTabs:EN_TRAITEMENT', value: 'EN_TRAITEMENT' },
+  { labelKey: 'statusTabs:RDV_OK', value: 'RDV_OK' },
+  { labelKey: 'statusTabs:LIVREE', value: 'LIVREE' },
 ];
 
 const LIVREE_SUB_TABS: { label: string; value: 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
@@ -30,6 +31,15 @@ const LIVREE_SUB_TABS: { label: string; value: 'LIVREE' | 'LIVREE_PAID' | 'LIVRE
   { label: 'Payée', value: 'LIVREE_PAID' },
   { label: 'Non Payée', value: 'LIVREE_UNPAID' },
 ];
+
+function toDateInputValue(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return '';
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function VisaCasesPage() {
   const { t } = useTranslation();
@@ -43,6 +53,8 @@ export function VisaCasesPage() {
   const [livreeSubTab, setLivreeSubTab] = useState<'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID'>('LIVREE');
 
   const isLivreeMainTab = activeTab === 'LIVREE';
+  const isRdvOkTab = activeTab === 'RDV_OK';
+  const isIncompleteTab = activeTab === 'DOSSIER_INCOMPLET';
   const effectiveStatus = isLivreeMainTab ? (livreeSubTab === 'LIVREE' ? 'LIVREE' : undefined) : (activeTab === 'ALL' ? undefined : activeTab as VisaStatus);
 
   const { data, isLoading } = useQuery({
@@ -58,6 +70,17 @@ export function VisaCasesPage() {
       setDeleteId(null);
     },
     onError: () => toast.error(t('visaCases:deleteFailed')),
+  });
+
+  const appointmentMutation = useMutation({
+    mutationFn: ({ id, appointmentDate, appointmentTime }: { id: string; appointmentDate?: string; appointmentTime?: string }) =>
+      appointmentsService.update(id, { appointmentDate, appointmentTime }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['visa-cases'] });
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      toast.success(t('appointments:appointmentUpdated'));
+    },
+    onError: () => toast.error(t('appointments:updateError')),
   });
 
   const allCases = data?.data ?? [];
@@ -129,6 +152,73 @@ export function VisaCasesPage() {
         </Badge>
       ),
     },
+    ...(isIncompleteTab
+      ? [
+          {
+            header: t('visaCases:incompleteReason'),
+            accessor: (vc: VisaCase) =>
+              vc.incompleteReason ? (
+                <div
+                  className="flex max-w-[220px] items-start gap-1.5"
+                  title={vc.incompleteReason}
+                >
+                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600" />
+                  <span className="line-clamp-2 text-xs text-amber-800 dark:text-amber-300">
+                    {vc.incompleteReason}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              ),
+          } as Column<VisaCase>,
+        ]
+      : []),
+    ...(isRdvOkTab
+      ? [
+          {
+            header: t('appointments:date'),
+            accessor: (vc: VisaCase) => {
+              const appt = vc.appointments?.[0];
+              if (!appt) return <span className="text-xs text-muted-foreground">—</span>;
+              return (
+                <input
+                  type="date"
+                  className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                  defaultValue={toDateInputValue(appt.appointmentDate)}
+                  key={`date-${appt.id}-${appt.appointmentDate}`}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    if (!e.target.value) return;
+                    appointmentMutation.mutate({ id: appt.id, appointmentDate: e.target.value });
+                  }}
+                  data-testid={`rdv-date-${vc.id}`}
+                />
+              );
+            },
+          } as Column<VisaCase>,
+          {
+            header: t('appointments:time'),
+            accessor: (vc: VisaCase) => {
+              const appt = vc.appointments?.[0];
+              if (!appt) return <span className="text-xs text-muted-foreground">—</span>;
+              return (
+                <input
+                  type="time"
+                  className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                  defaultValue={appt.appointmentTime}
+                  key={`time-${appt.id}-${appt.appointmentTime}`}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => {
+                    if (!e.target.value) return;
+                    appointmentMutation.mutate({ id: appt.id, appointmentTime: e.target.value });
+                  }}
+                  data-testid={`rdv-time-${vc.id}`}
+                />
+              );
+            },
+          } as Column<VisaCase>,
+        ]
+      : []),
     {
       header: t('visaCases:price'),
       accessor: (vc) => vc.price != null && vc.price > 0 ? (
@@ -205,7 +295,7 @@ export function VisaCasesPage() {
             size="sm"
             onClick={() => handleTabChange(tab.value)}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </Button>
         ))}
       </div>

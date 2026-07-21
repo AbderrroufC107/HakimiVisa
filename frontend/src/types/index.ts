@@ -9,6 +9,7 @@ export * from './kanban';
 export * from './appointment';
 export * from './visa-details';
 export * from './tracking';
+export * from './template';
 export * from './notification';
 
 export type Nullable<T> = T | null;

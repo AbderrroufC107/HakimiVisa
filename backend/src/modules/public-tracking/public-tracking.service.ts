@@ -6,16 +6,24 @@ import { PublicTrackingQueryDto } from './dto/public-tracking-query.dto';
 export class PublicTrackingService {
   constructor(private prisma: PrismaService) {}
 
-  async findByPhone(query: PublicTrackingQueryDto) {
-    const { phone, reference } = query;
+  async findByPassport(query: PublicTrackingQueryDto) {
+    const { passport, expiry, reference } = query;
 
     const client = await this.prisma.client.findFirst({
-      where: { phoneNumber: { contains: phone } },
-      select: { id: true, fullName: true, phoneNumber: true },
+      where: { passportNumber: { equals: passport.trim() } },
+      select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
     });
 
-    if (!client) {
-      throw new NotFoundException('Aucun dossier trouvé avec ce numéro de téléphone');
+    // Verify passport expiry matches (same calendar day)
+    const expiryDate = new Date(expiry);
+    const matches =
+      client?.passportExpiry != null &&
+      client.passportExpiry.getUTCFullYear() === expiryDate.getUTCFullYear() &&
+      client.passportExpiry.getUTCMonth() === expiryDate.getUTCMonth() &&
+      client.passportExpiry.getUTCDate() === expiryDate.getUTCDate();
+
+    if (!client || !matches) {
+      throw new NotFoundException('Aucun dossier trouvé avec ces informations de passeport');
     }
 
     const where: Record<string, unknown> = {
@@ -31,10 +39,12 @@ export class PublicTrackingService {
       where,
       orderBy: { updatedAt: 'desc' },
       select: {
+        id: true,
         caseNumber: true,
         visaCountry: true,
         visaType: true,
         currentStatus: true,
+        incompleteReason: true,
         openingDate: true,
         updatedAt: true,
       },
@@ -42,7 +52,7 @@ export class PublicTrackingService {
 
     return {
       clientName: client.fullName,
-      phone: client.phoneNumber,
+      passport: client.passportNumber,
       cases,
       total: cases.length,
     };
@@ -56,10 +66,11 @@ export class PublicTrackingService {
         visaCountry: true,
         visaType: true,
         currentStatus: true,
+        incompleteReason: true,
         openingDate: true,
         updatedAt: true,
         client: {
-          select: { fullName: true, phoneNumber: true },
+          select: { fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
         },
         appointments: {
           orderBy: { appointmentDate: 'asc' },

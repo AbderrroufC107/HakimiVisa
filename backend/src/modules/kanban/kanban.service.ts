@@ -56,6 +56,7 @@ export class KanbanService {
 
     const grouped: Record<string, typeof cases> = {
       EN_ATTENTE: [],
+      DOSSIER_INCOMPLET: [],
       EN_TRAITEMENT: [],
       RDV_OK: [],
       LIVREE: [],
@@ -72,6 +73,7 @@ export class KanbanService {
 
     const columnColors: Record<string, string> = {
       EN_ATTENTE: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      DOSSIER_INCOMPLET: 'bg-amber-100 text-amber-800 border-amber-300',
       EN_TRAITEMENT: 'bg-blue-100 text-blue-800 border-blue-300',
       RDV_OK: 'bg-orange-100 text-orange-800 border-orange-300',
       LIVREE: 'bg-teal-100 text-teal-800 border-teal-300',
@@ -79,6 +81,7 @@ export class KanbanService {
 
     const columnLabels: Record<string, string> = {
       EN_ATTENTE: 'En Attente',
+      DOSSIER_INCOMPLET: 'Dossier Incomplet',
       EN_TRAITEMENT: 'En Traitement',
       RDV_OK: 'RDV OK',
       LIVREE: 'Livrée',

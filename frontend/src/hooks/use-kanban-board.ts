@@ -9,6 +9,7 @@ export type { KanbanFilters } from '@/types';
 
 const COLUMN_ORDER: VisaStatus[] = [
   'EN_ATTENTE',
+  'DOSSIER_INCOMPLET',
   'EN_TRAITEMENT',
   'RDV_OK',
   'LIVREE',
@@ -91,14 +92,18 @@ export function useKanbanBoard() {
     });
   }, [sortedColumns, filters]);
 
+  const [pendingIncomplete, setPendingIncomplete] = useState<{ caseId: string; caseNumber: string } | null>(null);
+
   const statusMutation = useMutation({
     mutationFn: ({
       id,
       status,
+      reason,
     }: {
       id: string;
       status: VisaStatus;
-    }) => visaCasesService.updateStatus(id, { status }),
+      reason?: string;
+    }) => visaCasesService.updateStatus(id, { status, reason }),
     onMutate: async ({ id, status }) => {
       await queryClient.cancelQueries({ queryKey: ['kanban', 'board'] });
       const previous = queryClient.getQueryData<KanbanColumn[]>(['kanban', 'board']);
@@ -168,7 +173,14 @@ export function useKanbanBoard() {
 
       if (!fromColumn || fromColumn.id === newStatus) return;
 
-      statusMutation.mutate({ id: String(active.id), status: newStatus });
+      const caseId = String(active.id);
+      if (newStatus === 'DOSSIER_INCOMPLET') {
+        const card = fromColumn.cards.find((c) => c.id === caseId);
+        setPendingIncomplete({ caseId, caseNumber: card?.caseNumber ?? '' });
+        return;
+      }
+
+      statusMutation.mutate({ id: caseId, status: newStatus });
     },
     [sortedColumns, statusMutation],
   );
@@ -183,10 +195,28 @@ export function useKanbanBoard() {
 
   const moveCard = useCallback(
     (caseId: string, newStatus: VisaStatus) => {
+      if (newStatus === 'DOSSIER_INCOMPLET') {
+        const card = sortedColumns.flatMap((c) => c.cards).find((c) => c.id === caseId);
+        setPendingIncomplete({ caseId, caseNumber: card?.caseNumber ?? '' });
+        return;
+      }
       statusMutation.mutate({ id: caseId, status: newStatus });
     },
-    [statusMutation],
+    [statusMutation, sortedColumns],
   );
+
+  const confirmIncomplete = useCallback(
+    (reason: string) => {
+      if (!pendingIncomplete) return;
+      statusMutation.mutate({ id: pendingIncomplete.caseId, status: 'DOSSIER_INCOMPLET', reason });
+      setPendingIncomplete(null);
+    },
+    [pendingIncomplete, statusMutation],
+  );
+
+  const cancelIncomplete = useCallback(() => {
+    setPendingIncomplete(null);
+  }, []);
 
   const togglePaidMutation = useMutation({
     mutationFn: ({ id, isPaid }: { id: string; isPaid: boolean }) =>
@@ -238,6 +268,9 @@ export function useKanbanBoard() {
     closeDrawer,
     moveCard,
     togglePaid,
+    pendingIncomplete,
+    confirmIncomplete,
+    cancelIncomplete,
     totalCards: sortedColumns.reduce((sum, col) => sum + col.count, 0),
   };
 }

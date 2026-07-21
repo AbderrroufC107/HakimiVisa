@@ -6,12 +6,14 @@ export interface TrackingCase {
   visaCountry: string;
   visaType: string;
   currentStatus: VisaStatus;
+  incompleteReason?: string | null;
   openingDate: string;
   updatedAt: string;
 }
 
 export interface TrackingResult {
   clientName: string;
+  passport: string;
   cases: TrackingCase[];
   total: number;
 }
@@ -44,9 +46,16 @@ export interface TrackingCaseDetail {
   visaCountry: string;
   visaType: string;
   currentStatus: VisaStatus;
+  incompleteReason?: string | null;
   openingDate: string;
   updatedAt: string;
-  client: { id: string; fullName: string; phoneNumber: string };
+  client: {
+    id: string;
+    fullName: string;
+    phoneNumber: string;
+    passportNumber?: string | null;
+    passportExpiry?: string | null;
+  };
   appointments: TrackingAppointment[];
   visaDetails: TrackingVisaDetails | null;
   statusHistories: TrackingStatusHistory[];

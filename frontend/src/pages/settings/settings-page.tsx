@@ -39,6 +39,7 @@ import {
   saveSettingsPreferences,
   type SettingsPreferences,
 } from './settings-preferences';
+import { RefDataSettings } from './ref-data-settings';
 import type { CreateManagerRequest, UpdateProfileRequest } from '@/types';
 
 interface AgencySettings {
@@ -69,7 +70,7 @@ export function SettingsPage() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const isAdmin = user?.role === 'ADMIN';
-  const [activeSection, setActiveSection] = useState<'general' | 'agency' | 'appearance' | 'notifications' | 'security'>('general');
+  const [activeSection, setActiveSection] = useState<'general' | 'agency' | 'refData' | 'appearance' | 'notifications' | 'security'>('general');
   const [preferences, setPreferences] = useState<SettingsPreferences>(() => loadSettingsPreferences());
 
   const { data: settings, isLoading } = useQuery({
@@ -204,6 +205,7 @@ export function SettingsPage() {
             {[
               { key: 'general', icon: SlidersHorizontal, label: t('settings:general') },
               { key: 'agency', icon: Building, label: t('settings:agency') },
+              { key: 'refData', icon: Globe, label: t('settings:refData') },
               { key: 'appearance', icon: Monitor, label: t('settings:appearance') },
               { key: 'notifications', icon: Bell, label: t('settings:notifications') },
               { key: 'security', icon: ShieldCheck, label: t('settings:security') },
@@ -529,6 +531,8 @@ export function SettingsPage() {
               </CardContent>
             </Card>
           )}
+
+          {activeSection === 'refData' && <RefDataSettings />}
 
           {activeSection === 'appearance' && (
             <Card>

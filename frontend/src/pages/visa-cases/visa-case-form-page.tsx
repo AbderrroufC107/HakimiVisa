@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Search, UserCheck, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clientsService, visaCasesService, refDataService } from '@/services';
 import { ROUTES } from '@/constants';
@@ -25,6 +25,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { LabelDialog, type LabelData } from '@/components/visa-cases/client-label';
+import type { Client, ApiError } from '@/types';
 
 const getValidationSchema = (t: (key: string) => string) =>
   z.object({
@@ -60,9 +62,36 @@ export function VisaCaseFormPage() {
   const [countryInput, setCountryInput] = useState('');
   const [visaTypeInput, setVisaTypeInput] = useState('');
 
-  const { data: clientsData } = useQuery({
-    queryKey: ['clients', 'all'],
-    queryFn: () => clientsService.findAll({ limit: 200 }),
+  // Client search state
+  const [clientSearch, setClientSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+
+  // Label print state
+  const [labelData, setLabelData] = useState<LabelData | null>(null);
+  const [showLabelDialog, setShowLabelDialog] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(clientSearch.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [clientSearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const { data: searchResults, isFetching: searching } = useQuery({
+    queryKey: ['clients', 'search', debouncedSearch],
+    queryFn: () => clientsService.findAll({ search: debouncedSearch, limit: 8 }),
+    enabled: debouncedSearch.length >= 2 && !selectedClient,
   });
 
   const { data: countries = [] } = useQuery({
@@ -104,11 +133,14 @@ export function VisaCaseFormPage() {
     if (watchedVisaType !== undefined) setVisaTypeInput(watchedVisaType || '');
   }, [watchedVisaType]);
 
+  // Pre-select client from query param
   useEffect(() => {
     const clientId = searchParams.get('clientId');
-    if (clientId) {
+    if (clientId && !selectedClient) {
       setValue('clientId', clientId);
+      clientsService.findOne(clientId).then((c) => setSelectedClient(c)).catch(() => {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setValue]);
 
   useEffect(() => {
@@ -122,6 +154,15 @@ export function VisaCaseFormPage() {
       });
       setCountryInput(vc.visaCountry);
       setVisaTypeInput(vc.visaType);
+      if (vc.client) {
+        setSelectedClient({
+          id: vc.client.id,
+          fullName: vc.client.fullName,
+          phoneNumber: vc.client.phoneNumber,
+          passportNumber: vc.client.passportNumber ?? null,
+          passportExpiry: vc.client.passportExpiry ?? null,
+        } as Client);
+      }
     }
   }, [existing, reset]);
 
@@ -130,11 +171,24 @@ export function VisaCaseFormPage() {
       isEditing
         ? visaCasesService.update(id!, data)
         : visaCasesService.create(data),
-    onSuccess: () => {
+    onSuccess: (_created, variables) => {
       queryClient.invalidateQueries({ queryKey: ['visa-cases'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       toast.success(t(isEditing ? 'visaCases:caseUpdated' : 'visaCases:caseCreated'));
-      navigate(ROUTES.VISA_CASES);
+
+      if (!isEditing && selectedClient) {
+        setLabelData({
+          fullName: selectedClient.fullName,
+          phoneNumber: selectedClient.phoneNumber,
+          passportNumber: selectedClient.passportNumber,
+          passportExpiry: selectedClient.passportExpiry,
+          visaCountry: variables.visaCountry,
+          visaType: variables.visaType,
+        });
+        setShowLabelDialog(true);
+      } else {
+        navigate(ROUTES.VISA_CASES);
+      }
     },
     onError: () => {
       toast.error(t(isEditing ? 'visaCases:updateFailed' : 'visaCases:createFailed'));
@@ -145,9 +199,10 @@ export function VisaCaseFormPage() {
     mutationFn: (data: { fullName: string; phoneNumber: string; passportNumber?: string; passportExpiry?: string; nationality?: string }) =>
       clientsService.create(data),
     onSuccess: (newClient) => {
-      queryClient.invalidateQueries({ queryKey: ['clients', 'all'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast.success(t('clients:clientCreated'));
-      setValue('clientId', newClient.id);
+      setSelectedClient(newClient);
+      setValue('clientId', newClient.id, { shouldValidate: true });
       setShowAddClient(false);
       setNewClientName('');
       setNewClientPhone('');
@@ -155,8 +210,9 @@ export function VisaCaseFormPage() {
       setNewClientPassportExpiry('');
       setNewClientNationality('');
     },
-    onError: () => {
-      toast.error(t('clients:createFailed'));
+    onError: (error) => {
+      const apiError = error as unknown as ApiError;
+      toast.error(apiError?.message || t('clients:createFailed'));
     },
   });
 
@@ -207,6 +263,26 @@ export function VisaCaseFormPage() {
     setValue('visaType', value, { shouldValidate: true });
   };
 
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    setValue('clientId', client.id, { shouldValidate: true });
+    setClientSearch('');
+    setShowResults(false);
+  };
+
+  const handleClearClient = () => {
+    setSelectedClient(null);
+    setValue('clientId', '');
+    setClientSearch('');
+  };
+
+  const handleLabelDialogClose = (open: boolean) => {
+    setShowLabelDialog(open);
+    if (!open) {
+      navigate(ROUTES.VISA_CASES);
+    }
+  };
+
   const filteredCountries = countryInput
     ? countries.filter((c) => c.toLowerCase().includes(countryInput.toLowerCase()))
     : countries;
@@ -214,6 +290,8 @@ export function VisaCaseFormPage() {
   const filteredVisaTypes = visaTypeInput
     ? visaTypes.filter((v) => v.toLowerCase().includes(visaTypeInput.toLowerCase()))
     : visaTypes;
+
+  const results = searchResults?.data ?? [];
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -250,18 +328,90 @@ export function VisaCaseFormPage() {
                   {t('visaCases:addClient')}
                 </Button>
               </div>
-              <select
-                id="clientId"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                {...register('clientId')}
-              >
-                <option value="">{t('visaCases:selectClient')}</option>
-                {clientsData?.data?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.fullName} - {c.phoneNumber}
-                  </option>
-                ))}
-              </select>
+
+              {selectedClient ? (
+                <div className="flex items-start justify-between rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-primary/10 p-2">
+                      <UserCheck className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="text-sm">
+                      <p className="font-semibold">{selectedClient.fullName}</p>
+                      <p className="text-muted-foreground">{selectedClient.phoneNumber}</p>
+                      {selectedClient.passportNumber && (
+                        <p className="text-xs text-muted-foreground">
+                          {t('clients:passportNumber')}: {selectedClient.passportNumber}
+                          {selectedClient.passportExpiry && (
+                            <> · {t('visaCases:passportExpiry')}: {new Date(selectedClient.passportExpiry).toLocaleDateString()}</>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={handleClearClient}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative" ref={searchBoxRef}>
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-9"
+                    placeholder={t('visaCases:searchClientPlaceholder')}
+                    value={clientSearch}
+                    onChange={(e) => {
+                      setClientSearch(e.target.value);
+                      setShowResults(true);
+                    }}
+                    onFocus={() => setShowResults(true)}
+                    data-testid="client-search-input"
+                  />
+                  {showResults && debouncedSearch.length >= 2 && (
+                    <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md">
+                      {searching ? (
+                        <p className="p-3 text-sm text-muted-foreground">{t('common:loading')}</p>
+                      ) : results.length === 0 ? (
+                        <div className="p-3 text-sm text-muted-foreground">
+                          <p>{t('visaCases:noClientFound')}</p>
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="px-0"
+                            onClick={() => {
+                              setShowResults(false);
+                              setShowAddClient(true);
+                            }}
+                          >
+                            <Plus className="h-3.5 w-3.5 mr-1" />
+                            {t('visaCases:addClient')}
+                          </Button>
+                        </div>
+                      ) : (
+                        <ul className="max-h-56 overflow-auto py-1">
+                          {results.map((c) => (
+                            <li key={c.id}>
+                              <button
+                                type="button"
+                                className="w-full px-3 py-2 text-left hover:bg-accent"
+                                onClick={() => handleSelectClient(c)}
+                              >
+                                <p className="text-sm font-medium">{c.fullName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {c.phoneNumber}
+                                  {c.passportNumber ? ` · ${c.passportNumber}` : ''}
+                                </p>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <input type="hidden" {...register('clientId')} />
               {errors.clientId && (
                 <p className="text-xs text-destructive">{errors.clientId.message}</p>
               )}
@@ -490,6 +640,13 @@ export function VisaCaseFormPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Label print dialog after create */}
+      <LabelDialog
+        open={showLabelDialog}
+        onOpenChange={handleLabelDialogClose}
+        data={labelData}
+      />
     </div>
   );
 }

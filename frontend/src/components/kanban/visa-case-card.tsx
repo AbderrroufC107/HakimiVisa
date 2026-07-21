@@ -4,10 +4,10 @@ import { useDraggable } from '@dnd-kit/core';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/shared/badge';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign } from 'lucide-react';
+import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle } from 'lucide-react';
 import type { VisaCase, VisaStatus } from '@/types';
 
-const COLUMN_FLOW: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
+const COLUMN_FLOW: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
 
 interface VisaCaseCardProps {
   card: VisaCase;
@@ -26,6 +26,7 @@ function formatDate(dateStr: string, locale: string) {
 
 const statusBadgeColors: Record<VisaStatus, string> = {
   EN_ATTENTE: 'bg-yellow-100 text-yellow-800',
+  DOSSIER_INCOMPLET: 'bg-amber-100 text-amber-800',
   EN_TRAITEMENT: 'bg-blue-100 text-blue-800',
   RDV_OK: 'bg-orange-100 text-orange-800',
   VISA_OK: 'bg-green-100 text-green-800',
@@ -126,6 +127,18 @@ export const VisaCaseCard = memo(function VisaCaseCard({
           {card.visaType}
         </Badge>
       </div>
+
+      {card.currentStatus === 'DOSSIER_INCOMPLET' && card.incompleteReason && (
+        <div
+          className="mt-2 flex items-start gap-1.5 rounded-md border border-amber-200 bg-amber-50 p-1.5 dark:bg-amber-950/40"
+          title={card.incompleteReason}
+        >
+          <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-600" />
+          <span className="line-clamp-2 text-[10px] text-amber-800 dark:text-amber-300">
+            {card.incompleteReason}
+          </span>
+        </div>
+      )}
 
       {isRdvOk && card.price != null && card.price > 0 && (
         <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-orange-700">

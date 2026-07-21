@@ -4,6 +4,7 @@ import type { VisaStatus } from '@/types';
 
 const statusConfig: Record<VisaStatus, { className: string }> = {
   EN_ATTENTE: { className: 'bg-yellow-50 text-yellow-800 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300' },
+  DOSSIER_INCOMPLET: { className: 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300' },
   EN_TRAITEMENT: { className: 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-300' },
   RDV_OK: { className: 'bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-300' },
   VISA_OK: { className: 'bg-green-50 text-green-800 border-green-300 dark:bg-green-950 dark:text-green-300' },

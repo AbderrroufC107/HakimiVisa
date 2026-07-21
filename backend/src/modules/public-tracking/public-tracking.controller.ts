@@ -12,7 +12,7 @@ export class PublicTrackingController {
   @Get()
   @Throttle({ default: { limit: 30, ttl: 60000 } })
   async search(@Query() query: PublicTrackingQueryDto) {
-    return this.publicTrackingService.findByPhone(query);
+    return this.publicTrackingService.findByPassport(query);
   }
 
   @Public()

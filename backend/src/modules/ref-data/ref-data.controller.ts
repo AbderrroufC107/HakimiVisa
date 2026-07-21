@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { RefDataService } from './ref-data.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -17,6 +17,16 @@ export class RefDataController {
     return this.refDataService.createCountry(name);
   }
 
+  @Patch('countries/:id')
+  updateCountry(@Param('id') id: string, @Body('name') name: string) {
+    return this.refDataService.updateCountry(id, name);
+  }
+
+  @Delete('countries/:id')
+  removeCountry(@Param('id') id: string) {
+    return this.refDataService.removeCountry(id);
+  }
+
   @Get('visa-types')
   findAllVisaTypes() {
     return this.refDataService.findAllVisaTypes();
@@ -25,5 +35,15 @@ export class RefDataController {
   @Post('visa-types')
   createVisaType(@Body('name') name: string) {
     return this.refDataService.createVisaType(name);
+  }
+
+  @Patch('visa-types/:id')
+  updateVisaType(@Param('id') id: string, @Body('name') name: string) {
+    return this.refDataService.updateVisaType(id, name);
+  }
+
+  @Delete('visa-types/:id')
+  removeVisaType(@Param('id') id: string) {
+    return this.refDataService.removeVisaType(id);
   }
 }

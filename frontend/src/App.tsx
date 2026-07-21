@@ -19,6 +19,7 @@ const VisaCaseDetailPage = lazy(() => import('./pages/visa-cases/visa-case-detai
 const VisaDecisionsPage = lazy(() => import('./pages/visa-cases/visa-decisions-page').then((m) => ({ default: m.VisaDecisionsPage })));
 const KanbanPage = lazy(() => import('./pages/kanban-page').then((m) => ({ default: m.KanbanPage })));
 const AppointmentsPage = lazy(() => import('./pages/appointments/appointments-page').then((m) => ({ default: m.AppointmentsPage })));
+const TemplatesPage = lazy(() => import('./pages/templates/templates-page').then((m) => ({ default: m.TemplatesPage })));
 const TrackingPage = lazy(() => import('./pages/tracking-page').then((m) => ({ default: m.TrackingPage })));
 const NotificationsPage = lazy(() => import('./pages/notifications/notifications-page').then((m) => ({ default: m.NotificationsPage })));
 const BackupCenterPage = lazy(() => import('./pages/backup/backup-center-page').then((m) => ({ default: m.BackupCenterPage })));
@@ -64,6 +65,7 @@ export function App() {
                       <Route path={ROUTES.VISA_DECISIONS} element={<VisaDecisionsPage />} />
                       <Route path={ROUTES.KANBAN} element={<KanbanPage />} />
                       <Route path={ROUTES.APPOINTMENTS} element={<AppointmentsPage />} />
+                      <Route path={ROUTES.TEMPLATES} element={<TemplatesPage />} />
                       <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
                       <Route path={ROUTES.BACKUP_CENTER} element={<BackupCenterPage />} />
                       <Route path={ROUTES.SYSTEM_HEALTH} element={<SystemHealthPage />} />
