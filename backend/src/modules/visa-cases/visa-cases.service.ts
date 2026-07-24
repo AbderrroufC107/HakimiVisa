@@ -9,12 +9,16 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { FcmService } from '../notifications/fcm.service';
 import { BroadcastNotificationDto } from '../notifications/dto';
 import { AppGateway } from '../gateway/app.gateway';
+import { TemplatesService } from '../templates/templates.service';
+import { MessagesService } from '../templates/messages.service';
 import {
   CreateVisaCaseDto,
   UpdateVisaCaseDto,
   UpdateStatusDto,
   QueryVisaCaseDto,
 } from './dto';
+
+const AUTO_NOTIFY_STATUSES = ['RDV_OK', 'LIVREE'];
 
 @Injectable()
 export class VisaCasesService {
@@ -26,6 +30,8 @@ export class VisaCasesService {
     private notifications: NotificationsService,
     private fcm: FcmService,
     private gateway: AppGateway,
+    private templates: TemplatesService,
+    private messages: MessagesService,
   ) {}
 
   async create(dto: CreateVisaCaseDto, userId: string) {
@@ -279,7 +285,63 @@ export class VisaCasesService {
       changedBy: changerName,
     });
 
+    // Auto-send WhatsApp/email on key status changes
+    if (AUTO_NOTIFY_STATUSES.includes(newStatus)) {
+      await this.sendAutoNotifications(id, newStatus);
+    }
+
     return visaCase;
+  }
+
+  private async sendAutoNotifications(visaCaseId: string, status: string) {
+    this.logger.log(`Auto notification triggered for case ${visaCaseId}, status=${status}`);
+    try {
+      const visaCase = await this.prisma.visaCase.findUnique({
+        where: { id: visaCaseId },
+        include: { client: true },
+      });
+      if (!visaCase) { this.logger.warn('Visa case not found for auto notification'); return; }
+      this.logger.log(`Auto notification: case=${visaCase.caseNumber}, client=${visaCase.client.fullName}`);
+
+      const context = { country: visaCase.visaCountry, visaType: visaCase.visaType };
+
+      let waTemplate;
+      try {
+        waTemplate = await this.templates.findBestTemplate('WHATSAPP', context);
+      } catch (e: any) {
+        this.logger.error(`findBestTemplate WA error: code=${e.code} message=${e.message} meta=${JSON.stringify(e.meta || {})}`);
+      }
+      this.logger.log(`WA template: ${waTemplate ? waTemplate.name : 'none'}`);
+      if (waTemplate) {
+        const variables = this.templates.buildVariables(visaCase as never);
+        const body = this.templates.renderText(waTemplate.body, variables);
+        const rawPhone = visaCase.client.whatsappNumber || visaCase.client.phoneNumber;
+        if (rawPhone) {
+          let digits = rawPhone.replace(/\D/g, '');
+          if (digits.startsWith('00')) digits = digits.slice(2);
+          const waUrl = `https://wa.me/${digits}?text=${encodeURIComponent(body)}`;
+          this.logger.log(`Auto WhatsApp URL ready: ${waUrl.substring(0, 100)}`);
+        }
+      }
+
+      let emailTemplate;
+      try {
+        emailTemplate = await this.templates.findBestTemplate('EMAIL', context);
+      } catch (e) {
+        this.logger.error(`findBestTemplate EMAIL error: ${String(e)}`);
+      }
+      this.logger.log(`Email template: ${emailTemplate ? emailTemplate.name : 'none'}`);
+      if (emailTemplate && visaCase.client.email) {
+        try {
+          await this.messages.sendEmail({ templateId: emailTemplate.id, visaCaseId });
+          this.logger.log(`Auto email sent to ${visaCase.client.email}`);
+        } catch (err) {
+          this.logger.warn(`Auto email failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    } catch (err) {
+      this.logger.error(`Auto notification error for ${visaCaseId}: ${String(err)} ${(err as Error).stack || ''}`);
+    }
   }
 
   async getHistory(id: string) {

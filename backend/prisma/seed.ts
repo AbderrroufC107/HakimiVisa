@@ -295,7 +295,47 @@ async function main() {
     });
   }
 
-  console.log(`Seed completed: ${clients.length} clients, ${cases.length} visa cases.`);
+  // Seed message templates
+  const templates = [
+    {
+      name: 'RDV OK - WhatsApp',
+      channel: 'WHATSAPP',
+      body: 'Bonjour {{client_name}}, votre rendez-vous pour le dossier {{case_number}} (visa {{country}} - {{visa_type}}) est confirmé. Date: {{appointment_date}} à {{appointment_time}}, Centre: {{appointment_center}}. Passeport: {{passport}}',
+    },
+    {
+      name: 'RDV OK - Email',
+      channel: 'EMAIL',
+      subject: 'Rendez-vous confirmé - {{client_name}} - {{case_number}}',
+      body: 'Bonjour {{client_name}},\n\nVotre rendez-vous pour le dossier {{case_number}} est confirmé.\n\nDétails:\n- Visa: {{visa_type}} pour {{country}}\n- Date: {{appointment_date}} à {{appointment_time}}\n- Centre: {{appointment_center}}\n- Passeport: {{passport}}\n\nCordialement,\nHakimi Visa Services',
+    },
+    {
+      name: 'LIVREE - WhatsApp',
+      channel: 'WHATSAPP',
+      body: 'Félicitations {{client_name}}! Votre visa {{visa_type}} pour {{country}} (dossier {{case_number}}) a été livré. Passeport: {{passport}}. Vous pouvez venir récupérer votre document.',
+    },
+    {
+      name: 'LIVREE - Email',
+      channel: 'EMAIL',
+      subject: 'Visa livré - {{client_name}} - {{case_number}}',
+      body: 'Bonjour {{client_name}},\n\nFélicitations! Votre visa a été livré avec succès.\n\nDétails:\n- Numéro de dossier: {{case_number}}\n- Visa: {{visa_type}} pour {{country}}\n- Passeport: {{passport}}\n\nVous pouvez venir récupérer votre document au bureau.\n\nCordialement,\nHakimi Visa Services',
+    },
+  ];
+
+  for (const tpl of templates) {
+    await prisma.messageTemplate.upsert({
+      where: { id: `seed-template-${tpl.channel.toLowerCase()}-${tpl.name.split(' ')[0].toLowerCase()}` },
+      update: { body: tpl.body, subject: (tpl as { subject?: string }).subject },
+      create: {
+        id: `seed-template-${tpl.channel.toLowerCase()}-${tpl.name.split(' ')[0].toLowerCase()}`,
+        name: tpl.name,
+        channel: tpl.channel as 'WHATSAPP' | 'EMAIL',
+        subject: (tpl as { subject?: string }).subject,
+        body: tpl.body,
+      },
+    });
+  }
+
+  console.log(`Seed completed: ${clients.length} clients, ${cases.length} visa cases, ${templates.length} templates.`);
 }
 
 main()
