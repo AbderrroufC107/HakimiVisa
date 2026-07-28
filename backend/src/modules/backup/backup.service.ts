@@ -56,6 +56,8 @@ export class BackupService {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `hakimi-backup-${timestamp}.zip`;
     const filepath = join(BACKUP_DIR, filename);
+    const dumpFile = join(BACKUP_DIR, `dump-${timestamp}.sql`);
+    const configFile = join(BACKUP_DIR, `my-${timestamp}.cnf`);
 
     try {
       const dbUrl = process.env.DATABASE_URL;
@@ -72,9 +74,6 @@ export class BackupService {
       if (!user || !host || !database) throw new Error('DATABASE_URL is missing required fields');
 
       this.logger.log(`Starting backup: ${filename}`);
-
-      const dumpFile = join(BACKUP_DIR, `dump-${timestamp}.sql`);
-      const configFile = join(BACKUP_DIR, `my-${timestamp}.cnf`);
       const configContent = [
         '[client]',
         `host="${host}"`,
