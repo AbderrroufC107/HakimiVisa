@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, formatDistanceToNow } from 'date-fns';
-import { enUS, fr } from 'date-fns/locale';
+import { enUS, fr, ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { notificationsService } from '@/services';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ const colorMap: Record<NotificationType, string> = {
 export function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const locale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({

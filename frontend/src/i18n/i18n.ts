@@ -20,6 +20,7 @@ const NAMESPACES = [
   'kanban', 'appointments', 'tracking', 'notifications',
   'auditLogs', 'backup', 'systemHealth', 'systemLogs', 'pdf',
   'settings', 'validation', 'table', 'dialog', 'status',
+  'statusTabs', 'label', 'templates', 'roles',
   'appointmentType', 'entryType', 'trackingStep', 'caseTimeline',
 ] as const;
 

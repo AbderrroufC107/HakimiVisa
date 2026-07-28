@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import { enUS, fr } from 'date-fns/locale';
+import { enUS, fr, ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useSocket } from '@/providers';
 import { useTheme } from '@/providers';
@@ -26,7 +26,7 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const navigate = useNavigate();
-  const dateLocale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const dateLocale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
   const queryClient = useQueryClient();
   const { socket } = useSocket();
   const [notifOpen, setNotifOpen] = useState(false);

@@ -8,7 +8,7 @@ import {
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths,
   addWeeks, subWeeks, addDays, subDays,
 } from 'date-fns';
-import { enUS, fr } from 'date-fns/locale';
+import { enUS, fr, ar } from 'date-fns/locale';
 import { appointmentsService, templatesService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
@@ -279,7 +279,7 @@ export function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [whatsappPrompt, setWhatsappPrompt] = useState<{ url: string; body: string } | null>(null);
 
-  const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const locale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
 
   const dateFrom = useMemo(() => {
     if (viewMode === 'month') return startOfWeek(startOfMonth(currentDate));

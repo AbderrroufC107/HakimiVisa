@@ -65,7 +65,7 @@ export function VisaDecisionsPage() {
             <CardHeader className="border-b border-green-100 dark:border-green-900">
               <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
                 <CheckCircle className="h-5 w-5" />
-                {t('visaCases:approved')} ({approvedCases.length})
+                {t('status:VISA_OK')} ({approvedCases.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pt-4">

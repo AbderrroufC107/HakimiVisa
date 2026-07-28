@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { backupService } from '@/services/backup';
 import { format, formatDistanceToNow } from 'date-fns';
-import { enUS, fr } from 'date-fns/locale';
+import { enUS, fr, ar } from 'date-fns/locale';
 import { Badge } from '@/components/shared/badge';
 
 function formatBytes(bytes: number): string {
@@ -21,7 +21,7 @@ function formatBytes(bytes: number): string {
 
 export function BackupCenterPage() {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const locale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
   const queryClient = useQueryClient();
 
   const { data: backups = [], isLoading } = useQuery({

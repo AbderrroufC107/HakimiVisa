@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { VISA_STATUS_COLORS, type VisaStatus, type VisaCase } from '@/types';
 import { format, addDays } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { fr, enUS, ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '@/providers/websocket-provider';
 
@@ -64,7 +64,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const locale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
   const { socket } = useSocket();
 
   const { data: statsData, isLoading: statsLoading } = useQuery({

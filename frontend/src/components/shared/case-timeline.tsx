@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { enUS, fr } from 'date-fns/locale';
+import { enUS, fr, ar } from 'date-fns/locale';
 import { Clock, ArrowRight, User, FileText, Calendar, Shield } from 'lucide-react';
 
 export interface TimelineEvent {
@@ -31,7 +31,7 @@ const typeConfig: Record<TimelineEvent['type'], { icon: typeof FileText; color: 
 
 export function CaseTimeline({ events, className }: CaseTimelineProps) {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language?.startsWith('fr') ? fr : enUS;
+  const locale = i18n.language?.startsWith('ar') ? ar : i18n.language?.startsWith('fr') ? fr : enUS;
 
   if (events.length === 0) {
     return (
