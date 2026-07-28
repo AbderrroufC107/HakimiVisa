@@ -68,8 +68,8 @@ export class VisaCasesService {
 
     await this.notifications.create({
       type: 'INFO',
-      title: 'New Visa Case Created',
-      message: `Visa case ${caseNumber} created for ${client.fullName}`,
+      title: 'Nouveau dossier de visa créé',
+      message: `Dossier ${caseNumber} créé pour ${client.fullName}`,
       userId,
       link: `/visa-cases/${visaCase.id}`,
     });
@@ -187,8 +187,8 @@ export class VisaCasesService {
 
     await this.notifications.create({
       type: 'INFO',
-      title: 'Visa Case Updated',
-      message: `Visa case ${visaCase.caseNumber} was updated`,
+      title: 'Dossier de visa modifié',
+      message: `Le dossier ${visaCase.caseNumber} a été modifié`,
       userId,
       link: `/visa-cases/${id}`,
     });
@@ -253,10 +253,10 @@ export class VisaCasesService {
     });
     const changerName = changer ? `${changer.firstName} ${changer.lastName}` : 'Unknown';
 
-    const notificationMsg = `Case ${visaCase.caseNumber} (${visaCaseWithClient?.client.fullName}): status changed from ${oldStatus} to ${newStatus} by ${changerName}`;
+    const notificationMsg = `Dossier ${visaCase.caseNumber} (${visaCaseWithClient?.client.fullName}): statut modifié de ${oldStatus} à ${newStatus} par ${changerName}`;
     await this.notifications.broadcast({
       type: 'STATUS_CHANGE',
-      title: 'Visa Case Status Updated',
+      title: 'Statut du dossier mis à jour',
       message: notificationMsg,
       link: `/visa-cases/${id}`,
     });
@@ -385,8 +385,8 @@ export class VisaCasesService {
 
     await this.notifications.create({
       type: 'WARNING',
-      title: 'Visa Case Deleted',
-      message: `Visa case ${existing.caseNumber} was deleted`,
+      title: 'Dossier de visa supprimé',
+      message: `Le dossier ${existing.caseNumber} a été supprimé`,
       userId,
     });
   }
