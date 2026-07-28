@@ -26,12 +26,6 @@ const STATUS_TABS: { labelKey: string; value: VisaStatus | 'ALL' | 'LIVREE' | 'L
   { labelKey: 'statusTabs:LIVREE', value: 'LIVREE' },
 ];
 
-const LIVREE_SUB_TABS: { label: string; value: 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
-  { label: 'Tous', value: 'LIVREE' },
-  { label: 'Payée', value: 'LIVREE_PAID' },
-  { label: 'Non Payée', value: 'LIVREE_UNPAID' },
-];
-
 function toDateInputValue(dateStr: string): string {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return '';
@@ -51,6 +45,12 @@ export function VisaCasesPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<VisaStatus | 'ALL' | 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID'>('ALL');
   const [livreeSubTab, setLivreeSubTab] = useState<'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID'>('LIVREE');
+
+  const LIVREE_SUB_TABS: { label: string; value: 'LIVREE' | 'LIVREE_PAID' | 'LIVREE_UNPAID' }[] = [
+    { label: t('visaCases:all'), value: 'LIVREE' },
+    { label: t('visaCases:isPaid'), value: 'LIVREE_PAID' },
+    { label: t('visaCases:notPaid'), value: 'LIVREE_UNPAID' },
+  ];
 
   const isLivreeMainTab = activeTab === 'LIVREE';
   const isRdvOkTab = activeTab === 'RDV_OK';

@@ -39,7 +39,7 @@ export function useKanbanBoard() {
     const map = new Map(rawColumns.map((c) => [c.id, c]));
     const fallback = (id: VisaStatus): KanbanColumn => ({
       id,
-      title: id.replace(/_/g, ' '),
+      title: i18next.t('status:' + id, id.replace(/_/g, ' ')),
       color: '',
       cards: [],
       count: 0,
@@ -144,7 +144,7 @@ export function useKanbanBoard() {
       if (context?.previous) {
         queryClient.setQueryData(['kanban', 'board'], context.previous);
       }
-      toast.error(i18next.t('kanban:moveError') || 'Erreur lors du déplacement de la carte');
+      toast.error(i18next.t('kanban:moveError'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['kanban', 'board'] });
@@ -241,7 +241,7 @@ export function useKanbanBoard() {
       if (context?.previous) {
         queryClient.setQueryData(['kanban', 'board'], context.previous);
       }
-      toast.error(i18next.t('kanban:moveError') || 'Erreur lors de la mise a jour');
+      toast.error(i18next.t('kanban:moveError'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['kanban', 'board'] });

@@ -105,6 +105,7 @@ export const ar = {
     notificationsTitle: 'الإشعارات',
     unread: 'غير مقروء',
     allCaughtUp: 'كل شيء محدث',
+    managers: 'المديرين',
   },
   auth: {
     welcomeBack: 'مرحباً بعودتك',
@@ -151,6 +152,7 @@ export const ar = {
     chartTotal: 'الإجمالي',
     chartApproved: 'مقبولة',
     chartRefused: 'مرفوضة',
+    noUpcomingAppointments: 'لا توجد مواعيد قادمة',
   },
   clients: {
     title: 'العملاء',
@@ -229,6 +231,11 @@ export const ar = {
     createdBy: 'تم الإنشاء بواسطة',
     recentActivity: 'النشاط الأخير',
     files: 'الملفات',
+    visaCases: 'طلبات التأشيرة',
+    edit: 'تعديل',
+    searchClient: 'بحث بالاسم أو الهاتف...',
+    noClientsFound: 'لم يتم العثور على عملاء',
+    tryModifySearch: 'حاول تعديل معايير البحث',
     phone: 'الهاتف',
     passport: 'جواز السفر',
     paid: 'مدفوع',
@@ -320,6 +327,15 @@ export const ar = {
     countryPlaceholder: 'مثال: فرنسا، إيطاليا...',
     visaTypePlaceholder: 'مثال: سياحة، عمل...',
     passportExpiry: 'انتهاء صلاحية جواز السفر',
+    price: 'السعر',
+    isPaid: 'مدفوع',
+    notPaid: 'غير مدفوع',
+    livree: 'مسلّمة',
+    all: 'الكل',
+    decisions: 'القرارات',
+    updateHistory: 'سجل التحديثات',
+    destinationCountry: 'الدولة المقصودة',
+    submissionDate: 'تاريخ التقديم',
   },
   kanban: {
     title: 'تتبع الملفات',
@@ -699,6 +715,8 @@ export const ar = {
     noTemplate: 'لم يتم العثور على قالب مطابق',
     emailSent: 'تم إرسال البريد الإلكتروني بنجاح',
     emailError: 'فشل إرسال البريد الإلكتروني',
+    channelWhatsApp: 'واتساب',
+    channelEmail: 'البريد الإلكتروني',
   },
   appointmentType: {
     TLS: 'TLS',
@@ -727,5 +745,9 @@ export const ar = {
     note: 'ملاحظة',
     document: 'مستند',
     system: 'النظام',
+  },
+  roles: {
+    ADMIN: 'مدير',
+    MANAGER: 'مشرف',
   },
 };

@@ -40,6 +40,7 @@ services:
     volumes:
       - ./backend/secrets:/app/secrets:ro
       - client_uploads:/app/uploads/client-files
+      - backup_data:/app/backups
     networks:
       - hakimi
 
@@ -70,3 +71,4 @@ networks:
 volumes:
   mysql_data:
   client_uploads:
+  backup_data:

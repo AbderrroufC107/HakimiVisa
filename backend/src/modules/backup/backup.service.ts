@@ -98,9 +98,9 @@ export class BackupService {
         archive.pipe(output);
         archive.file(dumpFile, { name: `database.sql` });
 
-        const uploadsDir = join(process.cwd(), 'uploads');
-        if (existsSync(uploadsDir)) {
-          archive.directory(uploadsDir, 'uploads');
+        const logosDir = join(process.cwd(), 'uploads', 'logos');
+        if (existsSync(logosDir)) {
+          archive.directory(logosDir, 'uploads/logos');
         }
 
         archive.on('error', reject);
@@ -120,6 +120,9 @@ export class BackupService {
       this.logger.log(`Backup completed: ${filename} (${(size / 1024 / 1024).toFixed(2)} MB)`);
       return backup;
     } catch (err) {
+      try { if (existsSync(dumpFile)) unlinkSync(dumpFile); } catch {}
+      try { if (existsSync(configFile)) unlinkSync(configFile); } catch {}
+      try { if (existsSync(filepath)) unlinkSync(filepath); } catch {}
       this.logger.error(`Backup failed: ${filename}`, err instanceof Error ? err.message : undefined);
       const backup = await this.prisma.backup.create({
         data: { filename, size: 0, status: 'failed', type: 'manual', createdById: userId },

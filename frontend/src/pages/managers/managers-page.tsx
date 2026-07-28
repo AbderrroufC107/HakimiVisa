@@ -68,9 +68,9 @@ export function ManagersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" data-testid="page-heading">
-            {t('settings:managers') || 'Managers'}
+            {t('settings:managers')}
           </h1>
-          <p className="text-sm text-muted-foreground">{t('settings:managersSubtitle') || 'Manage admin managers'}</p>
+          <p className="text-sm text-muted-foreground">{t('settings:managersSubtitle')}</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} data-testid="create-manager-btn">
           <UserPlus className="mr-2 h-4 w-4" />
@@ -86,7 +86,7 @@ export function ManagersPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
-            <p className="mt-4 text-muted-foreground">{t('settings:noManagers') || 'No managers found'}</p>
+            <p className="mt-4 text-muted-foreground">{t('settings:noManagers')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -114,14 +114,14 @@ export function ManagersPage() {
                 <div className="flex items-center gap-2">
                   <Badge className={cn('border', m.isActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-700 border-gray-200')}>
                     <Shield className="mr-1 h-3 w-3" />
-                    {m.role}
+                    {t('roles:' + m.role, m.role)}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
                     onClick={() => {
-                      if (confirm('Delete this manager?')) {
+                      if (confirm(t('settings:confirmDeleteManager'))) {
                         deleteMutation.mutate(m.id);
                       }
                     }}
