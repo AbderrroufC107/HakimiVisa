@@ -13,6 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Card,
   CardContent,
   CardHeader,
@@ -59,10 +66,6 @@ export function VisaCaseFormPage() {
   const [showAddVisaType, setShowAddVisaType] = useState(false);
   const [newVisaTypeName, setNewVisaTypeName] = useState('');
 
-  const [countryInput, setCountryInput] = useState('');
-  const [visaTypeInput, setVisaTypeInput] = useState('');
-
-  // Client search state
   const [clientSearch, setClientSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -122,17 +125,6 @@ export function VisaCaseFormPage() {
     resolver: zodResolver(visaCaseSchema),
   });
 
-  const watchedCountry = watch('visaCountry');
-  const watchedVisaType = watch('visaType');
-
-  useEffect(() => {
-    if (watchedCountry !== undefined) setCountryInput(watchedCountry || '');
-  }, [watchedCountry]);
-
-  useEffect(() => {
-    if (watchedVisaType !== undefined) setVisaTypeInput(watchedVisaType || '');
-  }, [watchedVisaType]);
-
   // Pre-select client from query param
   useEffect(() => {
     const clientId = searchParams.get('clientId');
@@ -152,8 +144,6 @@ export function VisaCaseFormPage() {
         visaType: vc.visaType,
         notes: vc.notes ?? '',
       });
-      setCountryInput(vc.visaCountry);
-      setVisaTypeInput(vc.visaType);
       if (vc.client) {
         setSelectedClient({
           id: vc.client.id,
@@ -221,7 +211,6 @@ export function VisaCaseFormPage() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ref-data', 'countries'] });
       toast.success(t('visaCases:countryAdded'));
-      setCountryInput(variables);
       setValue('visaCountry', variables, { shouldValidate: true });
       setShowAddCountry(false);
       setNewCountryName('');
@@ -236,7 +225,6 @@ export function VisaCaseFormPage() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ref-data', 'visa-types'] });
       toast.success(t('visaCases:visaTypeAdded'));
-      setVisaTypeInput(variables);
       setValue('visaType', variables, { shouldValidate: true });
       setShowAddVisaType(false);
       setNewVisaTypeName('');
@@ -254,12 +242,10 @@ export function VisaCaseFormPage() {
   };
 
   const handleCountryChange = (value: string) => {
-    setCountryInput(value);
     setValue('visaCountry', value, { shouldValidate: true });
   };
 
   const handleVisaTypeChange = (value: string) => {
-    setVisaTypeInput(value);
     setValue('visaType', value, { shouldValidate: true });
   };
 
@@ -282,14 +268,6 @@ export function VisaCaseFormPage() {
       navigate(ROUTES.VISA_CASES);
     }
   };
-
-  const filteredCountries = countryInput
-    ? countries.filter((c) => c.toLowerCase().includes(countryInput.toLowerCase()))
-    : countries;
-
-  const filteredVisaTypes = visaTypeInput
-    ? visaTypes.filter((v) => v.toLowerCase().includes(visaTypeInput.toLowerCase()))
-    : visaTypes;
 
   const results = searchResults?.data ?? [];
 
@@ -434,21 +412,16 @@ export function VisaCaseFormPage() {
                     {t('visaCases:addCountry')}
                   </Button>
                 </div>
-                <div className="relative">
-                  <input
-                    id="visaCountry"
-                    type="text"
-                    list="countries-list"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                    value={countryInput}
-                    onChange={(e) => handleCountryChange(e.target.value)}
-                  />
-                  <datalist id="countries-list">
-                    {filteredCountries.map((c) => (
-                      <option key={c} value={c} />
+                <Select value={watch('visaCountry')} onValueChange={handleCountryChange}>
+                  <SelectTrigger id="visaCountry" className="h-9">
+                    <SelectValue placeholder={t('visaCases:destinationCountry')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
-                  </datalist>
-                </div>
+                  </SelectContent>
+                </Select>
                 {errors.visaCountry && (
                   <p className="text-xs text-destructive">{errors.visaCountry.message}</p>
                 )}
@@ -469,21 +442,16 @@ export function VisaCaseFormPage() {
                     {t('visaCases:addVisaType')}
                   </Button>
                 </div>
-                <div className="relative">
-                  <input
-                    id="visaType"
-                    type="text"
-                    list="visa-types-list"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                    value={visaTypeInput}
-                    onChange={(e) => handleVisaTypeChange(e.target.value)}
-                  />
-                  <datalist id="visa-types-list">
-                    {filteredVisaTypes.map((v) => (
-                      <option key={v} value={v} />
+                <Select value={watch('visaType')} onValueChange={handleVisaTypeChange}>
+                  <SelectTrigger id="visaType" className="h-9">
+                    <SelectValue placeholder={t('visaCases:visaType')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {visaTypes.map((v) => (
+                      <SelectItem key={v} value={v}>{v}</SelectItem>
                     ))}
-                  </datalist>
-                </div>
+                  </SelectContent>
+                </Select>
                 {errors.visaType && (
                   <p className="text-xs text-destructive">{errors.visaType.message}</p>
                 )}
@@ -551,7 +519,13 @@ export function VisaCaseFormPage() {
               <Input
                 value={newClientNationality}
                 onChange={(e) => setNewClientNationality(e.target.value)}
+                list="nationalities-list"
               />
+              <datalist id="nationalities-list">
+                {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
             </div>
           </div>
           <DialogFooter>

@@ -151,7 +151,7 @@ export function ClientFormPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nationality">{t('clients:nationality')}</Label>
-                <Input id="nationality" {...register('nationality')} />
+                <Input id="nationality" list="nationalities-list" {...register('nationality')} />
               </div>
             </div>
             <div className="space-y-2">
@@ -174,6 +174,11 @@ export function ClientFormPage() {
                     : t('clients:addClient')}
               </Button>
             </div>
+            <datalist id="nationalities-list">
+              {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
           </form>
         </CardContent>
       </Card>

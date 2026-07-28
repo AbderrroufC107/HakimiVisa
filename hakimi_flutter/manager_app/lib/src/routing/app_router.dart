@@ -31,7 +31,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
       if (isAuthenticated && isLoginRoute) {
-        return '/';
+        return '/kanban';
       }
       return null;
     },
