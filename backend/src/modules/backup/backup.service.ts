@@ -93,7 +93,7 @@ export class BackupService {
         try { unlinkSync(configFile); } catch {}
       } else {
         await execAsync(
-          `"${mysqldumpPath}" --ssl-mode=DISABLED -h "${host}" -P ${port} -u "${user}" -p"${password}" "${database}" > "${dumpFile}"`,
+          `"${mysqldumpPath}" --skip-ssl -h "${host}" -P ${port} -u "${user}" -p"${password}" "${database}" > "${dumpFile}"`,
         );
       }
 
