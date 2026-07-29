@@ -74,21 +74,28 @@ export class BackupService {
       if (!user || !host || !database) throw new Error('DATABASE_URL is missing required fields');
 
       this.logger.log(`Starting backup: ${filename}`);
-      const configContent = [
-        '[client]',
-        `host="${host}"`,
-        `port=${port}`,
-        `user="${user}"`,
-        password ? `password="${password}"` : undefined,
-        '',
-      ].filter((line): line is string => line !== undefined).join('\n');
-      writeFileSync(configFile, configContent, { mode: 0o600 });
       const mysqldumpPath = process.env.MYSQLDUMP_PATH
         || (existsSync(XAMPP_MYSQLDUMP) ? XAMPP_MYSQLDUMP : 'mysqldump');
-      await execAsync(
-        `"${mysqldumpPath}" --ssl-mode=DISABLED --defaults-extra-file="${configFile}" "${database}" > "${dumpFile}"`,
-      );
-      try { unlinkSync(configFile); } catch {}
+      const isXampp = mysqldumpPath === XAMPP_MYSQLDUMP || mysqldumpPath.includes('xampp');
+      if (isXampp) {
+        const configContent = [
+          '[client]',
+          `host="${host}"`,
+          `port=${port}`,
+          `user="${user}"`,
+          password ? `password="${password}"` : undefined,
+          '',
+        ].filter((line): line is string => line !== undefined).join('\n');
+        writeFileSync(configFile, configContent, { mode: 0o600 });
+        await execAsync(
+          `"${mysqldumpPath}" --defaults-extra-file="${configFile}" "${database}" > "${dumpFile}"`,
+        );
+        try { unlinkSync(configFile); } catch {}
+      } else {
+        await execAsync(
+          `"${mysqldumpPath}" --ssl-mode=DISABLED -h "${host}" -P ${port} -u "${user}" -p"${password}" "${database}" > "${dumpFile}"`,
+        );
+      }
 
       const archive = await createZipArchive();
       const output = createWriteStream(filepath);
