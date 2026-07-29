@@ -86,7 +86,7 @@ export class BackupService {
       const mysqldumpPath = process.env.MYSQLDUMP_PATH
         || (existsSync(XAMPP_MYSQLDUMP) ? XAMPP_MYSQLDUMP : 'mysqldump');
       await execAsync(
-        `"${mysqldumpPath}" --defaults-extra-file="${configFile}" "${database}" > "${dumpFile}"`,
+        `"${mysqldumpPath}" --ssl-mode=DISABLED --defaults-extra-file="${configFile}" "${database}" > "${dumpFile}"`,
       );
       try { unlinkSync(configFile); } catch {}
 
