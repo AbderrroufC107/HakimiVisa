@@ -36,7 +36,7 @@ export function KanbanBoard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex h-full gap-4 overflow-x-auto pb-4">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -50,7 +50,7 @@ export function KanbanBoard({
 
       <DragOverlay>
         {activeCard && (
-          <div className="w-72 rotate-3 opacity-90">
+          <div className="w-[19rem] rotate-2 cursor-grabbing opacity-95 drop-shadow-xl">
             <VisaCaseCard card={activeCard} onView={() => {}} onMove={() => {}} />
           </div>
         )}
