@@ -121,14 +121,36 @@ class _InfoTab extends StatelessWidget {
           const SizedBox(height: 16),
           Text(client.fullName, style: theme.textTheme.headlineSmall),
           const SizedBox(height: 24),
-          _InfoRow(icon: Icons.phone, label: 'Téléphone', value: client.phoneNumber),
+          _InfoRow(
+            icon: Icons.phone,
+            label: 'Téléphone',
+            value: client.phoneNumber,
+          ),
           if (client.whatsappNumber != null)
-            _InfoRow(icon: Icons.chat, label: 'WhatsApp', value: client.whatsappNumber!),
+            _InfoRow(
+              icon: Icons.chat,
+              label: 'WhatsApp',
+              value: client.whatsappNumber!,
+            ),
           if (client.email != null)
             _InfoRow(icon: Icons.email, label: 'Email', value: client.email!),
-          _InfoRow(icon: Icons.credit_card, label: 'Passeport', value: client.passportNumber),
+          _InfoRow(
+            icon: Icons.credit_card,
+            label: 'Passeport',
+            value: client.passportNumber,
+          ),
+          if (client.passportExpiry != null)
+            _InfoRow(
+              icon: Icons.event,
+              label: 'Exp. passeport',
+              value: client.passportExpiry!.formatDate(),
+            ),
           if (client.nationality != null && client.nationality!.isNotEmpty)
-            _InfoRow(icon: Icons.flag, label: 'Nationalité', value: client.nationality!),
+            _InfoRow(
+              icon: Icons.flag,
+              label: 'Nationalité',
+              value: client.nationality!,
+            ),
           if (client.notes != null && client.notes!.isNotEmpty)
             _InfoRow(icon: Icons.note, label: 'Notes', value: client.notes!),
           _InfoRow(
@@ -171,9 +193,7 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(value, style: theme.textTheme.bodyMedium),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );
@@ -255,54 +275,53 @@ class TimelineTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  width: 2,
-                  color: theme.colorScheme.outlineVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
               children: [
-                Text(
-                  entry.label,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  entry.description,
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  entry.timestamp.formatRelative(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: theme.colorScheme.outlineVariant,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(entry.description, style: theme.textTheme.bodySmall),
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.timestamp.formatRelative(),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -353,14 +372,16 @@ class _AddVisaCaseSheetState extends ConsumerState<_AddVisaCaseSheet> {
     setState(() => _isSaving = true);
 
     try {
-      await ref.read(createVisaCaseProvider({
-        'client_id': widget.clientId,
-        'visa_country': _countryController.text.trim(),
-        'visa_type': _typeController.text.trim(),
-        'notes': _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      }).future);
+      await ref.read(
+        createVisaCaseProvider({
+          'clientId': widget.clientId,
+          'visaCountry': _countryController.text.trim(),
+          'visaType': _typeController.text.trim(),
+          'notes': _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+        }).future,
+      );
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -432,7 +453,10 @@ class _AddVisaCaseSheetState extends ConsumerState<_AddVisaCaseSheet> {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text('Créer'),
               ),

@@ -20,7 +20,22 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
   final _passportNumberController = TextEditingController();
   final _nationalityController = TextEditingController();
   final _notesController = TextEditingController();
+  DateTime? _passportExpiry;
   bool _isSaving = false;
+
+  String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  Future<void> _pickPassportExpiry() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _passportExpiry ?? DateTime(now.year + 1, now.month, now.day),
+      firstDate: DateTime(now.year - 20),
+      lastDate: DateTime(now.year + 30),
+    );
+    if (picked != null) setState(() => _passportExpiry = picked);
+  }
 
   @override
   void dispose() {
@@ -49,8 +64,13 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
         'email': _emailController.text.trim().isEmpty
             ? null
             : _emailController.text.trim(),
-        'passportNumber': _passportNumberController.text.trim(),
-        'nationality': _nationalityController.text.trim(),
+        'passportNumber': _passportNumberController.text.trim().isEmpty
+            ? null
+            : _passportNumberController.text.trim(),
+        'passportExpiry': _passportExpiry?.toIso8601String(),
+        'nationality': _nationalityController.text.trim().isEmpty
+            ? null
+            : _nationalityController.text.trim(),
         'notes': _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
@@ -128,7 +148,32 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                   labelText: 'Numéro de passeport',
                   prefixIcon: Icon(Icons.credit_card),
                 ),
-                validator: AppValidators.required,
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _pickPassportExpiry,
+                borderRadius: BorderRadius.circular(4),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Date d\'expiration du passeport',
+                    prefixIcon: const Icon(Icons.event),
+                    suffixIcon: _passportExpiry == null
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => setState(() => _passportExpiry = null),
+                            tooltip: 'Effacer',
+                          ),
+                  ),
+                  child: Text(
+                    _passportExpiry == null
+                        ? 'jj/mm/aaaa'
+                        : _formatDate(_passportExpiry!),
+                    style: _passportExpiry == null
+                        ? TextStyle(color: Theme.of(context).hintColor)
+                        : null,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -137,7 +182,6 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                   labelText: 'Nationalité',
                   prefixIcon: Icon(Icons.flag),
                 ),
-                validator: AppValidators.required,
               ),
               const SizedBox(height: 16),
               TextFormField(

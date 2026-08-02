@@ -7,6 +7,7 @@ class ClientModel {
   final String? whatsappNumber;
   final String? email;
   final String passportNumber;
+  final DateTime? passportExpiry;
   final String? nationality;
   final String? notes;
   final DateTime createdAt;
@@ -19,6 +20,7 @@ class ClientModel {
     this.whatsappNumber,
     this.email,
     required this.passportNumber,
+    this.passportExpiry,
     this.nationality,
     this.notes,
     required this.createdAt,
@@ -33,6 +35,9 @@ class ClientModel {
       whatsappNumber: (json['whatsapp_number'] ?? json['whatsappNumber']) as String?,
       email: json['email'] as String?,
       passportNumber: (json['passport_number'] ?? json['passportNumber'] ?? '') as String,
+      passportExpiry: DateTime.tryParse(
+        (json['passport_expiry'] ?? json['passportExpiry']) as String? ?? '',
+      ),
       nationality: json['nationality'] as String? ?? '',
       notes: json['notes'] as String?,
       createdAt: DateTime.parse((json['created_at'] ?? json['createdAt']) as String),
@@ -50,6 +55,7 @@ class ClientModel {
       'whatsapp_number': whatsappNumber,
       'email': email,
       'passport_number': passportNumber,
+      'passport_expiry': passportExpiry?.toIso8601String(),
       'nationality': nationality,
       'notes': notes,
       'created_at': createdAt.toIso8601String(),
