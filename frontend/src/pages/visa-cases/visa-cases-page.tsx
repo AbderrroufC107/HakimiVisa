@@ -6,6 +6,7 @@ import { Plus, FileText, Trash2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { visaCasesService, appointmentsService } from '@/services';
 import { ROUTES } from '@/constants';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/shared/data-table';
 import { SearchBar } from '@/components/shared/search-bar';
@@ -239,6 +240,7 @@ export function VisaCasesPage() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
             aria-label={t('kanban:viewCase', { caseNumber: vc.caseNumber })}
             onClick={(e) => {
               e.stopPropagation();
@@ -250,13 +252,14 @@ export function VisaCasesPage() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             aria-label={t('kanban:deleteCase', { caseNumber: vc.caseNumber })}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteId(vc.id);
             }}
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),
@@ -287,12 +290,16 @@ export function VisaCasesPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex flex-wrap gap-1 rounded-lg border border-border bg-muted/50 p-1">
         {STATUS_TABS.map((tab) => (
           <Button
             key={tab.value}
-            variant={activeTab === tab.value ? 'default' : 'outline'}
+            variant={activeTab === tab.value ? 'default' : 'ghost'}
             size="sm"
+            className={cn(
+              'h-8 rounded-md px-3',
+              activeTab !== tab.value && 'text-muted-foreground hover:text-foreground',
+            )}
             onClick={() => handleTabChange(tab.value)}
           >
             {t(tab.labelKey)}
@@ -301,12 +308,16 @@ export function VisaCasesPage() {
       </div>
 
       {isLivreeMainTab && (
-        <div className="flex gap-2">
+        <div className="inline-flex gap-1 rounded-lg border border-border bg-muted/50 p-1">
           {LIVREE_SUB_TABS.map((subTab) => (
             <Button
               key={subTab.value}
-              variant={livreeSubTab === subTab.value ? 'secondary' : 'ghost'}
+              variant={livreeSubTab === subTab.value ? 'default' : 'ghost'}
               size="sm"
+              className={cn(
+                'h-8 rounded-md px-3',
+                livreeSubTab !== subTab.value && 'text-muted-foreground hover:text-foreground',
+              )}
               onClick={() => handleLivreeSubTabChange(subTab.value)}
             >
               {subTab.label}

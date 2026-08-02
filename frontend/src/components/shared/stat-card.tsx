@@ -26,43 +26,49 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        'transition-all duration-200 hover:shadow-md',
+        'group shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md',
         onClick && 'cursor-pointer',
         className,
       )}
       onClick={onClick}
     >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tracking-tight">{value}</p>
-            {(trend || subtitle) && (
-              <div className="flex items-center gap-2">
-                {trend && (
-                  <span
-                    className={cn(
-                      'inline-flex items-center text-xs font-medium',
-                      trend.positive ? 'text-success' : 'text-destructive',
-                    )}
-                  >
-                    {trend.positive ? '+' : ''}
-                    {trend.value}%
-                  </span>
-                )}
-                {subtitle && (
-                  <span className="text-xs text-muted-foreground">{subtitle}</span>
-                )}
-              </div>
-            )}
-          </div>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="line-clamp-2 min-h-[2rem] text-[11px] font-semibold uppercase leading-4 tracking-wide text-muted-foreground">
+            {title}
+          </p>
           <div
-            className="rounded-xl bg-primary/10 p-2.5 text-primary"
+            className="shrink-0 rounded-lg bg-primary/10 p-2 text-primary transition-transform duration-200 group-hover:scale-105"
             style={color ? { backgroundColor: `${color}15`, color } : undefined}
           >
-            <Icon className="h-5 w-5" />
+            <Icon className="h-4 w-4" />
           </div>
         </div>
+
+        <p className="mt-2 text-3xl font-bold leading-none tracking-tight tabular-nums">
+          {value}
+        </p>
+
+        {(trend || subtitle) && (
+          <div className="mt-2 flex items-center gap-2">
+            {trend && (
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ring-1 ring-inset',
+                  trend.positive
+                    ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/25'
+                    : 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/25',
+                )}
+              >
+                {trend.positive ? '+' : ''}
+                {trend.value}%
+              </span>
+            )}
+            {subtitle && (
+              <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

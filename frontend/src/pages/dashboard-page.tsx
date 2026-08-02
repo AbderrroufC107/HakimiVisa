@@ -139,15 +139,15 @@ export function DashboardPage() {
   }, [analytics?.topCountries]);
 
   const statCards = useMemo(() => [
-    { title: t('dashboard:totalCases'), value: stats?.totalCases ?? 0, icon: FileText, href: ROUTES.VISA_CASES, color: 'text-indigo-600', bg: 'bg-indigo-100' },
-    { title: t('dashboard:newCases'), value: stats?.newCases ?? 0, icon: FilePlus2, href: ROUTES.VISA_CASES, color: 'text-cyan-600', bg: 'bg-cyan-100' },
-    { title: t('dashboard:enAttente'), value: stats?.enAttente ?? 0, icon: Clock, href: ROUTES.KANBAN, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-    { title: t('dashboard:enTraitement'), value: stats?.enTraitement ?? 0, icon: Loader2, href: ROUTES.KANBAN, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { title: t('dashboard:rdvOk'), value: stats?.rdvOk ?? 0, icon: CalendarCheck, href: ROUTES.KANBAN, color: 'text-purple-600', bg: 'bg-purple-100' },
-    { title: t('dashboard:incomplete'), value: stats?.incomplete ?? 0, icon: FileWarning, href: ROUTES.KANBAN, color: 'text-amber-600', bg: 'bg-amber-100' },
-    { title: t('dashboard:livree'), value: stats?.livree ?? 0, icon: PackageCheck, href: ROUTES.VISA_CASES, color: 'text-teal-600', bg: 'bg-teal-100' },
-    { title: t('dashboard:visaOk'), value: stats?.visaOk ?? 0, icon: CheckCircle2, href: ROUTES.VISA_CASES, color: 'text-green-600', bg: 'bg-green-100' },
-    { title: t('dashboard:visaRefused'), value: stats?.refuse ?? 0, icon: XCircle, href: ROUTES.VISA_CASES, color: 'text-red-600', bg: 'bg-red-100' },
+    { title: t('dashboard:totalCases'), value: stats?.totalCases ?? 0, icon: FileText, href: ROUTES.VISA_CASES, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-500/15' },
+    { title: t('dashboard:newCases'), value: stats?.newCases ?? 0, icon: FilePlus2, href: ROUTES.VISA_CASES, color: 'text-cyan-600 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-500/15' },
+    { title: t('dashboard:enAttente'), value: stats?.enAttente ?? 0, icon: Clock, href: ROUTES.KANBAN, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-500/15' },
+    { title: t('dashboard:enTraitement'), value: stats?.enTraitement ?? 0, icon: Loader2, href: ROUTES.KANBAN, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-500/15' },
+    { title: t('dashboard:rdvOk'), value: stats?.rdvOk ?? 0, icon: CalendarCheck, href: ROUTES.KANBAN, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-500/15' },
+    { title: t('dashboard:incomplete'), value: stats?.incomplete ?? 0, icon: FileWarning, href: ROUTES.KANBAN, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-500/15' },
+    { title: t('dashboard:livree'), value: stats?.livree ?? 0, icon: PackageCheck, href: ROUTES.VISA_CASES, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-500/15' },
+    { title: t('dashboard:visaOk'), value: stats?.visaOk ?? 0, icon: CheckCircle2, href: ROUTES.VISA_CASES, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
+    { title: t('dashboard:visaRefused'), value: stats?.refuse ?? 0, icon: XCircle, href: ROUTES.VISA_CASES, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-500/15' },
   ], [t, stats?.totalCases, stats?.newCases, stats?.enAttente, stats?.enTraitement, stats?.rdvOk, stats?.incomplete, stats?.livree, stats?.visaOk, stats?.refuse]);
 
   const totalCount = useMemo(
@@ -184,12 +184,12 @@ export function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {Array.from({ length: 9 }).map((_, i) => (
             <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="skeleton-shimmer h-4 w-24 rounded" />
-                <div className="skeleton-shimmer h-8 w-8 rounded-lg" />
-              </CardHeader>
-              <CardContent>
-                <div className="skeleton-shimmer h-8 w-16 rounded" />
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="skeleton-shimmer h-3 w-24 rounded" />
+                  <div className="skeleton-shimmer h-8 w-8 rounded-lg" />
+                </div>
+                <div className="skeleton-shimmer mt-2 h-8 w-16 rounded" />
               </CardContent>
             </Card>
           ))}
@@ -199,15 +199,23 @@ export function DashboardPage() {
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
-              <Card key={card.title} className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/20" onClick={() => navigate(card.href)}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                  <div className={`rounded-lg p-2 transition-transform group-hover:scale-110 ${card.bg}`}>
-                    <Icon className={`h-4 w-4 ${card.color}`} />
+              <Card
+                key={card.title}
+                className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                onClick={() => navigate(card.href)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <CardTitle className="line-clamp-2 min-h-[2rem] text-[11px] font-semibold uppercase leading-4 tracking-wide text-muted-foreground">
+                      {card.title}
+                    </CardTitle>
+                    <div className={`shrink-0 rounded-lg p-2 transition-transform duration-200 group-hover:scale-105 ${card.bg}`}>
+                      <Icon className={`h-4 w-4 ${card.color}`} />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
+                  <div className="mt-2 text-3xl font-bold leading-none tracking-tight tabular-nums">
+                    {card.value}
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -250,7 +258,7 @@ export function DashboardPage() {
             {analyticsLoading || statusDistribution.length === 0 ? (
               <ChartSkeleton />
             ) : (
-              <div className="h-64 md:h-72">
+              <div className="h-72 md:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -258,9 +266,9 @@ export function DashboardPage() {
                       dataKey="count"
                       nameKey="status"
                       cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={Math.min(120, totalCount > 0 ? 120 : 80)}
+                      cy="44%"
+                      innerRadius={44}
+                      outerRadius={Math.min(92, totalCount > 0 ? 92 : 70)}
                       paddingAngle={2}
                       label={renderPieLabel}
                       labelLine
@@ -275,7 +283,11 @@ export function DashboardPage() {
                     />
                     <Legend
                       formatter={renderLegend}
-                      wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                      verticalAlign="bottom"
+                      height={48}
+                      iconType="circle"
+                      iconSize={8}
+                      wrapperStyle={{ fontSize: 12, paddingTop: 12, lineHeight: '20px' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>

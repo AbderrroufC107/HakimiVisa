@@ -60,8 +60,8 @@ export function ClientsPage() {
       accessor: (c) => c.phoneNumber,
     },
     {
-      header: t('clients:passportNumber'),
-      accessor: (c) => c.passportNumber ?? '—',
+      header: t('label:passportExpiry'),
+      accessor: (c) => c.passportExpiry ? new Date(c.passportExpiry).toLocaleDateString() : '—',
     },
     {
       header: t('clients:nationality'),
@@ -82,6 +82,7 @@ export function ClientsPage() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
             aria-label={`${t('clients:edit')} ${c.fullName}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -93,13 +94,14 @@ export function ClientsPage() {
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             aria-label={`${t('common:delete')} ${c.fullName}`}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteId(c.id);
             }}
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ),

@@ -265,14 +265,14 @@ export function DataTable<T>({
         <div className={cn('overflow-x-auto scrollbar-thin', maxHeight && 'overflow-y-auto')} style={{ maxHeight }}>
             <table className="w-full text-left text-sm" role="grid" data-testid="data-table">
             <thead>
-              <tr className={cn('border-b bg-muted/50', stickyHeader && 'sticky top-0 z-10')}>
+              <tr className={cn('border-b border-border bg-muted/60', stickyHeader && 'sticky top-0 z-10 backdrop-blur-sm')}>
                 {selectable && (
-                  <th className="w-10 px-4 py-3">
+                  <th className="w-10 px-4 py-2.5">
                     <input
                       type="checkbox"
                       checked={data.length > 0 && selectedIds.size === data.length}
                       onChange={toggleAll}
-                      className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                      className="h-4 w-4 cursor-pointer rounded border-input text-primary focus:ring-primary"
                       aria-label={t('table:selectAll')}
                     />
                   </th>
@@ -281,8 +281,8 @@ export function DataTable<T>({
                   <th
                     key={col.id}
                     className={cn(
-                      'px-4 py-3 font-medium text-muted-foreground text-xs uppercase tracking-wider',
-                      col.sortable && 'cursor-pointer select-none hover:text-foreground transition-colors',
+                      'px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+                      col.sortable && 'cursor-pointer select-none transition-colors hover:text-foreground',
                       col.headerClassName,
                     )}
                     style={col.width ? { width: col.width } : undefined}
@@ -338,20 +338,22 @@ export function DataTable<T>({
                       data-testid="data-table-row"
                       data-row-id={id}
                       className={cn(
-                          'border-b transition-colors',
+                          'border-b border-border/60 transition-colors last:border-0',
                           onRowClick && 'cursor-pointer',
-                          isSelected ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-muted/50',
+                          isSelected
+                            ? 'bg-primary/5 hover:bg-primary/10'
+                            : 'hover:bg-muted/40',
                         )}
                       onClick={() => onRowClick?.(item)}
                     >
                       {selectable && (
-                        <td className="w-10 px-4 py-3">
+                        <td className="w-10 px-4 py-2.5">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={(e) => toggleItem(id, e.nativeEvent instanceof MouseEvent && (e.nativeEvent as MouseEvent).shiftKey)}
                             onClick={(e) => e.stopPropagation()}
-                            className="rounded border-input"
+                            className="cursor-pointer rounded border-input"
                             aria-label={t('table:selectRow', { id })}
                           />
                         </td>
@@ -359,7 +361,7 @@ export function DataTable<T>({
                       {visibleColumns.map((col) => (
                         <td
                           key={col.id}
-                          className={cn('px-4 py-3', col.className)}
+                          className={cn('px-4 py-2.5 align-middle', col.className)}
                         >
                           {col.accessor(item)}
                         </td>
