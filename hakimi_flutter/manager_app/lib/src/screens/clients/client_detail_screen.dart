@@ -47,6 +47,14 @@ class ClientDetailScreen extends ConsumerWidget {
                                   style: theme.textTheme.titleLarge,
                                 ),
                               ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                tooltip: 'Modifier le client',
+                                onPressed: () => context.pushNamed(
+                                  'edit-client',
+                                  pathParameters: {'id': clientId},
+                                ),
+                              ),
                             ],
                           ),
                         ),

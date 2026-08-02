@@ -6,15 +6,18 @@ import '../screens/login/login_screen.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/clients/clients_list_screen.dart';
 import '../screens/clients/create_client_screen.dart';
+import '../screens/clients/edit_client_screen.dart';
 import '../screens/clients/client_detail_screen.dart';
 import '../screens/clients/timeline_screen.dart';
 import '../screens/kanban/kanban_screen.dart';
 import '../screens/appointments/appointments_list_screen.dart';
 import '../screens/appointments/create_appointment_screen.dart';
+import '../screens/appointments/edit_appointment_screen.dart';
 import '../screens/notifications/notifications_list_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/visa_cases/visa_case_detail_screen.dart';
 import '../screens/visa_cases/create_visa_case_screen.dart';
+import '../screens/visa_cases/edit_visa_case_screen.dart';
 import '../screens/visa_cases/visa_cases_list_screen.dart';
 import '../widgets/main_shell.dart';
 
@@ -31,7 +34,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
       if (isAuthenticated && isLoginRoute) {
-        return '/kanban';
+        return '/';
       }
       return null;
     },
@@ -67,6 +70,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
                 routes: [
                   GoRoute(
+                    path: 'edit',
+                    name: 'edit-client',
+                    builder: (context, state) => EditClientScreen(
+                      clientId: state.pathParameters['id']!,
+                    ),
+                  ),
+                  GoRoute(
                     path: 'timeline',
                     name: 'client-timeline',
                     builder: (context, state) => TimelineScreen(
@@ -90,7 +100,17 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'create-appointment',
-                builder: (context, state) => const CreateAppointmentScreen(),
+                builder: (context, state) => CreateAppointmentScreen(
+                  visaCaseId: state.uri.queryParameters['visaCaseId'],
+                ),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'edit-appointment',
+                builder: (context, state) => EditAppointmentScreen(
+                  appointmentId: state.pathParameters['id']!,
+                  initial: state.extra as AppointmentModel?,
+                ),
               ),
             ],
           ),
@@ -125,6 +145,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => VisaCaseDetailScreen(
                   caseId: state.pathParameters['id']!,
                 ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'edit-visa-case',
+                    builder: (context, state) => EditVisaCaseScreen(
+                      caseId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

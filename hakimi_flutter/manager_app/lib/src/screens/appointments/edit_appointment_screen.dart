@@ -5,33 +5,52 @@ import 'package:hakimi_shared/shared.dart';
 import '../../providers/appointments_providers.dart';
 import '../../providers/visa_cases_providers.dart';
 
-class CreateAppointmentScreen extends ConsumerStatefulWidget {
-  final String? visaCaseId;
+class EditAppointmentScreen extends ConsumerStatefulWidget {
+  final String appointmentId;
+  final AppointmentModel? initial;
 
-  const CreateAppointmentScreen({super.key, this.visaCaseId});
+  const EditAppointmentScreen({
+    super.key,
+    required this.appointmentId,
+    this.initial,
+  });
 
   @override
-  ConsumerState<CreateAppointmentScreen> createState() =>
-      _CreateAppointmentScreenState();
+  ConsumerState<EditAppointmentScreen> createState() =>
+      _EditAppointmentScreenState();
 }
 
-class _CreateAppointmentScreenState
-    extends ConsumerState<CreateAppointmentScreen> {
+class _EditAppointmentScreenState
+    extends ConsumerState<EditAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _caseIdController = TextEditingController();
   final _centerController = TextEditingController();
   final _notesController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
   AppointmentType _selectedType = AppointmentType.tls;
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.visaCaseId != null) {
-      _caseIdController.text = widget.visaCaseId!;
-    }
+    final appt = widget.initial;
+    _caseIdController.text = appt?.visaCaseId ?? '';
+    _centerController.text = appt?.appointmentCenter ?? '';
+    _notesController.text = appt?.notes ?? '';
+    _selectedDate = appt?.appointmentDate ?? DateTime.now();
+    _selectedTime = _parseTime(appt?.appointmentTime);
+    _selectedType = appt?.appointmentType ?? AppointmentType.tls;
+  }
+
+  TimeOfDay _parseTime(String? value) {
+    if (value == null) return TimeOfDay.now();
+    final parts = value.split(':');
+    if (parts.length != 2) return TimeOfDay.now();
+    return TimeOfDay(
+      hour: int.tryParse(parts[0]) ?? 0,
+      minute: int.tryParse(parts[1]) ?? 0,
+    );
   }
 
   @override
@@ -66,27 +85,30 @@ class _CreateAppointmentScreenState
     setState(() => _isSaving = true);
 
     try {
-      await ref.read(createAppointmentProvider({
-        'visaCaseId': _caseIdController.text.trim(),
-        'appointmentDate': _selectedDate.toIso8601String(),
-        'appointmentTime':
-            '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
-        'appointmentCenter': _centerController.text.trim(),
-        'appointmentType': _selectedType.toJson(),
-        'notes': _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      }).future);
+      await ref.read(updateAppointmentProvider((
+        id: widget.appointmentId,
+        data: {
+          'visaCaseId': _caseIdController.text.trim(),
+          'appointmentDate': _selectedDate.toIso8601String(),
+          'appointmentTime':
+              '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+          'appointmentCenter': _centerController.text.trim(),
+          'appointmentType': _selectedType.toJson(),
+          'notes': _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+        },
+      )).future);
 
       if (mounted) {
-        context.showSuccess('Rendez-vous créé avec succès');
+        context.showSuccess('Rendez-vous mis à jour');
         ref.invalidate(appointmentsProvider);
         context.pop();
       }
     } on ApiException catch (e) {
       if (mounted) context.showError(e.message);
     } catch (e) {
-      if (mounted) context.showError('Erreur lors de la création');
+      if (mounted) context.showError('Erreur lors de la mise à jour');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -95,7 +117,7 @@ class _CreateAppointmentScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouveau rendez-vous')),
+      appBar: AppBar(title: const Text('Modifier le rendez-vous')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -111,9 +133,9 @@ class _CreateAppointmentScreenState
                     ),
                     error: (e, _) => Text('Erreur: $e'),
                     data: (cases) => DropdownButtonFormField<String>(
-                      initialValue: _caseIdController.text.isEmpty
-                          ? null
-                          : _caseIdController.text,
+                      initialValue: cases.any((c) => c.id == _caseIdController.text)
+                          ? _caseIdController.text
+                          : null,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         labelText: 'Dossier visa',
