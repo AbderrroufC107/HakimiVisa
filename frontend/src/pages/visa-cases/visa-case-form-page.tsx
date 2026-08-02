@@ -56,9 +56,12 @@ export function VisaCaseFormPage() {
   const [showAddClient, setShowAddClient] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientWhatsapp, setNewClientWhatsapp] = useState('');
+  const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPassport, setNewClientPassport] = useState('');
   const [newClientPassportExpiry, setNewClientPassportExpiry] = useState('');
   const [newClientNationality, setNewClientNationality] = useState('');
+  const [newClientNotes, setNewClientNotes] = useState('');
 
   const [showAddCountry, setShowAddCountry] = useState(false);
   const [newCountryName, setNewCountryName] = useState('');
@@ -186,8 +189,16 @@ export function VisaCaseFormPage() {
   });
 
   const addClientMutation = useMutation({
-    mutationFn: (data: { fullName: string; phoneNumber: string; passportNumber?: string; passportExpiry?: string; nationality?: string }) =>
-      clientsService.create(data),
+    mutationFn: (data: {
+      fullName: string;
+      phoneNumber: string;
+      whatsappNumber?: string;
+      email?: string;
+      passportNumber?: string;
+      passportExpiry?: string;
+      nationality?: string;
+      notes?: string;
+    }) => clientsService.create(data),
     onSuccess: (newClient) => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast.success(t('clients:clientCreated'));
@@ -196,9 +207,12 @@ export function VisaCaseFormPage() {
       setShowAddClient(false);
       setNewClientName('');
       setNewClientPhone('');
+      setNewClientWhatsapp('');
+      setNewClientEmail('');
       setNewClientPassport('');
       setNewClientPassportExpiry('');
       setNewClientNationality('');
+      setNewClientNotes('');
     },
     onError: (error) => {
       const apiError = error as unknown as ApiError;
@@ -316,12 +330,11 @@ export function VisaCaseFormPage() {
                     <div className="text-sm">
                       <p className="font-semibold">{selectedClient.fullName}</p>
                       <p className="text-muted-foreground">{selectedClient.phoneNumber}</p>
-                      {selectedClient.passportNumber && (
+                      {(selectedClient.passportNumber || selectedClient.passportExpiry) && (
                         <p className="text-xs text-muted-foreground">
-                          {t('clients:passportNumber')}: {selectedClient.passportNumber}
-                          {selectedClient.passportExpiry && (
-                            <> · {t('visaCases:passportExpiry')}: {new Date(selectedClient.passportExpiry).toLocaleDateString()}</>
-                          )}
+                          {selectedClient.passportExpiry
+                            ? `${t('visaCases:passportExpiry')}: ${new Date(selectedClient.passportExpiry).toLocaleDateString()}`
+                            : ''}
                         </p>
                       )}
                     </div>
@@ -377,7 +390,7 @@ export function VisaCaseFormPage() {
                                 <p className="text-sm font-medium">{c.fullName}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {c.phoneNumber}
-                                  {c.passportNumber ? ` · ${c.passportNumber}` : ''}
+                                  {c.passportExpiry ? ` · ${new Date(c.passportExpiry).toLocaleDateString()}` : ''}
                                 </p>
                               </button>
                             </li>
@@ -484,48 +497,74 @@ export function VisaCaseFormPage() {
           <DialogHeader>
             <DialogTitle>{t('visaCases:addClient')}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t('clients:fullName')} <span className="text-destructive">*</span></Label>
-              <Input
-                value={newClientName}
-                onChange={(e) => setNewClientName(e.target.value)}
-              />
+          <div className="max-h-[65vh] space-y-4 overflow-y-auto py-4 pe-1">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t('clients:fullName')} <span className="text-destructive">*</span></Label>
+                <Input
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('clients:phoneNumber')} <span className="text-destructive">*</span></Label>
+                <Input
+                  value={newClientPhone}
+                  onChange={(e) => setNewClientPhone(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('clients:whatsappNumber')}</Label>
+                <Input
+                  value={newClientWhatsapp}
+                  onChange={(e) => setNewClientWhatsapp(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('clients:email')}</Label>
+                <Input
+                  type="email"
+                  value={newClientEmail}
+                  onChange={(e) => setNewClientEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('clients:passportNumber')}</Label>
+                <Input
+                  value={newClientPassport}
+                  onChange={(e) => setNewClientPassport(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('visaCases:passportExpiry')}</Label>
+                <Input
+                  type="date"
+                  value={newClientPassportExpiry}
+                  onChange={(e) => setNewClientPassportExpiry(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('clients:nationality')}</Label>
+                <Input
+                  value={newClientNationality}
+                  onChange={(e) => setNewClientNationality(e.target.value)}
+                  list="nationalities-list"
+                />
+                <datalist id="nationalities-list">
+                  {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
+                    <option key={n} value={n} />
+                  ))}
+                </datalist>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label>{t('clients:phoneNumber')} <span className="text-destructive">*</span></Label>
-              <Input
-                value={newClientPhone}
-                onChange={(e) => setNewClientPhone(e.target.value)}
+              <Label>{t('common:notes')}</Label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-[color,box-shadow,border-color] placeholder:text-muted-foreground hover:border-ring/50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
+                value={newClientNotes}
+                onChange={(e) => setNewClientNotes(e.target.value)}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('clients:passportNumber')}</Label>
-              <Input
-                value={newClientPassport}
-                onChange={(e) => setNewClientPassport(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('visaCases:passportExpiry')}</Label>
-              <Input
-                type="date"
-                value={newClientPassportExpiry}
-                onChange={(e) => setNewClientPassportExpiry(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('clients:nationality')}</Label>
-              <Input
-                value={newClientNationality}
-                onChange={(e) => setNewClientNationality(e.target.value)}
-                list="nationalities-list"
-              />
-              <datalist id="nationalities-list">
-                {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
-                  <option key={n} value={n} />
-                ))}
-              </datalist>
             </div>
           </div>
           <DialogFooter>
@@ -540,9 +579,12 @@ export function VisaCaseFormPage() {
               addClientMutation.mutate({
                 fullName: newClientName,
                 phoneNumber: newClientPhone,
+                whatsappNumber: newClientWhatsapp || undefined,
+                email: newClientEmail || undefined,
                 passportNumber: newClientPassport || undefined,
                 passportExpiry: newClientPassportExpiry || undefined,
                 nationality: newClientNationality || undefined,
+                notes: newClientNotes || undefined,
               });
             }} disabled={addClientMutation.isPending}>
               {addClientMutation.isPending ? t('common:creating') : t('common:create')}
