@@ -9,20 +9,34 @@ final trackedPhoneProvider = StateProvider<String>((ref) => '');
 final trackedReferenceProvider = StateProvider<String>((ref) => '');
 
 final trackingSearchProvider = FutureProvider.autoDispose
-    .family<TrackingQueryResult, ({String phone, String reference})>((ref, params) async {
+    .family<TrackingQueryResult, ({String query, String reference})>((ref, params) async {
   final apiClient = ref.read(apiClientProvider);
-  final response = await apiClient.get(
-    ApiConstants.publicTracking,
-    queryParameters: {
-      'phone': params.phone,
-      if (params.reference.isNotEmpty) 'reference': params.reference,
-    },
-    fromJsonT: (json) => TrackingQueryResult.fromJson(json),
-  );
-  if (response.data == null) {
-    throw const ApiException(message: 'Aucun résultat trouvé');
+  final query = params.query.trim();
+
+  Object? lastError;
+  for (final key in ['passport', 'phone']) {
+    try {
+      final response = await apiClient.get(
+        ApiConstants.publicTracking,
+        queryParameters: {
+          key: query,
+          if (params.reference.isNotEmpty) 'reference': params.reference,
+        },
+        fromJsonT: (json) => TrackingQueryResult.fromJson(json),
+      );
+      if (response.data != null) {
+        return response.data!;
+      }
+    } catch (e) {
+      lastError = e;
+    }
   }
-  return response.data!;
+  if (lastError != null) {
+    throw ApiException(
+      message: 'Aucun dossier trouvé avec ces informations',
+    );
+  }
+  throw const ApiException(message: 'Aucun résultat trouvé');
 });
 
 final trackingCaseDetailProvider =

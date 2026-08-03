@@ -23,11 +23,13 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      firstName: (json['first_name'] ?? json['firstName']) as String,
-      lastName: (json['last_name'] ?? json['lastName']) as String,
-      role: UserRole.fromJson(json['role'] as String),
+      id: json['id'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      firstName: (json['first_name'] ?? json['firstName']) as String? ?? '',
+      lastName: (json['last_name'] ?? json['lastName']) as String? ?? '',
+      role: json['role'] != null
+          ? UserRole.fromJson(json['role'] as String)
+          : UserRole.viewer,
       isActive: (json['is_active'] ?? json['isActive']) as bool? ?? true,
       createdAt: DateTime.parse(
         (json['created_at'] ?? json['createdAt'] ?? DateTime.now().toIso8601String()) as String,

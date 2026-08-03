@@ -18,6 +18,8 @@ class VisaCaseModel {
   final List<StatusHistoryModel>? statusHistories;
   final dynamic appointments;
   final VisaDetailsModel? visaDetails;
+  final double? price;
+  final bool isPaid;
 
   const VisaCaseModel({
     this.id,
@@ -35,6 +37,8 @@ class VisaCaseModel {
     this.statusHistories,
     this.appointments,
     this.visaDetails,
+    this.price,
+    this.isPaid = false,
   });
 
   factory VisaCaseModel.fromJson(Map<String, dynamic> json) {
@@ -43,11 +47,15 @@ class VisaCaseModel {
       caseNumber: json['caseNumber'] as String,
       clientId: json['clientId'] as String?,
       client: json['client'],
-      visaCountry: json['visaCountry'] as String,
-      visaType: json['visaType'] as String,
-      currentStatus: VisaStatus.fromJson(json['currentStatus'] as String),
+      visaCountry: json['visaCountry'] as String? ?? '',
+      visaType: json['visaType'] as String? ?? '',
+      currentStatus: json['currentStatus'] != null
+          ? VisaStatus.fromJson(json['currentStatus'] as String)
+          : VisaStatus.enAttente,
       archived: json['archived'] as bool? ?? false,
-      openingDate: DateTime.parse(json['openingDate'] as String),
+      openingDate: json['openingDate'] != null
+          ? DateTime.parse(json['openingDate'] as String)
+          : DateTime.now(),
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
       notes: json['notes'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
@@ -59,6 +67,10 @@ class VisaCaseModel {
           ? VisaDetailsModel.fromJson(
               json['visaDetails'] as Map<String, dynamic>)
           : null,
+      price: json['price'] != null
+          ? (json['price'] as num).toDouble()
+          : null,
+      isPaid: json['isPaid'] as bool? ?? false,
     );
   }
 
@@ -79,6 +91,8 @@ class VisaCaseModel {
       'statusHistories': statusHistories?.map((e) => e.toJson()).toList(),
       'appointments': appointments?.map((e) => e.toJson()).toList(),
       'visaDetails': visaDetails?.toJson(),
+      'price': price,
+      'isPaid': isPaid,
     };
   }
 }

@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
+import '../../constants/nationalities.dart';
 import '../../providers/clients_providers.dart';
+import '../../widgets/suggest_field.dart';
 
 class CreateClientScreen extends ConsumerStatefulWidget {
   const CreateClientScreen({super.key});
@@ -23,6 +27,23 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
   DateTime? _passportExpiry;
   bool _isSaving = false;
 
+  /// Debounced lookup so an existing client surfaces while typing, instead of
+  /// being created a second time.
+  String _duplicateQuery = '';
+  Timer? _duplicateDebounce;
+
+  void _onIdentityChanged(String _) {
+    final name = _fullNameController.text.trim();
+    final phone = _phoneNumberController.text.trim();
+    final probe = phone.length >= 4 ? phone : (name.length >= 3 ? name : '');
+    _duplicateDebounce?.cancel();
+    _duplicateDebounce = Timer(const Duration(milliseconds: 400), () {
+      if (mounted && probe != _duplicateQuery) {
+        setState(() => _duplicateQuery = probe);
+      }
+    });
+  }
+
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
@@ -39,6 +60,7 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
 
   @override
   void dispose() {
+    _duplicateDebounce?.cancel();
     _fullNameController.dispose();
     _phoneNumberController.dispose();
     _whatsappNumberController.dispose();
@@ -111,6 +133,7 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                   prefixIcon: Icon(Icons.person),
                 ),
                 validator: AppValidators.required,
+                onChanged: _onIdentityChanged,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -121,7 +144,9 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                   prefixIcon: Icon(Icons.phone),
                 ),
                 validator: AppValidators.required,
+                onChanged: _onIdentityChanged,
               ),
+              _DuplicateHint(query: _duplicateQuery),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _whatsappNumberController,
@@ -176,12 +201,11 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              SuggestField(
                 controller: _nationalityController,
-                decoration: const InputDecoration(
-                  labelText: 'Nationalité',
-                  prefixIcon: Icon(Icons.flag),
-                ),
+                options: kNationalities,
+                label: 'Nationalité',
+                icon: Icons.flag,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -214,6 +238,70 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shows clients already on file that match what is being typed, so a client
+/// the agency forgot about is reused instead of duplicated.
+class _DuplicateHint extends ConsumerWidget {
+  final String query;
+
+  const _DuplicateHint({required this.query});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (query.isEmpty) return const SizedBox.shrink();
+
+    final matches = ref.watch(clientsProvider(query)).valueOrNull ?? const [];
+    if (matches.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.12),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline, size: 18, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Client déjà existant ?',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          for (final c in matches.take(4))
+            InkWell(
+              onTap: () => context.push('/clients/${c.id}'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${c.fullName} · ${c.phoneNumber}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 16),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

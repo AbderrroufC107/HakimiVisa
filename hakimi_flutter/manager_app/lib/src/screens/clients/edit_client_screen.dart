@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
+import '../../constants/nationalities.dart';
 import '../../providers/clients_providers.dart';
+import '../../widgets/suggest_field.dart';
 
 /// Edits an existing client. Mirrors [CreateClientScreen] field for field so
 /// anything captured on creation can also be corrected here.
@@ -204,12 +206,11 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  SuggestField(
                     controller: _nationalityController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nationalité',
-                      prefixIcon: Icon(Icons.flag),
-                    ),
+                    options: kNationalities,
+                    label: 'Nationalité',
+                    icon: Icons.flag,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(

@@ -14,7 +14,12 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
-import { CreateClientDto, UpdateClientDto, QueryClientDto } from './dto';
+import {
+  CreateClientDto,
+  UpdateClientDto,
+  QueryClientDto,
+  QueryDashboardDto,
+} from './dto';
 
 @Controller('clients')
 @UseGuards(JwtAuthGuard)
@@ -22,8 +27,8 @@ export class ClientsController {
   constructor(private clientsService: ClientsService) {}
 
   @Get('dashboard')
-  getDashboardStats() {
-    return this.clientsService.getDashboardStats();
+  getDashboardStats(@Query() query: QueryDashboardDto) {
+    return this.clientsService.getDashboardStats(query);
   }
 
   @Get('analytics')

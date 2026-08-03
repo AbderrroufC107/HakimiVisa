@@ -16,30 +16,67 @@ class _AppointmentsListScreenState
     extends ConsumerState<AppointmentsListScreen> {
   String _dateFilter = 'today';
 
-  Map<String, dynamic> _buildFilters() {
+  ({DateTime? dateFrom, DateTime? dateTo}) _buildFilters() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     switch (_dateFilter) {
       case 'today':
-        return {
-          'start_date': today.toIso8601String(),
-          'end_date': today.add(const Duration(days: 1)).toIso8601String(),
-        };
+        return (
+          dateFrom: today,
+          dateTo: today.add(const Duration(days: 1)),
+        );
       case 'week':
-        final endOfWeek = today.add(const Duration(days: 7));
-        return {
-          'start_date': today.toIso8601String(),
-          'end_date': endOfWeek.toIso8601String(),
-        };
+        return (
+          dateFrom: today,
+          dateTo: today.add(const Duration(days: 7)),
+        );
       case 'month':
-        final endOfMonth = DateTime(now.year, now.month + 1, 0);
-        return {
-          'start_date': today.toIso8601String(),
-          'end_date': endOfMonth.toIso8601String(),
-        };
+        return (
+          dateFrom: today,
+          dateTo: DateTime(now.year, now.month + 1, 0),
+        );
       default:
-        return {};
+        return (dateFrom: null, dateTo: null);
+    }
+  }
+
+  Future<void> _confirmDelete(AppointmentModel appt) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Supprimer le rendez-vous ?'),
+        content: Text(
+          '${appt.appointmentDate.formatDate()} à ${appt.appointmentTime} - ${appt.appointmentCenter}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || appt.id == null) return;
+
+    try {
+      await ref.read(deleteAppointmentProvider(appt.id!).future);
+      if (mounted) {
+        context.showSuccess('Rendez-vous supprimé');
+        ref.invalidate(appointmentsProvider);
+      }
+    } on ApiException catch (e) {
+      if (mounted) context.showError(e.message);
+    } catch (e) {
+      if (mounted) context.showError('Erreur lors de la suppression');
     }
   }
 
@@ -182,6 +219,41 @@ class _AppointmentsListScreenState
                                 StatusBadge(
                                   status: appt.visaCase!.currentStatus,
                                   fontSize: 10,
+                                ),
+                              if (appt.id != null)
+                                PopupMenuButton<String>(
+                                  tooltip: 'Actions',
+                                  onSelected: (value) {
+                                    switch (value) {
+                                      case 'edit':
+                                        context.push(
+                                          '/appointments/${appt.id}/edit',
+                                          extra: appt,
+                                        );
+                                        break;
+                                      case 'delete':
+                                        _confirmDelete(appt);
+                                        break;
+                                    }
+                                  },
+                                  itemBuilder: (context) => const [
+                                    PopupMenuItem(
+                                      value: 'edit',
+                                      child: ListTile(
+                                        leading: Icon(Icons.edit),
+                                        title: Text('Modifier'),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: ListTile(
+                                        leading: Icon(Icons.delete),
+                                        title: Text('Supprimer'),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                             ],
                           ),

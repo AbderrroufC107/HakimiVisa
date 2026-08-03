@@ -110,6 +110,8 @@ class _StatusCard extends StatelessWidget {
     switch (status) {
       case VisaStatus.enAttente:
         return Icons.hourglass_empty;
+      case VisaStatus.dossierIncomplet:
+        return Icons.folder_off;
       case VisaStatus.enTraitement:
         return Icons.sync;
       case VisaStatus.rdvOk:
@@ -118,6 +120,8 @@ class _StatusCard extends StatelessWidget {
         return Icons.check_circle;
       case VisaStatus.visaRefusee:
         return Icons.cancel;
+      case VisaStatus.livree:
+        return Icons.inventory_2;
     }
   }
 }

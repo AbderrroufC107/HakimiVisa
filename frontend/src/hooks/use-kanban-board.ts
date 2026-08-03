@@ -8,8 +8,8 @@ import type { KanbanColumn, KanbanFilters, VisaCase, VisaStatus } from '@/types'
 export type { KanbanFilters } from '@/types';
 
 const COLUMN_ORDER: VisaStatus[] = [
-  'EN_ATTENTE',
   'DOSSIER_INCOMPLET',
+  'EN_ATTENTE',
   'EN_TRAITEMENT',
   'RDV_OK',
   'LIVREE',

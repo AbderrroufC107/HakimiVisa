@@ -21,9 +21,14 @@ class AppLocalizations {
   static const Map<String, Map<String, String>> _translations = {
     'fr': {
       'appName': 'Hakimi Visa',
+      'quickActions': 'Actions rapides',
+      'newClient': 'Nouveau client',
+      'newCase': 'Nouveau dossier',
       'appTagline': 'Suivez l\'évolution de votre demande de visa',
       'searchMyCase': 'Rechercher mon dossier',
       'phoneNumberRequired': 'Veuillez entrer votre numéro de téléphone',
+      'phoneOrPassport': 'Numéro de téléphone ou passeport',
+      'phoneOrPassportRequired': 'Veuillez entrer votre téléphone ou passeport',
       'caseNumberOptional': 'Numéro de dossier (optionnel)',
       'agencyInfo': 'Informations agence',
       'contact': 'Contact',
@@ -41,6 +46,8 @@ class AppLocalizations {
       'statusRdvOk': 'RDV OK',
       'statusVisaOk': 'Visa OK',
       'statusVisaRefusee': 'Visa refusée',
+      'statusDossierIncomplet': 'Dossier incomplet',
+      'statusLivree': 'Livrée',
       'enableNotifications': 'Activer les notifications',
       'notificationsOn': 'Notifications activées',
       'notificationsOff': 'Notifications désactivées',
@@ -186,9 +193,14 @@ class AppLocalizations {
     },
     'en': {
       'appName': 'Hakimi Visa',
+      'quickActions': 'Quick actions',
+      'newClient': 'New client',
+      'newCase': 'New case',
       'appTagline': 'Track the progress of your visa application',
       'searchMyCase': 'Search my case',
       'phoneNumberRequired': 'Please enter your phone number',
+      'phoneOrPassport': 'Phone number or passport',
+      'phoneOrPassportRequired': 'Please enter your phone number or passport',
       'caseNumberOptional': 'Case number (optional)',
       'agencyInfo': 'Agency information',
       'contact': 'Contact',
@@ -206,6 +218,8 @@ class AppLocalizations {
       'statusRdvOk': 'Appointment OK',
       'statusVisaOk': 'Visa OK',
       'statusVisaRefusee': 'Visa refused',
+      'statusDossierIncomplet': 'Incomplete file',
+      'statusLivree': 'Delivered',
       'enableNotifications': 'Enable notifications',
       'notificationsOn': 'Notifications enabled',
       'notificationsOff': 'Notifications disabled',
@@ -351,9 +365,14 @@ class AppLocalizations {
     },
     'ar': {
       'appName': 'حكيمي فيزا',
+      'quickActions': 'إجراءات سريعة',
+      'newClient': 'زبون جديد',
+      'newCase': 'ملف جديد',
       'appTagline': 'تابع تطور طلب التأشيرة',
       'searchMyCase': 'البحث عن ملفي',
       'phoneNumberRequired': 'يرجى إدخال رقم الهاتف',
+      'phoneOrPassport': 'رقم الهاتف أو جواز السفر',
+      'phoneOrPassportRequired': 'يرجى إدخال رقم الهاتف أو جواز السفر',
       'caseNumberOptional': 'رقم الملف (اختياري)',
       'agencyInfo': 'معلومات الوكالة',
       'contact': 'اتصل بنا',
@@ -371,6 +390,8 @@ class AppLocalizations {
       'statusRdvOk': 'الموعد مؤكد',
       'statusVisaOk': 'التأشيرة مقبولة',
       'statusVisaRefusee': 'التأشيرة مرفوضة',
+      'statusDossierIncomplet': 'ملف ناقص',
+      'statusLivree': 'تم التسليم',
       'enableNotifications': 'تفعيل الإشعارات',
       'notificationsOn': 'تم تفعيل الإشعارات',
       'notificationsOff': 'تم إيقاف الإشعارات',
@@ -617,6 +638,8 @@ class AppLocalizations {
   String get passportNumber => translate('passportNumber');
   String get nationality => translate('nationality');
   String get phoneNumber => translate('phoneNumber');
+  String get phoneOrPassport => translate('phoneOrPassport');
+  String get phoneOrPassportRequired => translate('phoneOrPassportRequired');
   String get whatsappNumber => translate('whatsappNumber');
   String get fullName => translate('fullName');
   String get email => translate('email');

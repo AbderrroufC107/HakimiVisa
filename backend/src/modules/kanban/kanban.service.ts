@@ -45,18 +45,29 @@ export class KanbanService {
             whatsappNumber: true,
             email: true,
             passportNumber: true,
+            passportExpiry: true,
             nationality: true,
           },
         },
         creator: {
           select: { id: true, firstName: true, lastName: true },
         },
+        appointments: {
+          select: {
+            id: true,
+            appointmentDate: true,
+            appointmentTime: true,
+            appointmentCenter: true,
+            appointmentType: true,
+          },
+          orderBy: { appointmentDate: 'asc' },
+        },
       },
     });
 
     const grouped: Record<string, typeof cases> = {
-      EN_ATTENTE: [],
       DOSSIER_INCOMPLET: [],
+      EN_ATTENTE: [],
       EN_TRAITEMENT: [],
       RDV_OK: [],
       LIVREE: [],

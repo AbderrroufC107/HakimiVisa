@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
 import { AppGateway } from '../gateway/app.gateway';
 import { FcmService } from './fcm.service';
 import { CreateNotificationDto, QueryNotificationDto, BroadcastNotificationDto } from './dto';
@@ -80,6 +81,46 @@ export class NotificationsService {
     }
 
     return { sent: users.length };
+  }
+
+  /** Notify every active manager except the person who performed the action. */
+  async notifyOtherManagers(dto: BroadcastNotificationDto, actorId: string) {
+    const managers = await this.prisma.user.findMany({
+      where: {
+        id: { not: actorId },
+        isActive: true,
+        role: { in: [UserRole.ADMIN, UserRole.MANAGER] },
+      },
+      select: { id: true },
+    });
+
+    if (managers.length === 0) return { sent: 0 };
+
+    const notifications = await this.prisma.$transaction(
+      managers.map((manager) =>
+        this.prisma.notification.create({
+          data: {
+            type: dto.type,
+            title: dto.title,
+            message: dto.message,
+            userId: manager.id,
+            link: dto.link,
+          },
+        }),
+      ),
+    );
+
+    for (const notification of notifications) {
+      await this.gateway.sendToUser(notification.userId, 'notification', notification);
+      await this.fcmService.sendToUser(
+        notification.userId,
+        notification.title,
+        notification.message,
+        { type: notification.type, notificationId: notification.id, link: notification.link ?? '' },
+      );
+    }
+
+    return { sent: notifications.length };
   }
 
   async findByUser(userId: string, query: QueryNotificationDto) {

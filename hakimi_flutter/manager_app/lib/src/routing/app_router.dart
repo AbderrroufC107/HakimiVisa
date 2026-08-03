@@ -5,6 +5,7 @@ import '../providers/auth_providers.dart';
 import '../screens/login/login_screen.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/clients/clients_list_screen.dart';
+import '../screens/search/global_search_screen.dart';
 import '../screens/clients/create_client_screen.dart';
 import '../screens/clients/edit_client_screen.dart';
 import '../screens/clients/client_detail_screen.dart';
@@ -86,6 +87,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ],
               ),
             ],
+          ),
+          GoRoute(
+            path: '/search',
+            name: 'search',
+            builder: (context, state) => GlobalSearchScreen(
+              initialQuery: state.uri.queryParameters['q'],
+            ),
           ),
           GoRoute(
             path: '/kanban',

@@ -1,10 +1,18 @@
-import { IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsInt, IsDateString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class QueryClientDto {
   @IsString()
   @IsOptional()
   search?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dateFrom?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dateTo?: string;
 
   @IsInt()
   @Min(1)

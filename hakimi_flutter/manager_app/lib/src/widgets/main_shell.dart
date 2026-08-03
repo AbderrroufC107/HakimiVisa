@@ -14,7 +14,7 @@ class MainShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
     if (location == '/') return 0;
     if (location.startsWith('/clients')) return 1;
-    if (location.startsWith('/kanban')) return 2;
+    if (location.startsWith('/visa-cases')) return 2;
     if (location.startsWith('/settings')) return 3;
     return null;
   }
@@ -28,7 +28,7 @@ class MainShell extends ConsumerWidget {
         context.go('/clients');
         break;
       case 2:
-        context.go('/kanban');
+        context.go('/visa-cases');
         break;
       case 3:
         context.go('/settings');
@@ -46,11 +46,18 @@ class MainShell extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(currentIndex != null ? _titleForIndex(currentIndex, l10n) : ''),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.appBarGradient,
+          ),
+        ),
+        title: Text(
+          currentIndex != null ? _titleForIndex(currentIndex, l10n) : '',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => context.push('/clients?search='),
+            onPressed: () => context.push('/search'),
           ),
           Stack(
             children: [
@@ -91,17 +98,23 @@ class MainShell extends ConsumerWidget {
         ],
       ),
       drawer: Drawer(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(right: Radius.circular(20)),
+        ),
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: theme.colorScheme.primary),
+              decoration: const BoxDecoration(
+                gradient: AppTheme.appBarGradient,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   AvatarWidget(
-                    initials: authState.user != null &&
+                    initials:
+                        authState.user != null &&
                             authState.user!.firstName.isNotEmpty &&
                             authState.user!.lastName.isNotEmpty
                         ? '${authState.user!.firstName[0]}${authState.user!.lastName[0]}'
@@ -132,6 +145,8 @@ class MainShell extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.dashboard),
               title: Text(l10n.dashboard),
+              selected: currentIndex == 0,
+              selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.08),
               onTap: () {
                 Navigator.of(context).pop();
                 context.go('/');
@@ -140,6 +155,8 @@ class MainShell extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.people),
               title: Text(l10n.clients),
+              selected: currentIndex == 1,
+              selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.08),
               onTap: () {
                 Navigator.of(context).pop();
                 context.go('/clients');
@@ -173,6 +190,8 @@ class MainShell extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.settings),
               title: Text(l10n.settings),
+              selected: currentIndex == 3,
+              selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.08),
               onTap: () {
                 Navigator.of(context).pop();
                 context.go('/settings');
@@ -198,9 +217,9 @@ class MainShell extends ConsumerWidget {
                   label: l10n.clients,
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.dashboard_customize_outlined),
-                  selectedIcon: const Icon(Icons.dashboard_customize),
-                  label: l10n.kanban,
+                  icon: const Icon(Icons.folder_copy_outlined),
+                  selectedIcon: const Icon(Icons.folder_copy),
+                  label: l10n.visaCases,
                 ),
                 NavigationDestination(
                   icon: const Icon(Icons.settings_outlined),
@@ -220,7 +239,7 @@ class MainShell extends ConsumerWidget {
       case 1:
         return l10n.clients;
       case 2:
-        return l10n.kanban;
+        return l10n.visaCases;
       case 3:
         return l10n.settings;
       default:

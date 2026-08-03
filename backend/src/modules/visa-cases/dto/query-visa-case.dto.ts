@@ -1,4 +1,11 @@
-import { IsOptional, IsString, IsInt, IsEnum, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  IsEnum,
+  IsDateString,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { VisaStatus } from '@prisma/client';
 
@@ -14,6 +21,14 @@ export class QueryVisaCaseDto {
   @IsString()
   @IsOptional()
   clientId?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dateFrom?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dateTo?: string;
 
   @IsInt()
   @Min(1)

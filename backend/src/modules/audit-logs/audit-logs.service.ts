@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAuditLogDto, QueryAuditLogDto } from './dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuditLogService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private notifications?: NotificationsService,
+  ) {}
 
   async log(dto: CreateAuditLogDto) {
     const metadata = (dto.metadata ?? {}) as Prisma.InputJsonValue;
 
-    return this.prisma.auditLog.create({
+    const auditLog = await this.prisma.auditLog.create({
       data: {
         action: dto.action,
         entity: dto.entity,
@@ -19,6 +23,19 @@ export class AuditLogService {
         userId: dto.userId,
       },
     });
+
+    // Keep managers informed about every create/update/delete operation.
+    await this.notifications?.notifyOtherManagers(
+      {
+        type: dto.action === 'DELETE' ? 'WARNING' : 'INFO',
+        title: `${dto.action} ${dto.entity}`,
+        message: `${dto.entity} ${dto.action.toLowerCase()}d`,
+        link: `/${dto.entity.toLowerCase()}s/${dto.entityId}`,
+      },
+      dto.userId,
+    );
+
+    return auditLog;
   }
 
   async findAll(query: QueryAuditLogDto) {

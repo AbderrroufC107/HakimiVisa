@@ -380,12 +380,12 @@ export function ClientProfilePage() {
               </div>
             </div>
           )}
-          {profile.passportNumber && (
+          {profile.passportExpiry && (
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">{t('clients:passportNumber')}</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{t('visaCases:passportExpiry')}</p>
               <div className="flex items-center gap-1.5">
                 <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm font-medium">{profile.passportNumber}</span>
+                <span className="text-sm font-medium">{new Date(profile.passportExpiry).toLocaleDateString()}</span>
               </div>
             </div>
           )}

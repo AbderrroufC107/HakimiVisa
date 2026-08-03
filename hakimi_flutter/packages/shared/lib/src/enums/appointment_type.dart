@@ -23,7 +23,22 @@ enum AppointmentType {
     }
   }
 
-  String toJson() => name;
+  String toJson() {
+    switch (this) {
+      case AppointmentType.tls:
+        return 'TLS';
+      case AppointmentType.vfs:
+        return 'VFS';
+      case AppointmentType.embassy:
+        return 'EMBASSY';
+      case AppointmentType.biometrics:
+        return 'BIOMETRICS';
+      case AppointmentType.interview:
+        return 'INTERVIEW';
+      case AppointmentType.other:
+        return 'OTHER';
+    }
+  }
 
   static AppointmentType fromJson(String json) {
     final normalized = json.toLowerCase().replaceAll('_', '');

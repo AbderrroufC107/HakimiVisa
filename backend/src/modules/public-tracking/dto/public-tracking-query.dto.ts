@@ -1,8 +1,13 @@
 import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class PublicTrackingQueryDto {
+  @IsOptional()
   @IsString()
-  passport: string;
+  passport?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 
   @IsOptional()
   @IsDateString()
@@ -11,9 +16,4 @@ export class PublicTrackingQueryDto {
   @IsOptional()
   @IsString()
   reference?: string;
-}
-
-export class PublicCaseNumberParam {
-  @IsString()
-  caseNumber: string;
 }
