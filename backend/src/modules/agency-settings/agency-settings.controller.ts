@@ -11,8 +11,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import { Throttle } from '@nestjs/throttler';
 import { AgencySettingsService } from './agency-settings.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { UpdateAgencySettingsDto } from './dto';
@@ -25,6 +27,14 @@ export class AgencySettingsController {
   @Get()
   get() {
     return this.agencySettingsService.get();
+  }
+
+  /** Read by the client app, which has no account to authenticate with. */
+  @Public()
+  @Get('public/contact')
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
+  getPublicContact() {
+    return this.agencySettingsService.getPublicContact();
   }
 
   @Put()

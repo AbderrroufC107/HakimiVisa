@@ -14,6 +14,31 @@ export class AgencySettingsService {
     return settings;
   }
 
+  /**
+   * Contact details shown to clients in the public app. Only the fields an
+   * agency would print on a business card — never the full settings row.
+   */
+  async getPublicContact() {
+    const settings = await this.prisma.agencySettings.findFirst({
+      select: {
+        agencyName: true,
+        agencyAddress: true,
+        agencyPhone: true,
+        agencyEmail: true,
+        agencyWebsite: true,
+        logoUrl: true,
+      },
+    });
+    return settings ?? {
+      agencyName: null,
+      agencyAddress: null,
+      agencyPhone: null,
+      agencyEmail: null,
+      agencyWebsite: null,
+      logoUrl: null,
+    };
+  }
+
   async upsert(dto: UpdateAgencySettingsDto) {
     const existing = await this.prisma.agencySettings.findFirst();
     if (existing) {

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hakimi_shared/shared.dart';
+import '../../providers/agency_providers.dart';
 
-class ContactScreen extends StatelessWidget {
+class ContactScreen extends ConsumerWidget {
   const ContactScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
+    final agency = ref.watch(agencyContactProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Contact')),
@@ -33,7 +36,8 @@ class ContactScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Hakimi Visa',
+                    agency?.agencyName ?? 'Hakimi Visa',
+                    textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -50,28 +54,63 @@ class ContactScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Card(
-            child: Column(
-              children: [
-                _ContactTile(
-                  icon: Icons.location_on_outlined,
-                  label: 'Adresse',
-                  value: '123 Avenue Mohammed V\nCasablanca 20000, Maroc',
+          Builder(
+            builder: (context) {
+              // Only show the rows the agency has actually filled in.
+              final rows = <Widget>[
+                if ((agency?.agencyAddress ?? '').isNotEmpty)
+                  _ContactTile(
+                    icon: Icons.location_on_outlined,
+                    label: 'Adresse',
+                    value: agency!.agencyAddress!,
+                  ),
+                if ((agency?.agencyPhone ?? '').isNotEmpty)
+                  _ContactTile(
+                    icon: Icons.phone_outlined,
+                    label: 'Téléphone',
+                    value: agency!.agencyPhone!,
+                  ),
+                if ((agency?.agencyEmail ?? '').isNotEmpty)
+                  _ContactTile(
+                    icon: Icons.email_outlined,
+                    label: 'Email',
+                    value: agency!.agencyEmail!,
+                  ),
+                if ((agency?.agencyWebsite ?? '').isNotEmpty)
+                  _ContactTile(
+                    icon: Icons.language_outlined,
+                    label: 'Site web',
+                    value: agency!.agencyWebsite!,
+                  ),
+              ];
+
+              if (rows.isEmpty) {
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Center(
+                      child: Text(
+                        'Coordonnées indisponibles',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return Card(
+                child: Column(
+                  children: [
+                    for (var i = 0; i < rows.length; i++) ...[
+                      if (i > 0) const Divider(height: 1, indent: 72),
+                      rows[i],
+                    ],
+                  ],
                 ),
-                const Divider(height: 1, indent: 72),
-                _ContactTile(
-                  icon: Icons.phone_outlined,
-                  label: 'Téléphone',
-                  value: '+212 5 22 12 34 56',
-                ),
-                const Divider(height: 1, indent: 72),
-                _ContactTile(
-                  icon: Icons.email_outlined,
-                  label: 'Email',
-                  value: 'contact@hakimivisa.ma',
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.md),
           Card(
@@ -147,7 +186,9 @@ class ContactScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            '123 Avenue Mohammed V, Casablanca',
+                            (agency?.agencyAddress ?? '').isNotEmpty
+                                ? agency!.agencyAddress!.replaceAll('\n', ', ')
+                                : 'Adresse indisponible',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),

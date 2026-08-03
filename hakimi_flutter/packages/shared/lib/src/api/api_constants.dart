@@ -35,8 +35,8 @@ class ApiConstants {
 
   // Visa Cases
   static const String visaCases = '/visa-cases';
-  static const String visaCaseStatus = '/visa-cases/status';
-  static const String visaCaseHistory = '/visa-cases/history';
+  static String visaCaseStatus(String id) => '/visa-cases/$id/status';
+  static String visaCaseHistory(String id) => '/visa-cases/$id/history';
   static String visaCaseById(String id) => '/visa-cases/$id';
   static String visaCaseUpdate(String id) => '/visa-cases/$id';
   static String visaCaseDelete(String id) => '/visa-cases/$id';
@@ -65,6 +65,9 @@ class ApiConstants {
   static String caseDocuments(String caseId) => '/tracking/$caseId/documents';
 
   // Public tracking (customer-facing)
+  /// Agency contact details, readable without an account (client app).
+  static const String publicAgencyContact = '/agency-settings/public/contact';
+
   static const String publicTracking = '/public/tracking';
   static String publicTrackingByCase(String caseNumber) =>
       '/public/tracking/$caseNumber';

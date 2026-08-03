@@ -7,6 +7,7 @@ export 'src/enums/notification_type.dart';
 
 // Models
 export 'src/models/user_model.dart';
+export 'src/models/agency_contact_model.dart';
 export 'src/models/client_model.dart';
 export 'src/models/visa_case_model.dart';
 export 'src/models/status_history_model.dart';
