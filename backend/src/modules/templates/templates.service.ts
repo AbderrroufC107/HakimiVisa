@@ -201,6 +201,18 @@ export class TemplatesService {
       throw new NotFoundException('No matching template found');
     }
 
+    // A template that quotes the appointment would otherwise reach the client
+    // as "Date:  a , Centre: " when no appointment exists yet.
+    if (!appointment) {
+      const source = `${template.subject ?? ''} ${template.body}`;
+      const missing = /\{\{\s*appointment_(date|time|center)\s*\}\}/.test(source);
+      if (missing) {
+        throw new BadRequestException(
+          "Ce modèle contient les détails du rendez-vous, mais aucun rendez-vous n'est enregistré pour ce dossier. Ajoutez le rendez-vous avant d'envoyer.",
+        );
+      }
+    }
+
     const variables = this.buildVariables(visaCase, appointment);
 
     return {
