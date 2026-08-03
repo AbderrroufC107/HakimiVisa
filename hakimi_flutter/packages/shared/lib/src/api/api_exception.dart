@@ -41,10 +41,13 @@ class ApiException implements Exception {
       case DioExceptionType.badResponse:
         final response = exception.response;
         final data = response?.data as Map<String, dynamic>?;
+        final rawMessage = data?['message'];
+        final message = rawMessage is List
+            ? rawMessage.map((e) => e.toString()).join('\n')
+            : rawMessage as String?;
         return ApiException(
           statusCode: response?.statusCode,
-          message: data?['message'] as String? ??
-              _defaultMessageForStatusCode(response?.statusCode),
+          message: message ?? _defaultMessageForStatusCode(response?.statusCode),
           errors: data?['errors'] as Map<String, dynamic>?,
           errorId: data?['errorId'] as String?,
         );

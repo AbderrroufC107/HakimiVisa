@@ -44,13 +44,40 @@ final clientTimelineProvider = FutureProvider.family<List<TimelineEntry>, String
   },
 );
 
-final dashboardStatsProvider = FutureProvider<DashboardStats>((ref) async {
+/// Inclusive day-bounded window the dashboard reports on.
+typedef DateRange = ({DateTime from, DateTime to});
+
+/// Query parameters shared by every date-filtered dashboard request.
+Map<String, dynamic> rangeParams(DateRange? range) => range == null
+    ? <String, dynamic>{}
+    : <String, dynamic>{
+        'dateFrom': range.from.toIso8601String(),
+        'dateTo': range.to.toIso8601String(),
+      };
+
+final dashboardStatsProvider =
+    FutureProvider.family<DashboardStats, DateRange?>((ref, range) async {
   final apiClient = ref.read(apiClientProvider);
   final response = await apiClient.get<DashboardStats>(
     ApiConstants.clientDashboard,
+    queryParameters: rangeParams(range),
     fromJsonT: (json) => DashboardStats.fromJson(json),
   );
   return response.data ?? const DashboardStats();
+});
+
+/// Clients created inside [range], used by the dashboard drill-down sheet.
+final clientsInRangeProvider =
+    FutureProvider.family<List<ClientModel>, DateRange?>((ref, range) async {
+  final apiClient = ref.read(apiClientProvider);
+  final response = await apiClient.get<List<ClientModel>>(
+    ApiConstants.clients,
+    queryParameters: {...rangeParams(range), 'limit': 100},
+    fromJsonList: (list) => list
+        .map((e) => ClientModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+  return response.data ?? [];
 });
 
 final analyticsProvider = FutureProvider<Analytics>((ref) async {
@@ -77,7 +104,7 @@ final createClientProvider = FutureProvider.family<ClientModel?, Map<String, dyn
 final updateClientProvider = FutureProvider.family<ClientModel?, ({String id, Map<String, dynamic> data})>(
   (ref, params) async {
     final apiClient = ref.read(apiClientProvider);
-    final response = await apiClient.put<ClientModel>(
+    final response = await apiClient.patch<ClientModel>(
       ApiConstants.clientUpdate(params.id),
       data: params.data,
       fromJsonT: (json) => ClientModel.fromJson(json),

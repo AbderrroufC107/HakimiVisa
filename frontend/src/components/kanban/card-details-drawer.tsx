@@ -1,13 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { visaCasesService } from '@/services';
+import { toast } from 'sonner';
+import { visaCasesService, templatesService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/shared/badge';
-import { X, ExternalLink, Clock, User, FileText, Globe, Phone, Mail } from 'lucide-react';
+import { X, ExternalLink, Clock, User, FileText, Globe, Phone, Mail, MessageCircle, Loader2, IdCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AppointmentPicker } from './appointment-picker';
 import type { VisaCase, VisaStatus, Client } from '@/types';
 
 interface CardDetailsDrawerProps {
@@ -46,6 +48,38 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
     queryFn: () => visaCasesService.findOne(card!.id),
     enabled: !!card,
   });
+
+  const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null);
+
+  const handleSendWhatsApp = async () => {
+    if (!card?.id) return;
+    setSending('whatsapp');
+    try {
+      const res = await templatesService.whatsappLink({ visaCaseId: card.id, channel: 'WHATSAPP' });
+      window.open(res.url, '_blank');
+      toast.success(t('common:success'));
+    } catch {
+      toast.error(t('common:error'));
+    } finally {
+      setSending(null);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!card?.id) return;
+    setSending('email');
+    try {
+      const client = fullData?.client as Client | undefined;
+      const to = client?.email;
+      if (!to) { toast.error(t('common:error')); setSending(null); return; }
+      const res = await templatesService.sendEmail({ visaCaseId: card.id, channel: 'EMAIL', to });
+      if (res.sent) toast.success(t('common:success'));
+    } catch {
+      toast.error(t('common:error'));
+    } finally {
+      setSending(null);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -135,10 +169,10 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
                           {client.email}
                         </div>
                       )}
-                      {client?.passportNumber && (
+                      {client?.passportExpiry && (
                         <div className="flex items-center gap-2">
                           <FileText className="h-3 w-3" />
-                          {client.passportNumber}
+                          {t('visaCases:passportExpiry')}: {new Date(client.passportExpiry).toLocaleDateString()}
                         </div>
                       )}
                       {client?.nationality && (
@@ -184,6 +218,65 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
                   )}
                 </div>
               </section>
+
+              {card.currentStatus === 'RDV_OK' && (
+                <section>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    {t('kanban:sendNotification')}
+                  </h4>
+                  <div className="space-y-3 rounded-lg border bg-muted/30 p-3">
+                    {(client?.passportNumber || client?.passportExpiry) && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <IdCard className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="font-mono font-medium">
+                          {client?.passportNumber ?? '-'}
+                        </span>
+                        {client?.passportExpiry && (
+                          <>
+                            <span className="text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">
+                              {t('kanban:passport')}:{' '}
+                              {new Date(client.passportExpiry).toLocaleDateString(dateLocale, {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <AppointmentPicker
+                      visaCaseId={card.id}
+                      appointment={fullData?.appointments?.[0]}
+                      variant="full"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={handleSendWhatsApp}
+                        disabled={sending !== null}
+                      >
+                        {sending === 'whatsapp' ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5 mr-1" />}
+                        WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={handleSendEmail}
+                        disabled={sending !== null}
+                      >
+                        {sending === 'email' ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Mail className="h-3.5 w-3.5 mr-1" />}
+                        Email
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {card.notes && (
                 <section>

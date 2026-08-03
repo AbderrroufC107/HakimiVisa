@@ -2,9 +2,10 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Clock, Printer, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCircle, Mail, IdCard } from 'lucide-react';
 import { DetailSkeleton } from '@/components/shared';
-import { visaCasesService, pdfService, visaDetailsService, appointmentsService } from '@/services';
+import { AppointmentPicker } from '@/components/kanban/appointment-picker';
+import { visaCasesService, pdfService, visaDetailsService, appointmentsService, templatesService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,8 @@ import { VISA_STATUS_COLORS, type VisaStatus, type EntryType } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
+
+const STATUS_PIPELINE: VisaStatus[] = ['DOSSIER_INCOMPLET', 'EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
@@ -89,6 +92,53 @@ export function VisaCaseDetailPage() {
       return;
     }
     statusMutation.mutate({ status });
+  };
+
+  const handleNextStatus = () => {
+    if (!visaCase) return;
+    const currentIdx = STATUS_PIPELINE.indexOf(visaCase.currentStatus);
+    if (currentIdx < 0 || currentIdx >= STATUS_PIPELINE.length - 1) return;
+    const next = STATUS_PIPELINE[currentIdx + 1]!;
+    if (next === 'DOSSIER_INCOMPLET') {
+      setIncompleteDialogOpen(true);
+      return;
+    }
+    statusMutation.mutate({ status: next });
+  };
+
+  const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null);
+
+  const handleSendWhatsApp = async () => {
+    if (!visaCase?.client) return;
+    setSending('whatsapp');
+    try {
+      const res = await templatesService.whatsappLink({ visaCaseId: visaCase.id, channel: 'WHATSAPP' });
+      window.open(res.url, '_blank', 'noopener');
+      toast.success(t('common:success'));
+    } catch {
+      toast.error(t('common:error'));
+    } finally {
+      setSending(null);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!visaCase?.client) return;
+    const client = visaCase.client as { id: string; fullName: string; phoneNumber: string; email?: string | null; passportNumber?: string | null; passportExpiry?: string | null };
+    const email = client.email;
+    if (!email) {
+      toast.error(t('common:error'));
+      return;
+    }
+    setSending('email');
+    try {
+      await templatesService.sendEmail({ visaCaseId: visaCase.id, channel: 'EMAIL', to: email });
+      toast.success(t('common:success'));
+    } catch {
+      toast.error(t('common:error'));
+    } finally {
+      setSending(null);
+    }
   };
 
   const priceMutation = useMutation({
@@ -171,6 +221,18 @@ export function VisaCaseDetailPage() {
             ))}
           </SelectContent>
         </Select>
+        {STATUS_PIPELINE.indexOf(visaCase.currentStatus) >= 0 &&
+          STATUS_PIPELINE.indexOf(visaCase.currentStatus) < STATUS_PIPELINE.length - 1 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextStatus}
+            disabled={statusMutation.isPending}
+          >
+            {t('kanban:next')}
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -284,6 +346,56 @@ export function VisaCaseDetailPage() {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {visaCase.currentStatus === 'RDV_OK' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              <CardTitle>{t('kanban:sendNotification')}</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {(visaCase.client?.passportNumber || visaCase.client?.passportExpiry) && (
+                <div className="flex items-center gap-2 text-sm">
+                  <IdCard className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="font-mono font-medium">
+                    {visaCase.client?.passportNumber ?? '-'}
+                  </span>
+                  {visaCase.client?.passportExpiry && (
+                    <>
+                      <span className="text-muted-foreground">—</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t('kanban:passport')}:{' '}
+                        {new Date(visaCase.client.passportExpiry).toLocaleDateString(
+                          i18n.language?.replace('_', '-') ?? 'en-US',
+                          { day: '2-digit', month: 'short', year: 'numeric' },
+                        )}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+              <AppointmentPicker
+                visaCaseId={visaCase.id}
+                appointment={visaCase.appointments?.[0]}
+                variant="full"
+              />
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleSendWhatsApp} disabled={sending !== null}>
+                  {sending === 'whatsapp' ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <MessageCircle className="h-4 w-4 mr-1" />}
+                  WhatsApp
+                </Button>
+                <Button variant="outline" onClick={handleSendEmail} disabled={sending !== null}>
+                  {sending === 'email' ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Mail className="h-4 w-4 mr-1" />}
+                  Email
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}

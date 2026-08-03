@@ -16,7 +16,7 @@ class _VisaCasesListScreenState extends ConsumerState<VisaCasesListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final casesAsync = ref.watch(visaCasesProvider({}));
+    final casesAsync = ref.watch(visaCasesProvider(const {}));
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -57,7 +57,7 @@ class _VisaCasesListScreenState extends ConsumerState<VisaCasesListScreen> {
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () async => ref.invalidate(visaCasesProvider({})),
+                  onRefresh: () async => ref.invalidate(visaCasesProvider(const {})),
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: filtered.length,
@@ -70,7 +70,7 @@ class _VisaCasesListScreenState extends ConsumerState<VisaCasesListScreen> {
               },
               error: (e, _) => AppErrorWidget(
                 message: e.toString(),
-                onRetry: () => ref.invalidate(visaCasesProvider({})),
+                onRetry: () => ref.invalidate(visaCasesProvider(const {})),
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
             ),

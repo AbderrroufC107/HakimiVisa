@@ -18,7 +18,7 @@ import {
   QueryVisaCaseDto,
 } from './dto';
 
-const AUTO_NOTIFY_STATUSES = ['RDV_OK', 'LIVREE'];
+const AUTO_NOTIFY_STATUSES = ['DOSSIER_INCOMPLET', 'RDV_OK', 'LIVREE'];
 
 @Injectable()
 export class VisaCasesService {
@@ -78,7 +78,7 @@ export class VisaCasesService {
   }
 
   async findAll(query: QueryVisaCaseDto) {
-    const { search, status, clientId, page = 1, limit = 20 } = query;
+    const { search, status, clientId, dateFrom, dateTo, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
@@ -88,6 +88,12 @@ export class VisaCasesService {
     }
     if (clientId) {
       where.clientId = clientId;
+    }
+    if (dateFrom || dateTo) {
+      const createdAt: Record<string, Date> = {};
+      if (dateFrom) createdAt.gte = new Date(dateFrom);
+      if (dateTo) createdAt.lte = new Date(dateTo);
+      where.createdAt = createdAt;
     }
     if (search) {
       where.OR = [
@@ -145,6 +151,7 @@ export class VisaCasesService {
             changer: { select: { id: true, firstName: true, lastName: true } },
           },
         },
+        appointments: { orderBy: { appointmentDate: 'desc' } },
       },
     });
 

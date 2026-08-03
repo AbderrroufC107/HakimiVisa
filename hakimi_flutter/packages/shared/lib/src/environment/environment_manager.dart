@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -167,14 +167,15 @@ class EnvironmentManager {
     debugPrint('[EnvironmentManager] Health check: $healthUrl');
     final stopwatch = Stopwatch()..start();
     try {
-      final client = HttpClient()
-        ..connectionTimeout = _healthCheckTimeout;
-      final request = await client.getUrl(Uri.parse(healthUrl));
-      request.headers.set('Accept', 'application/json');
-      final response = await request.close();
+      final dio = Dio()
+        ..options.connectTimeout = _healthCheckTimeout
+        ..options.receiveTimeout = _healthCheckTimeout;
+      final response = await dio.get<dynamic>(
+        healthUrl,
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
       stopwatch.stop();
       lastLatencyMs.value = stopwatch.elapsedMilliseconds;
-      client.close();
       if (response.statusCode == 200) {
         debugPrint('[EnvironmentManager] Health check OK (${response.statusCode})');
         return true;

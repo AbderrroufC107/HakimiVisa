@@ -6,7 +6,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
-import { CreateClientDto, UpdateClientDto, QueryClientDto } from './dto';
+import { VisaStatus } from '@prisma/client';
+import {
+  CreateClientDto,
+  UpdateClientDto,
+  QueryClientDto,
+  QueryDashboardDto,
+} from './dto';
 
 @Injectable()
 export class ClientsService {
@@ -67,18 +73,23 @@ export class ClientsService {
   }
 
   async findAll(query: QueryClientDto) {
-    const { search, page = 1, limit = 20 } = query;
+    const { search, dateFrom, dateTo, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { fullName: { contains: search } },
-            { phoneNumber: { contains: search } },
-            { passportNumber: { contains: search } },
-          ],
-        }
-      : {};
+    const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { fullName: { contains: search } },
+        { phoneNumber: { contains: search } },
+        { passportNumber: { contains: search } },
+      ];
+    }
+    if (dateFrom || dateTo) {
+      const createdAt: Record<string, Date> = {};
+      if (dateFrom) createdAt.gte = new Date(dateFrom);
+      if (dateTo) createdAt.lte = new Date(dateTo);
+      where.createdAt = createdAt;
+    }
 
     const [data, total] = await Promise.all([
       this.prisma.client.findMany({
@@ -388,9 +399,21 @@ export class ClientsService {
     return documents;
   }
 
-  async getDashboardStats() {
+  async getDashboardStats(query: QueryDashboardDto = {}) {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const { dateFrom, dateTo } = query;
+    const createdAt: Record<string, Date> = {};
+    if (dateFrom) createdAt.gte = new Date(dateFrom);
+    if (dateTo) createdAt.lte = new Date(dateTo);
+    const hasRange = Object.keys(createdAt).length > 0;
+
+    // No range supplied keeps the historic all-time behaviour, so existing
+    // callers (the web dashboard) are unaffected.
+    const inRange = hasRange ? { createdAt } : {};
+    const statusInRange = (currentStatus: VisaStatus) =>
+      hasRange ? { currentStatus, createdAt } : { currentStatus };
 
     const [
       totalClients,
@@ -404,16 +427,16 @@ export class ClientsService {
       visaOk,
       refuse,
     ] = await Promise.all([
-      this.prisma.client.count(),
-      this.prisma.visaCase.count(),
+      this.prisma.client.count({ where: inRange }),
+      this.prisma.visaCase.count({ where: inRange }),
       this.prisma.visaCase.count({ where: { createdAt: { gte: monthStart } } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'EN_ATTENTE' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'EN_TRAITEMENT' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'RDV_OK' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'DOSSIER_INCOMPLET' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'LIVREE' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'VISA_OK' } }),
-      this.prisma.visaCase.count({ where: { currentStatus: 'VISA_REFUSEE' } }),
+      this.prisma.visaCase.count({ where: statusInRange('EN_ATTENTE') }),
+      this.prisma.visaCase.count({ where: statusInRange('EN_TRAITEMENT') }),
+      this.prisma.visaCase.count({ where: statusInRange('RDV_OK') }),
+      this.prisma.visaCase.count({ where: statusInRange('DOSSIER_INCOMPLET') }),
+      this.prisma.visaCase.count({ where: statusInRange('LIVREE') }),
+      this.prisma.visaCase.count({ where: statusInRange('VISA_OK') }),
+      this.prisma.visaCase.count({ where: statusInRange('VISA_REFUSEE') }),
     ]);
 
     return {

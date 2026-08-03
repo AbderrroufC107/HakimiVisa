@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
-import '../../providers/clients_providers.dart';
+import '../../providers/ref_data_providers.dart';
 import '../../providers/visa_cases_providers.dart';
+import '../../widgets/client_picker.dart';
+import '../../widgets/suggest_field.dart';
 
 class CreateVisaCaseScreen extends ConsumerStatefulWidget {
   const CreateVisaCaseScreen({super.key});
@@ -14,21 +16,44 @@ class CreateVisaCaseScreen extends ConsumerStatefulWidget {
 
 class _CreateVisaCaseScreenState extends ConsumerState<CreateVisaCaseScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _caseNumberController = TextEditingController();
   final _visaCountryController = TextEditingController();
   final _visaTypeController = TextEditingController();
   final _notesController = TextEditingController();
   
   String? _selectedClientId;
+  ClientModel? _selectedClient;
   bool _isSaving = false;
 
   @override
   void dispose() {
-    _caseNumberController.dispose();
     _visaCountryController.dispose();
     _visaTypeController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  Future<void> _addCountry(String value) async {
+    try {
+      await ref.read(addCountryProvider(value).future);
+      ref.invalidate(countriesProvider);
+      if (!mounted) return;
+      context.showSuccess('Pays ajouté');
+    } catch (_) {
+      if (!mounted) return;
+      context.showError("Erreur lors de l'ajout du pays");
+    }
+  }
+
+  Future<void> _addVisaType(String value) async {
+    try {
+      await ref.read(addVisaTypeProvider(value).future);
+      ref.invalidate(visaTypesProvider);
+      if (!mounted) return;
+      context.showSuccess('Type ajouté');
+    } catch (_) {
+      if (!mounted) return;
+      context.showError("Erreur lors de l'ajout du type");
+    }
   }
 
   Future<void> _handleSave() async {
@@ -43,7 +68,6 @@ class _CreateVisaCaseScreenState extends ConsumerState<CreateVisaCaseScreen> {
     try {
       await ref.read(createVisaCaseProvider({
         'clientId': _selectedClientId,
-        'caseNumber': _caseNumberController.text.trim(),
         'visaCountry': _visaCountryController.text.trim(),
         'visaType': _visaTypeController.text.trim(),
         'notes': _notesController.text.trim().isEmpty
@@ -53,7 +77,7 @@ class _CreateVisaCaseScreenState extends ConsumerState<CreateVisaCaseScreen> {
 
       if (mounted) {
         context.showSuccess('Dossier visa créé avec succès');
-        ref.invalidate(visaCasesProvider({}));
+        ref.invalidate(visaCasesProvider);
         context.pop();
       }
     } on ApiException catch (e) {
@@ -71,7 +95,8 @@ class _CreateVisaCaseScreenState extends ConsumerState<CreateVisaCaseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final clientsAsync = ref.watch(clientsProvider(null));
+    final countries = ref.watch(countriesProvider).valueOrNull ?? const <String>[];
+    final visaTypes = ref.watch(visaTypesProvider).valueOrNull ?? const <String>[];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nouveau dossier visa')),
@@ -88,66 +113,40 @@ class _CreateVisaCaseScreenState extends ConsumerState<CreateVisaCaseScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              clientsAsync.when(
-                data: (clients) => DropdownButtonFormField<String>(
-                  initialValue: _selectedClientId,
-                  decoration: const InputDecoration(
-                    labelText: 'Client',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: clients.map((client) => DropdownMenuItem(
-                    value: client.id,
-                    child: Text(client.fullName),
-                  )).toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedClientId = value);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez sélectionner un client';
-                    }
-                    return null;
-                  },
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('Erreur: $e'),
+              ClientPicker(
+                selected: _selectedClient,
+                onSelected: (client) => setState(() {
+                  _selectedClient = client;
+                  _selectedClientId = client.id;
+                }),
+                onCleared: () => setState(() {
+                  _selectedClient = null;
+                  _selectedClientId = null;
+                }),
               ),
               const SizedBox(height: 16),
-              
-              // Case number
-              TextFormField(
-                controller: _caseNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Numéro de dossier',
-                  prefixIcon: Icon(Icons.numbers),
-                  hintText: 'Ex: VISA-2026-0001',
-                ),
-                validator: AppValidators.required,
-              ),
-              const SizedBox(height: 16),
-              
-              // Visa country
-              TextFormField(
+
+              // Visa country — suggested from what the agency already uses
+              SuggestField(
                 controller: _visaCountryController,
-                decoration: const InputDecoration(
-                  labelText: 'Pays de destination',
-                  prefixIcon: Icon(Icons.flag),
-                  hintText: 'Ex: France, Espagne, Canada...',
-                ),
+                options: countries,
+                label: 'Pays de destination',
+                hint: 'Ex: France, Espagne, Canada...',
+                icon: Icons.flag,
                 validator: AppValidators.required,
+                onCreate: _addCountry,
               ),
               const SizedBox(height: 16),
-              
+
               // Visa type
-              TextFormField(
+              SuggestField(
                 controller: _visaTypeController,
-                decoration: const InputDecoration(
-                  labelText: 'Type de visa',
-                  prefixIcon: Icon(Icons.category),
-                  hintText: 'Ex: Tourisme, Affaires, Études...',
-                ),
+                options: visaTypes,
+                label: 'Type de visa',
+                hint: 'Ex: Tourisme, Affaires, Études...',
+                icon: Icons.category,
                 validator: AppValidators.required,
+                onCreate: _addVisaType,
               ),
               const SizedBox(height: 16),
               

@@ -11,7 +11,7 @@ enum EntryType {
     }
   }
 
-  String toJson() => name;
+  String toJson() => this == EntryType.single ? 'SINGLE' : 'MULTIPLE';
 
   static EntryType fromJson(String json) {
     return EntryType.values.firstWhere(

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PublicTrackingQueryDto } from './dto/public-tracking-query.dto';
 
@@ -7,15 +7,24 @@ export class PublicTrackingService {
   constructor(private prisma: PrismaService) {}
 
   async findByPassport(query: PublicTrackingQueryDto) {
-    const { passport, expiry, reference } = query;
+    const { passport, phone, expiry, reference } = query;
+
+    const trimmedPassport = passport?.trim();
+    const trimmedPhone = phone?.trim();
+
+    if (!trimmedPassport && !trimmedPhone) {
+      throw new BadRequestException('Indiquez un numéro de passeport ou un numéro de téléphone');
+    }
 
     const client = await this.prisma.client.findFirst({
-      where: { passportNumber: { equals: passport.trim() } },
+      where: trimmedPassport
+        ? { passportNumber: { equals: trimmedPassport } }
+        : { phoneNumber: { contains: trimmedPhone } },
       select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
     });
 
     if (!client) {
-      throw new NotFoundException('Aucun dossier trouvé avec ces informations de passeport');
+      throw new NotFoundException('Aucun dossier trouvé avec ces informations');
     }
 
     // Verify passport expiry matches if both are provided

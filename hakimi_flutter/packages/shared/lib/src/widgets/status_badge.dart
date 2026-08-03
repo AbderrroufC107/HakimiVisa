@@ -43,6 +43,8 @@ class StatusBadge extends StatelessWidget {
     switch (status) {
       case VisaStatus.enAttente:
         return l10n.translate('statusEnAttente');
+      case VisaStatus.dossierIncomplet:
+        return l10n.translate('statusDossierIncomplet');
       case VisaStatus.enTraitement:
         return l10n.translate('statusEnTraitement');
       case VisaStatus.rdvOk:
@@ -51,6 +53,8 @@ class StatusBadge extends StatelessWidget {
         return l10n.translate('statusVisaOk');
       case VisaStatus.visaRefusee:
         return l10n.translate('statusVisaRefusee');
+      case VisaStatus.livree:
+        return l10n.translate('statusLivree');
     }
   }
 }

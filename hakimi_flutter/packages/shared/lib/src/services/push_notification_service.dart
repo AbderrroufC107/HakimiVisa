@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/src/api/api_client.dart';
@@ -102,7 +102,13 @@ class PushNotificationService {
     _router = router;
     _userId = userId;
 
-    await Firebase.initializeApp();
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('[PushNotificationService] Firebase init skipped: $e');
+      _initialized = true;
+      return;
+    }
     _messaging = FirebaseMessaging.instance;
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);

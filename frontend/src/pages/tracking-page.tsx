@@ -240,7 +240,7 @@ export function TrackingPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{caseDetail.client.passportNumber ?? caseDetail.caseNumber}</CardTitle>
+                      <CardTitle className="text-lg">{caseDetail.client.passportExpiry ? new Date(caseDetail.client.passportExpiry).toLocaleDateString() : caseDetail.caseNumber}</CardTitle>
                       <Badge className={VISA_STATUS_COLORS[caseDetail.currentStatus]}>
                         {t('status:' + caseDetail.currentStatus)}
                       </Badge>

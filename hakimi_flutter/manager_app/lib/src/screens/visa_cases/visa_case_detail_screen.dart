@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
 import '../../providers/visa_cases_providers.dart';
 
@@ -35,7 +36,7 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: () {},
+                onPressed: () => context.push('/visa-cases/${vc.id}/edit'),
               ),
             ],
           ),
@@ -80,7 +81,9 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
 
   Widget _buildHeader(VisaCaseModel vc, ThemeData theme) {
     final clientName = vc.client is Map
-        ? (vc.client as Map)['full_name'] as String? ?? 'N/A'
+        ? (vc.client as Map)['fullName'] as String? ??
+            (vc.client as Map)['full_name'] as String? ??
+            'N/A'
         : vc.client?.toString() ?? 'N/A';
 
     return AppCard(
@@ -280,7 +283,9 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () => context.push(
+              '/appointments/new?visaCaseId=${vc.id ?? ''}',
+            ),
             icon: const Icon(Icons.calendar_today),
             label: const Text('Ajouter un rendez-vous'),
           ),

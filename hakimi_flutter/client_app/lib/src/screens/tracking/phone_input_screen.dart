@@ -27,17 +27,17 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
 
     setState(() => _isLoading = true);
 
-    final phone = _phoneController.text.trim();
+    final query = _phoneController.text.trim();
 
-    ref.read(trackedPhoneProvider.notifier).state = phone;
+    ref.read(trackedPhoneProvider.notifier).state = query;
     ref.read(trackedReferenceProvider.notifier).state = '';
 
     try {
-      final params = (phone: phone, reference: '');
+      final params = (query: query, reference: '');
       ref.invalidate(trackingSearchProvider(params));
       await ref.read(trackingSearchProvider(params).future);
 
-      PushNotificationService.instance.registerPhoneToken(phone);
+      PushNotificationService.instance.registerPhoneToken(query);
 
       if (mounted) context.push('/tracking/results');
     } on ApiException catch (e) {
@@ -130,14 +130,15 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                                 controller: _phoneController,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                decoration: const InputDecoration(
-                                  labelText: 'Phone Number *',
-                                  hintText: 'Ex: +212 6 12 34 56 78',
-                                  prefixIcon: Icon(Icons.phone_outlined),
+                                decoration: InputDecoration(
+                                  labelText:
+                                      '${l10n.phoneOrPassport} *',
+                                  hintText: l10n.phoneOrPassport,
+                                  prefixIcon: const Icon(Icons.phone_outlined),
                                 ),
                                 validator: (v) {
                                   if (v == null || v.trim().isEmpty) {
-                                    return l10n.translate('phoneNumberRequired');
+                                    return l10n.phoneOrPassportRequired;
                                   }
                                   return null;
                                 },

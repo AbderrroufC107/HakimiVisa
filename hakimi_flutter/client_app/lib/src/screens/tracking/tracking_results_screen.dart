@@ -11,7 +11,7 @@ class TrackingResultsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final phone = ref.watch(trackedPhoneProvider);
     final reference = ref.watch(trackedReferenceProvider);
-    final params = (phone: phone, reference: reference);
+    final params = (query: phone, reference: reference);
     final asyncResult = ref.watch(trackingSearchProvider(params));
 
     return Scaffold(
@@ -33,7 +33,7 @@ class TrackingResultsScreen extends ConsumerWidget {
             return EmptyState(
               icon: Icons.search_off,
               title: 'Aucun dossier trouvé',
-              subtitle: 'Aucun dossier de visa associé à ce numéro de téléphone.',
+              subtitle: 'Aucun dossier de visa associé à ces informations.',
               action: ElevatedButton(
                 onPressed: () => context.pop(),
                 child: const Text('Nouvelle recherche'),

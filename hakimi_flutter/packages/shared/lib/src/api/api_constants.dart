@@ -65,6 +65,10 @@ class ApiConstants {
   static String caseDocuments(String caseId) => '/tracking/$caseId/documents';
 
   // Public tracking (customer-facing)
+  /// Reference lists the manager app offers as suggestions when creating a case.
+  static const String refCountries = '/ref-data/countries';
+  static const String refVisaTypes = '/ref-data/visa-types';
+
   /// Agency contact details, readable without an account (client app).
   static const String publicAgencyContact = '/agency-settings/public/contact';
 

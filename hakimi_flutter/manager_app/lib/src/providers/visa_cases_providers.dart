@@ -33,8 +33,8 @@ final updateVisaCaseStatusProvider =
   (ref, params) async {
     final apiClient = ref.read(apiClientProvider);
     final response = await apiClient.patch<VisaCaseModel>(
-      '${ApiConstants.visaCaseStatus}/${params.id}',
-      data: {'current_status': params.status.toJson()},
+      ApiConstants.visaCaseStatus(params.id),
+      data: {'status': params.status.toJson()},
       fromJsonT: (json) => VisaCaseModel.fromJson(json),
     );
     return response.data;
@@ -48,6 +48,19 @@ final createVisaCaseProvider =
     final response = await apiClient.post<VisaCaseModel>(
       ApiConstants.visaCases,
       data: data,
+      fromJsonT: (json) => VisaCaseModel.fromJson(json),
+    );
+    return response.data;
+  },
+);
+
+final updateVisaCaseProvider =
+    FutureProvider.family<VisaCaseModel?, ({String id, Map<String, dynamic> data})>(
+  (ref, params) async {
+    final apiClient = ref.read(apiClientProvider);
+    final response = await apiClient.patch<VisaCaseModel>(
+      ApiConstants.visaCaseUpdate(params.id),
+      data: params.data,
       fromJsonT: (json) => VisaCaseModel.fromJson(json),
     );
     return response.data;
