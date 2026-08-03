@@ -19,6 +19,31 @@ export class MessagesService {
   ) {}
 
   /**
+   * wa.me only accepts a full international number with no `+` and no leading
+   * zero. Clients are usually stored with a local number (`0778423001`), which
+   * WhatsApp rejects outright, so fall back to the agency's country code.
+   */
+  private toInternationalDigits(rawPhone: string): string {
+    const countryCode = (
+      this.config.get<string>('WHATSAPP_COUNTRY_CODE') ?? '213'
+    ).replace(/\D/g, '');
+
+    const trimmed = rawPhone.trim();
+    const digits = trimmed.replace(/\D/g, '');
+
+    // An explicit + or 00 means the client already carries their own country
+    // code (e.g. a Moroccan +212...), so never prepend ours.
+    if (trimmed.startsWith('+')) return digits;
+    if (digits.startsWith('00')) return digits.slice(2);
+
+    // Local trunk form: 0778423001 -> 213778423001
+    if (digits.startsWith('0')) return countryCode + digits.slice(1);
+
+    // Bare subscriber number: 778423001 -> 213778423001
+    return countryCode + digits;
+  }
+
+  /**
    * Build a wa.me click-to-chat link with the rendered message.
    * Works without WhatsApp Business API: staff clicks the link to send.
    */
@@ -34,8 +59,7 @@ export class MessagesService {
       throw new BadRequestException('Client has no phone number');
     }
 
-    let digits = rawPhone.replace(/\D/g, '');
-    if (digits.startsWith('00')) digits = digits.slice(2);
+    const digits = this.toInternationalDigits(rawPhone);
 
     const url = `https://wa.me/${digits}?text=${encodeURIComponent(rendered.body)}`;
 
