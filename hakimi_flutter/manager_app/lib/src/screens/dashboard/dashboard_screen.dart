@@ -696,7 +696,7 @@ enum _BreakdownKind { clients, cases }
 
 /// Drill-down opened by tapping a summary card; always scoped to the same
 /// window the card counted.
-class _BreakdownSheet extends ConsumerWidget {
+class _BreakdownSheet extends ConsumerStatefulWidget {
   final DateRange range;
   final String title;
   final Color color;
@@ -712,7 +712,26 @@ class _BreakdownSheet extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BreakdownSheet> createState() => _BreakdownSheetState();
+}
+
+class _BreakdownSheetState extends ConsumerState<_BreakdownSheet> {
+  /// visaCasesProvider is keyed by a Map, and Dart maps compare by identity —
+  /// building a fresh one every frame would spawn a new provider each rebuild
+  /// and loop the request forever. Keep one instance for the sheet's lifetime.
+  late final Map<String, dynamic> _caseFilters = {
+    ...rangeParams(widget.range),
+    'limit': 100,
+    if (widget.status != null) 'status': widget.status!.toJson(),
+  };
+
+  DateRange get range => widget.range;
+  String get title => widget.title;
+  Color get color => widget.color;
+  _BreakdownKind get kind => widget.kind;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -822,12 +841,7 @@ class _BreakdownSheet extends ConsumerWidget {
     WidgetRef ref,
     ScrollController controller,
   ) {
-    final filters = <String, dynamic>{
-      ...rangeParams(range),
-      'limit': 100,
-      if (status != null) 'status': status!.toJson(),
-    };
-    final async = ref.watch(visaCasesProvider(filters));
+    final async = ref.watch(visaCasesProvider(_caseFilters));
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => AppErrorWidget(message: e.toString()),
