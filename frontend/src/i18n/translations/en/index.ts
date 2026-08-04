@@ -341,6 +341,8 @@ export const en = {
     submissionDate: 'Submission Date',
   },
   kanban: {
+    passportExpired: 'Passport expired',
+    passportExpiringSoon: 'Passport expires in under 6 months',
     title: 'Case Tracking',
     totalCases: '{count} case(s) total',
     searchPlaceholder: 'Search client, phone, case...',

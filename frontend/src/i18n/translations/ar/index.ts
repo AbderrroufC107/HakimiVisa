@@ -342,6 +342,8 @@ export const ar = {
     submissionDate: 'تاريخ التقديم',
   },
   kanban: {
+    passportExpired: 'جواز السفر منتهي',
+    passportExpiringSoon: 'ينتهي جواز السفر خلال أقل من 6 أشهر',
     title: 'تتبع الملفات',
     totalCases: '{count} طلب/طلبات إجمالاً',
     searchPlaceholder: 'بحث عن عميل، هاتف، طلب...',

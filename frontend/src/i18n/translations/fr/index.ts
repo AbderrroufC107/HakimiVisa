@@ -342,6 +342,8 @@ export const fr = {
     submissionDate: 'Date de soumission',
   },
   kanban: {
+    passportExpired: 'Passeport expiré',
+    passportExpiringSoon: 'Passeport expire dans moins de 6 mois',
     title: 'Suivi des dossiers',
     totalCases: '{count} dossier(s) au total',
     searchPlaceholder: 'Rechercher client, téléphone, dossier...',

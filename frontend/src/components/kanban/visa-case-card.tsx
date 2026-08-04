@@ -35,6 +35,40 @@ function initials(name?: string | null) {
     .join('');
 }
 
+/**
+ * Most consulates refuse a passport with under six months left, so the board
+ * flags that window rather than only the date itself.
+ */
+function passportValidity(expiry: string): {
+  level: 'expired' | 'expiring' | 'ok';
+  className: string;
+  titleKey: string;
+} {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(expiry);
+
+  if (due < today) {
+    return {
+      level: 'expired',
+      className: 'text-red-600 dark:text-red-400',
+      titleKey: 'kanban:passportExpired',
+    };
+  }
+
+  const sixMonths = new Date(today);
+  sixMonths.setMonth(sixMonths.getMonth() + 6);
+  if (due < sixMonths) {
+    return {
+      level: 'expiring',
+      className: 'text-amber-600 dark:text-amber-400',
+      titleKey: 'kanban:passportExpiringSoon',
+    };
+  }
+
+  return { level: 'ok', className: 'text-muted-foreground', titleKey: 'visaCases:passportExpiry' };
+}
+
 /** Left accent bar per status — keeps the board scannable at a glance. */
 const statusAccent: Record<VisaStatus, string> = {
   DOSSIER_INCOMPLET: 'bg-amber-500',
@@ -211,18 +245,25 @@ export const VisaCaseCard = memo(function VisaCaseCard({
             <span className="truncate font-mono text-[12px] font-medium text-foreground" title={t('kanban:passport')}>
               {card.client?.passportNumber ?? '—'}
             </span>
-            {card.client?.passportExpiry && (
-              <span
-                className="ml-auto shrink-0 text-[11px] font-medium text-muted-foreground"
-                title={t('visaCases:passportExpiry')}
-              >
-                {new Date(card.client.passportExpiry).toLocaleDateString(dateLocale, {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </span>
-            )}
+            {card.client?.passportExpiry && (() => {
+              const validity = passportValidity(card.client.passportExpiry);
+              return (
+                <span
+                  className={cn(
+                    'ml-auto flex shrink-0 items-center gap-1 text-[11px] font-medium',
+                    validity.className,
+                  )}
+                  title={t(validity.titleKey)}
+                >
+                  {validity.level !== 'ok' && <AlertTriangle className="h-3 w-3 shrink-0" />}
+                  {new Date(card.client.passportExpiry).toLocaleDateString(dateLocale, {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </span>
+              );
+            })()}
           </div>
         )}
 
