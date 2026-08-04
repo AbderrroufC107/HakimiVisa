@@ -28,13 +28,20 @@ final visaCaseDetailProvider = FutureProvider.family<VisaCaseModel?, String>(
   },
 );
 
-final updateVisaCaseStatusProvider =
-    FutureProvider.family<VisaCaseModel?, ({String id, VisaStatus status})>(
+/// [reason] is required by the API when moving to "dossier incomplet" — a
+/// case flagged incomplete with no motif tells neither the desk nor the
+/// client what is missing.
+final updateVisaCaseStatusProvider = FutureProvider.family<VisaCaseModel?,
+    ({String id, VisaStatus status, String? reason})>(
   (ref, params) async {
     final apiClient = ref.read(apiClientProvider);
     final response = await apiClient.patch<VisaCaseModel>(
       ApiConstants.visaCaseStatus(params.id),
-      data: {'status': params.status.toJson()},
+      data: {
+        'status': params.status.toJson(),
+        if (params.reason != null && params.reason!.trim().isNotEmpty)
+          'reason': params.reason!.trim(),
+      },
       fromJsonT: (json) => VisaCaseModel.fromJson(json),
     );
     return response.data;

@@ -6,7 +6,7 @@ import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCirc
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
 import { visaCasesService, pdfService, visaDetailsService, appointmentsService, templatesService } from '@/services';
-import { ROUTES } from '@/constants';
+import { ROUTES, STATUS_PIPELINE } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/shared/badge';
@@ -24,8 +24,6 @@ import { VISA_STATUS_COLORS, type VisaStatus, type EntryType } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
-
-const STATUS_PIPELINE: VisaStatus[] = ['DOSSIER_INCOMPLET', 'EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();

@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, Loader2, IdCard, Phone, Globe2 } from 'lucide-react';
 import { templatesService } from '@/services';
 import { AppointmentPicker } from './appointment-picker';
+import { STATUS_PIPELINE } from '@/constants';
 import type { VisaCase, VisaStatus } from '@/types';
 
-const COLUMN_FLOW: VisaStatus[] = ['DOSSIER_INCOMPLET', 'EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
+const COLUMN_FLOW = STATUS_PIPELINE;
 
 interface VisaCaseCardProps {
   card: VisaCase;

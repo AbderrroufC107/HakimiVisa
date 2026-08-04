@@ -350,14 +350,59 @@ class _StatusChangeSheet extends ConsumerStatefulWidget {
 class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
   bool _isUpdating = false;
 
+  /// The API refuses "dossier incomplet" without a motif, so ask for one
+  /// before sending rather than surfacing a 400 the user cannot act on.
+  Future<String?> _askIncompleteReason() async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Dossier incomplet'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 3,
+          maxLength: 500,
+          decoration: const InputDecoration(
+            labelText: 'Motif',
+            hintText: 'Ex: passeport manquant, photo non conforme…',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isEmpty) return;
+              Navigator.of(dialogContext).pop(value);
+            },
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return reason;
+  }
+
   Future<void> _changeStatus(VisaStatus newStatus) async {
     if (newStatus == widget.currentStatus) return;
+
+    String? reason;
+    if (newStatus == VisaStatus.dossierIncomplet) {
+      reason = await _askIncompleteReason();
+      if (reason == null) return; // cancelled
+    }
 
     setState(() => _isUpdating = true);
     try {
       await ref.read(updateVisaCaseStatusProvider((
         id: widget.caseId,
         status: newStatus,
+        reason: reason,
       )).future);
 
       if (mounted) {

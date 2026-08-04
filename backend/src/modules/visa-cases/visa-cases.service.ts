@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   Logger,
@@ -213,8 +214,25 @@ export class VisaCasesService {
 
     const oldStatus = existing.currentStatus;
     const newStatus = dto.status;
+    const reason = dto.reason?.trim() || null;
+
+    // "Incomplete" with nothing said is useless to the desk and to the client
+    // tracking page, so the rule lives here rather than only in the web form.
+    if (newStatus === 'DOSSIER_INCOMPLET' && !reason) {
+      throw new BadRequestException(
+        'Un motif est requis pour marquer le dossier comme incomplet',
+      );
+    }
 
     if (oldStatus === newStatus) {
+      // Re-selecting the same status is how the desk corrects a motif it got
+      // wrong; only a genuine transition belongs in the history.
+      if (newStatus === 'DOSSIER_INCOMPLET' && reason !== existing.incompleteReason) {
+        return this.prisma.visaCase.update({
+          where: { id },
+          data: { incompleteReason: reason },
+        });
+      }
       return existing;
     }
 
@@ -223,8 +241,7 @@ export class VisaCasesService {
         where: { id },
         data: {
           currentStatus: newStatus,
-          incompleteReason:
-            newStatus === 'DOSSIER_INCOMPLET' ? (dto.reason ?? null) : null,
+          incompleteReason: newStatus === 'DOSSIER_INCOMPLET' ? reason : null,
         },
       }),
       this.prisma.statusHistory.create({
