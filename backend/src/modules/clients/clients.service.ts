@@ -137,9 +137,17 @@ export class ClientsService {
       throw new NotFoundException('Client not found');
     }
 
+    // A date input sends "YYYY-MM-DD"; Prisma insists on a full ISO DateTime,
+    // so hand it a Date rather than the raw string. Empty means "clear it".
+    const { passportExpiry, ...rest } = dto;
     const client = await this.prisma.client.update({
       where: { id },
-      data: dto,
+      data: {
+        ...rest,
+        ...(passportExpiry === undefined
+          ? {}
+          : { passportExpiry: passportExpiry ? new Date(passportExpiry) : null }),
+      },
     });
 
     await this.auditLog.log({

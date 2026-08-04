@@ -63,7 +63,9 @@ export function ClientFormPage() {
         whatsappNumber: c.whatsappNumber ?? '',
         email: c.email ?? '',
         passportNumber: c.passportNumber ?? '',
-        passportExpiry: c.passportExpiry ?? '',
+        // The API returns a full ISO timestamp; a date input only renders
+        // YYYY-MM-DD and shows blank for anything longer.
+        passportExpiry: c.passportExpiry ? c.passportExpiry.slice(0, 10) : '',
         nationality: c.nationality ?? '',
         notes: c.notes ?? '',
       });
