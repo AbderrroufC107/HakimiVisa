@@ -202,6 +202,30 @@ export const VisaCaseCard = memo(function VisaCaseCard({
           <span className={cn(chipBase, tone.neutral)}>{card.visaType}</span>
         </div>
 
+        {/* ─── Passport ────────────────────────────────────────────
+            Shown on every card: the number and its expiry are what the
+            desk checks first, whatever column the case sits in. */}
+        {(card.client?.passportNumber || card.client?.passportExpiry) && (
+          <div className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-muted/50 px-2 py-1.5">
+            <IdCard className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate font-mono text-[12px] font-medium text-foreground" title={t('kanban:passport')}>
+              {card.client?.passportNumber ?? '—'}
+            </span>
+            {card.client?.passportExpiry && (
+              <span
+                className="ml-auto shrink-0 text-[11px] font-medium text-muted-foreground"
+                title={t('visaCases:passportExpiry')}
+              >
+                {new Date(card.client.passportExpiry).toLocaleDateString(dateLocale, {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                })}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* ─── Incomplete reason ───────────────────────────────── */}
         {card.currentStatus === 'DOSSIER_INCOMPLET' && card.incompleteReason && (
           <div
@@ -231,28 +255,6 @@ export const VisaCaseCard = memo(function VisaCaseCard({
         {/* ─── Passport + appointment + messaging (RDV OK) ─────── */}
         {isRdvOk && (
           <div className="mt-2.5 space-y-2">
-            {(card.client?.passportNumber || card.client?.passportExpiry) && (
-              <div
-                className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
-                title={t('kanban:passport')}
-              >
-                <IdCard className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate font-mono">
-                  {card.client?.passportNumber ?? '-'}
-                </span>
-                {card.client?.passportExpiry && (
-                  <span className="shrink-0 text-muted-foreground/70">
-                    ·{' '}
-                    {new Date(card.client.passportExpiry).toLocaleDateString(dateLocale, {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                )}
-              </div>
-            )}
-
             <AppointmentPicker
               visaCaseId={card.id}
               appointment={card.appointments?.[0]}
