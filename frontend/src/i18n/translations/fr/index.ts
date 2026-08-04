@@ -155,6 +155,8 @@ export const fr = {
     noUpcomingAppointments: 'Aucun rendez-vous à venir',
   },
   clients: {
+    dragDropHint: 'Glissez un fichier ici ou cliquez pour sélectionner',
+    tipCompressed: "Les images sont compressées automatiquement pour économiser de l'espace",
     title: 'Clients',
     client: 'Client',
     subtitle: 'Gérer votre base de clients',
@@ -256,6 +258,7 @@ export const fr = {
     passport: 'Passeport',
   },
   visaCases: {
+    generalInfo: 'Informations générales',
     title: 'Dossiers Visa',
     subtitle: 'Gérer les demandes de visa',
     searchClientPlaceholder: 'Rechercher par nom, téléphone ou passeport...',
@@ -269,6 +272,7 @@ export const fr = {
     client: 'Client',
     country: 'Pays',
     type: 'Type',
+    visaType: 'Type de visa',
     status: 'Statut',
     created: 'Créé',
     searchPlaceholder: 'Rechercher par numéro de dossier ou nom...',
@@ -471,6 +475,9 @@ export const fr = {
     days: 'jours',
   },
   notifications: {
+    allUpToDate: 'Vous êtes à jour',
+    noUnread: 'Aucune notification non lue',
+    markAsRead: 'Marquer comme lue',
     title: 'Notifications',
     all: 'Toutes',
     unread: 'Non lues',
@@ -484,6 +491,7 @@ export const fr = {
     unreadCount: '{count} non lu(s)',
   },
   auditLogs: {
+    noLogsFound: 'Aucun journal trouvé',
     title: "Journal d'audit",
     subtitle: 'Historique des actions des utilisateurs',
     searchPlaceholder: 'Rechercher par entité ou utilisateur...',
@@ -535,6 +543,7 @@ export const fr = {
     stack: 'Pile',
   },
   pdf: {
+    noCasesFound: 'Aucun dossier trouvé',
     title: 'Impression PDF',
     subtitle: 'Imprimer les bordereaux des dossiers de visa',
     searchPlaceholder: 'Rechercher par N° dossier ou client...',

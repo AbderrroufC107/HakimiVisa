@@ -155,6 +155,8 @@ export const ar = {
     noUpcomingAppointments: 'لا توجد مواعيد قادمة',
   },
   clients: {
+    dragDropHint: 'اسحب ملفاً هنا أو انقر للاختيار',
+    tipCompressed: 'تُضغط الصور تلقائياً لتوفير المساحة',
     title: 'العملاء',
     client: 'العميل',
     subtitle: 'إدارة قاعدة بيانات العملاء',
@@ -256,6 +258,7 @@ export const ar = {
     fileDeleted: 'تم حذف الملف',
   },
   visaCases: {
+    generalInfo: 'معلومات عامة',
     title: 'طلبات التأشيرة',
     subtitle: 'إدارة طلبات التأشيرة',
     searchClientPlaceholder: 'ابحث بالاسم أو الهاتف أو جواز السفر...',
@@ -269,6 +272,7 @@ export const ar = {
     client: 'العميل',
     country: 'الدولة',
     type: 'النوع',
+    visaType: 'نوع التأشيرة',
     status: 'الحالة',
     created: 'تاريخ الإنشاء',
     searchPlaceholder: 'بحث برقم الطلب أو اسم العميل...',
@@ -471,6 +475,9 @@ export const ar = {
     days: 'أيام',
   },
   notifications: {
+    allUpToDate: 'كل شيء محدَّث',
+    noUnread: 'لا توجد إشعارات غير مقروءة',
+    markAsRead: 'تعليم كمقروء',
     title: 'الإشعارات',
     all: 'الكل',
     unread: 'غير مقروء',
@@ -484,6 +491,7 @@ export const ar = {
     unreadCount: '{count} غير مقروء',
   },
   auditLogs: {
+    noLogsFound: 'لا توجد سجلات',
     title: 'سجل التدقيق',
     subtitle: 'سجل إجراءات المستخدمين',
     searchPlaceholder: 'بحث بكيان أو مستخدم...',
@@ -535,6 +543,7 @@ export const ar = {
     stack: 'المكدس',
   },
   pdf: {
+    noCasesFound: 'لا توجد ملفات',
     title: 'طباعة PDF',
     subtitle: 'طباعة مستندات طلبات التأشيرة',
     searchPlaceholder: 'بحث برقم الطلب أو العميل...',

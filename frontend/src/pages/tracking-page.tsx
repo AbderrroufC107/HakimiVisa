@@ -16,11 +16,11 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
   const { t, i18n } = useTranslation();
 
   const STEP_LABELS: Record<string, string> = {
-    EN_ATTENTE: t('trackingStep:pending'),
-    EN_TRAITEMENT: t('trackingStep:processing'),
+    EN_ATTENTE: t('trackingStep:EN_ATTENTE'),
+    EN_TRAITEMENT: t('trackingStep:EN_TRAITEMENT'),
     RDV_OK: t('status:RDV_OK'),
     VISA_OK: t('trackingStep:VISA_OK'),
-    VISA_REFUSEE: t('trackingStep:rejected'),
+    VISA_REFUSEE: t('trackingStep:VISA_REFUSEE'),
   };
 
   const steps: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK'];
@@ -79,7 +79,7 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
           <div className="flex items-start gap-3">
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">✕</div>
             <div>
-              <p className="text-sm font-medium text-red-600">{t('trackingStep:rejected')}</p>
+              <p className="text-sm font-medium text-red-600">{t('trackingStep:VISA_REFUSEE')}</p>
               {refusedHistory && (
                 <p className="text-xs text-muted-foreground">
                   {new Date(refusedHistory.changedAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}

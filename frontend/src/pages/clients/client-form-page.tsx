@@ -30,7 +30,7 @@ export function ClientFormPage() {
     fullName: z.string().min(1, t('validation:fullNameRequired')).max(200),
     phoneNumber: z.string().min(1, t('validation:phoneRequired')).max(20),
     whatsappNumber: z.string().max(20).optional().or(z.literal('')),
-    email: z.string().email(t('validation:emailRequired')).max(200).optional().or(z.literal('')),
+    email: z.string().email(t('validation:invalidEmail')).max(200).optional().or(z.literal('')),
     passportNumber: z.string().max(50).optional().or(z.literal('')),
     passportExpiry: z.string().optional().or(z.literal('')),
     nationality: z.string().max(100).optional().or(z.literal('')),
@@ -114,7 +114,7 @@ export function ClientFormPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="fullName">
-                  {t('clients:lastName')} <span className="text-destructive">*</span>
+                  {t('clients:fullName')} <span className="text-destructive">*</span>
                 </Label>
                 <Input id="fullName" {...register('fullName')} />
                 {errors.fullName && (

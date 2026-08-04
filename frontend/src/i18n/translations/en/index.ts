@@ -155,6 +155,8 @@ export const en = {
     noUpcomingAppointments: 'No upcoming appointments',
   },
   clients: {
+    dragDropHint: 'Drag a file here or click to select',
+    tipCompressed: 'Images are automatically compressed to save space',
     title: 'Clients',
     client: 'Client',
     clientInfo: 'Client Information',
@@ -255,6 +257,7 @@ export const en = {
     tryModifySearch: 'Try modifying your search criteria',
   },
   visaCases: {
+    generalInfo: 'General information',
     title: 'Visa Cases',
     searchClientPlaceholder: 'Search by name, phone or passport...',
     noClientFound: 'No client found',
@@ -268,6 +271,7 @@ export const en = {
     client: 'Client',
     country: 'Country',
     type: 'Type',
+    visaType: 'Visa Type',
     status: 'Status',
     created: 'Created',
     searchPlaceholder: 'Search by case number or client name...',
@@ -470,6 +474,9 @@ export const en = {
     days: 'days',
   },
   notifications: {
+    allUpToDate: "You're all caught up",
+    noUnread: 'No unread notifications',
+    markAsRead: 'Mark as read',
     title: 'Notifications',
     all: 'All',
     unread: 'Unread',
@@ -483,6 +490,7 @@ export const en = {
     unreadCount: '{count} unread',
   },
   auditLogs: {
+    noLogsFound: 'No logs found',
     title: 'Audit Logs',
     subtitle: 'User action history',
     searchPlaceholder: 'Search by entity or user...',
@@ -534,6 +542,7 @@ export const en = {
     stack: 'Stack',
   },
   pdf: {
+    noCasesFound: 'No cases found',
     title: 'PDF Printing',
     subtitle: 'Print visa case bordereaux',
     searchPlaceholder: 'Search by case number or client...',
