@@ -14,7 +14,6 @@ import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/shared/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
 } from '@/components/ui/dialog';
@@ -22,11 +21,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Pencil, ExternalLink, MessageCircle, Mail, Loader2 } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, Plus, Trash2, Pencil, ExternalLink, MessageCircle, Mail, Loader2,
+  User, Phone, Hash, Globe, FileText, Activity, MapPin, CalendarDays, Clock,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks';
-import type { Appointment, AppointmentType, CreateAppointmentRequest, ApiError } from '@/types';
-import { APPOINTMENT_TYPE_COLORS } from '@/types';
+import { StatusBadge } from '@/components/shared/status-badge';
+import type { Appointment, AppointmentType, CreateAppointmentRequest, ApiError, VisaStatus } from '@/types';
 
 type ViewMode = 'month' | 'week' | 'day';
 
@@ -113,6 +115,40 @@ function AppointmentForm({ onSubmit, initial }: { onSubmit: (data: CreateAppoint
   );
 }
 
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+      <div className="divide-y rounded-lg border bg-card">{children}</div>
+    </div>
+  );
+}
+
+function DetailRow({
+  icon: Icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value?: React.ReactNode;
+  href?: string;
+}) {
+  if (value === undefined || value === null || value === '') return null;
+  return (
+    <div className="flex items-start gap-3 px-3 py-2">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="w-28 shrink-0 pt-px text-xs text-muted-foreground">{label}</span>
+      {href ? (
+        <a href={href} className="text-sm font-medium hover:underline" dir="ltr">{value}</a>
+      ) : (
+        <span className="text-sm font-medium break-words">{value}</span>
+      )}
+    </div>
+  );
+}
+
 interface DetailDialogProps {
   appointment: Appointment | null;
   onClose: () => void;
@@ -179,22 +215,44 @@ function AppointmentDetailDialog({ appointment, onClose, onUpdate, onDelete, isU
     }
   };
 
+  const locale = i18n.language?.replace('_', '-') ?? 'en-US';
+  const accent = TYPE_HEX[appointment.appointmentType] ?? '#6b7280';
+  const visaCase = appointment.visaCase;
+  const client = visaCase?.client;
+  const fullDate = new Date(appointment.appointmentDate).toLocaleDateString(locale, {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+  const createdOn = new Date(appointment.createdAt).toLocaleDateString(locale, {
+    day: 'numeric', month: 'short', year: 'numeric',
+  });
+  const createdByName = appointment.user
+    ? `${appointment.user.firstName} ${appointment.user.lastName}`.trim()
+    : null;
+
   return (
     <Dialog open={!!appointment} onOpenChange={(open) => { if (!open) { setEditing(false); onClose(); } }}>
-      <DialogContent>
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t('appointments:details')}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold">{appointment.visaCase?.client?.fullName ?? t('common:na')}</p>
-              <p className="text-xs text-muted-foreground font-mono">{appointment.visaCase?.caseNumber}</p>
+        <div className="space-y-4">
+          {/* Date and time carry the type colour so the appointment reads at a glance. */}
+          <div
+            className="rounded-xl px-4 py-3 text-white shadow-sm"
+            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider opacity-90">
+                  {t(`appointmentType:${appointment.appointmentType}`)}
+                </p>
+                <p className="mt-0.5 truncate text-sm font-medium capitalize opacity-95">{fullDate}</p>
+              </div>
+              <p className="shrink-0 text-3xl font-bold leading-none tabular-nums">
+                {appointment.appointmentTime}
+              </p>
             </div>
-            <Badge className={APPOINTMENT_TYPE_COLORS[appointment.appointmentType]}>
-              {t(`appointmentType:${appointment.appointmentType}`)}
-            </Badge>
           </div>
 
           {editing ? (
@@ -219,13 +277,53 @@ function AppointmentDetailDialog({ appointment, onClose, onUpdate, onDelete, isU
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border p-3 text-sm space-y-1">
-              <p>
-                📅 {new Date(appointment.appointmentDate).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                {' '}· 🕐 {appointment.appointmentTime}
-              </p>
-              <p>📍 {appointment.appointmentCenter}</p>
-              {appointment.notes && <p className="text-muted-foreground">📝 {appointment.notes}</p>}
+            <div className="space-y-3">
+              <DetailSection title={t('appointments:sectionClient')}>
+                <DetailRow icon={User} label={t('visaCases:client')} value={client?.fullName ?? t('common:na')} />
+                <DetailRow
+                  icon={Phone}
+                  label={t('clients:phone')}
+                  value={client?.phoneNumber}
+                  href={client?.phoneNumber ? `tel:${client.phoneNumber}` : undefined}
+                />
+              </DetailSection>
+
+              <DetailSection title={t('appointments:sectionCase')}>
+                <DetailRow
+                  icon={Hash}
+                  label={t('visaCases:caseNumber')}
+                  value={visaCase?.caseNumber ? <span className="font-mono">{visaCase.caseNumber}</span> : undefined}
+                />
+                <DetailRow icon={Globe} label={t('visaCases:country')} value={visaCase?.visaCountry} />
+                <DetailRow icon={FileText} label={t('visaCases:type')} value={visaCase?.visaType} />
+                <DetailRow
+                  icon={Activity}
+                  label={t('visaCases:status')}
+                  value={visaCase?.currentStatus ? <StatusBadge status={visaCase.currentStatus as VisaStatus} size="sm" /> : undefined}
+                />
+              </DetailSection>
+
+              <DetailSection title={t('appointments:sectionLocation')}>
+                <DetailRow icon={MapPin} label={t('appointments:center')} value={appointment.appointmentCenter} />
+                <DetailRow icon={CalendarDays} label={t('appointments:date')} value={<span className="capitalize">{fullDate}</span>} />
+                <DetailRow icon={Clock} label={t('appointments:time')} value={<span className="tabular-nums">{appointment.appointmentTime}</span>} />
+              </DetailSection>
+
+              {appointment.notes && (
+                <DetailSection title={t('common:notes')}>
+                  <div className="px-3 py-2">
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">{appointment.notes}</p>
+                  </div>
+                </DetailSection>
+              )}
+
+              {(createdByName || createdOn) && (
+                <p className="px-1 text-[11px] text-muted-foreground">
+                  {createdByName
+                    ? t('appointments:createdByOn', { name: createdByName, date: createdOn })
+                    : t('appointments:createdOn', { date: createdOn })}
+                </p>
+              )}
             </div>
           )}
 
