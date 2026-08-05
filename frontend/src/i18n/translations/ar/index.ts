@@ -155,6 +155,8 @@ export const ar = {
     noUpcomingAppointments: 'لا توجد مواعيد قادمة',
   },
   clients: {
+    fileTooLarge: 'الملف كبير جداً (الحد 10 ميغابايت)',
+    confirmDeleteFile: 'حذف هذا الملف؟',
     dragDropHint: 'اسحب ملفاً هنا أو انقر للاختيار',
     tipCompressed: 'تُضغط الصور تلقائياً لتوفير المساحة',
     title: 'العملاء',
@@ -258,6 +260,11 @@ export const ar = {
     fileDeleted: 'تم حذف الملف',
   },
   visaCases: {
+    dossierState: 'حالة الملف',
+    caseDocuments: 'وثائق الملف',
+    markComplete: 'تعليم كمكتمل',
+    markIncomplete: 'تعليم كناقص',
+    completeHint: 'يعود الملف إلى قائمة الانتظار بمجرد اكتمال الوثائق.',
     generalInfo: 'معلومات عامة',
     title: 'طلبات التأشيرة',
     subtitle: 'إدارة طلبات التأشيرة',

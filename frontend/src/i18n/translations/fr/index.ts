@@ -155,6 +155,8 @@ export const fr = {
     noUpcomingAppointments: 'Aucun rendez-vous à venir',
   },
   clients: {
+    fileTooLarge: 'Fichier trop volumineux (max 10 Mo)',
+    confirmDeleteFile: 'Supprimer ce fichier ?',
     dragDropHint: 'Glissez un fichier ici ou cliquez pour sélectionner',
     tipCompressed: "Les images sont compressées automatiquement pour économiser de l'espace",
     title: 'Clients',
@@ -258,6 +260,11 @@ export const fr = {
     passport: 'Passeport',
   },
   visaCases: {
+    dossierState: 'État du dossier',
+    caseDocuments: 'Documents du dossier',
+    markComplete: 'Marquer complet',
+    markIncomplete: 'Marquer incomplet',
+    completeHint: 'Le dossier repasse en attente une fois les pièces réunies.',
     generalInfo: 'Informations générales',
     title: 'Dossiers Visa',
     subtitle: 'Gérer les demandes de visa',

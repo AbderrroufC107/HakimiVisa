@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCircle, Mail, IdCard } from 'lucide-react';
+import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCircle, Mail, IdCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { CaseFilesPanel } from '@/components/visa-cases/case-files-panel';
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
 import { visaCasesService, pdfService, visaDetailsService, appointmentsService, templatesService } from '@/services';
@@ -231,6 +232,71 @@ export function VisaCaseDetailPage() {
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         )}
+      </div>
+
+      {/* Documents sit beside the completeness call: the desk decides after
+          looking at what has actually been supplied. */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <CaseFilesPanel visaCaseId={id!} />
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{t('visaCases:dossierState')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {visaCase.currentStatus === 'DOSSIER_INCOMPLET' ? (
+              <>
+                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-500/25 dark:bg-amber-500/10">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                      {t('status:DOSSIER_INCOMPLET')}
+                    </p>
+                    {visaCase.incompleteReason && (
+                      <p className="mt-0.5 whitespace-pre-wrap text-sm text-amber-700 dark:text-amber-300/90">
+                        {visaCase.incompleteReason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => statusMutation.mutate({ status: 'EN_ATTENTE' })}
+                    disabled={statusMutation.isPending}
+                    data-testid="mark-complete"
+                  >
+                    <CheckCircle2 className="mr-1 h-4 w-4" />
+                    {t('visaCases:markComplete')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setIncompleteReason(visaCase.incompleteReason ?? ''); setIncompleteDialogOpen(true); }}
+                    disabled={statusMutation.isPending}
+                  >
+                    {t('common:edit')}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('visaCases:completeHint')}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">{t('visaCases:completeHint')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setIncompleteReason(''); setIncompleteDialogOpen(true); }}
+                  disabled={statusMutation.isPending}
+                  data-testid="mark-incomplete"
+                >
+                  <AlertTriangle className="mr-1 h-4 w-4 text-amber-500" />
+                  {t('visaCases:markIncomplete')}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

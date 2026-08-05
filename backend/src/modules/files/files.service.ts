@@ -46,7 +46,7 @@ export class FilesService {
     }
   }
 
-  async uploadFile(clientId: string, file: Express.Multer.File) {
+  async uploadFile(clientId: string, file: Express.Multer.File, visaCaseId?: string) {
     const existing = await this.prisma.client.findUnique({ where: { id: clientId } });
     if (!existing) throw new NotFoundException('Client not found');
 
@@ -72,6 +72,7 @@ export class FilesService {
     return this.prisma.clientFile.create({
       data: {
         clientId,
+        visaCaseId: visaCaseId ?? null,
         fileName,
         originalName: file.originalname,
         mimeType: file.mimetype,
@@ -92,8 +93,42 @@ export class FilesService {
         mimeType: true,
         size: true,
         createdAt: true,
+        visaCaseId: true,
       },
     });
+  }
+
+  /** Documents attached to one application, newest first. */
+  async getFilesByVisaCase(visaCaseId: string) {
+    const visaCase = await this.prisma.visaCase.findUnique({
+      where: { id: visaCaseId },
+      select: { id: true },
+    });
+    if (!visaCase) throw new NotFoundException('Visa case not found');
+
+    return this.prisma.clientFile.findMany({
+      where: { visaCaseId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        fileName: true,
+        originalName: true,
+        mimeType: true,
+        size: true,
+        createdAt: true,
+        visaCaseId: true,
+      },
+    });
+  }
+
+  async uploadToVisaCase(visaCaseId: string, file: Express.Multer.File) {
+    const visaCase = await this.prisma.visaCase.findUnique({
+      where: { id: visaCaseId },
+      select: { clientId: true },
+    });
+    if (!visaCase) throw new NotFoundException('Visa case not found');
+
+    return this.uploadFile(visaCase.clientId, file, visaCaseId);
   }
 
   async getFile(fileId: string) {

@@ -128,6 +128,10 @@ model ClientFile {
   id           String   @id @default(cuid())
   clientId     String
   client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  // Set when the document belongs to one application rather than the client
+  // as a whole. Null keeps the older client-level files working untouched.
+  visaCaseId   String?
+  visaCase     VisaCase? @relation(fields: [visaCaseId], references: [id], onDelete: Cascade)
   fileName     String
   originalName String
   mimeType     String
@@ -136,6 +140,7 @@ model ClientFile {
   createdAt    DateTime @default(now())
 
   @@index([clientId])
+  @@index([visaCaseId])
   @@map("client_files")
 }
 
@@ -161,6 +166,7 @@ model VisaCase {
   statusHistories StatusHistory[]
   appointments    Appointment[]
   documents       Document[]
+  files           ClientFile[]
   visaDetails     VisaDetails?
 
   @@index([clientId])

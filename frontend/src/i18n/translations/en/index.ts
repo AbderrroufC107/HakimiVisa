@@ -155,6 +155,8 @@ export const en = {
     noUpcomingAppointments: 'No upcoming appointments',
   },
   clients: {
+    fileTooLarge: 'File too large (max 10 MB)',
+    confirmDeleteFile: 'Delete this file?',
     dragDropHint: 'Drag a file here or click to select',
     tipCompressed: 'Images are automatically compressed to save space',
     title: 'Clients',
@@ -257,6 +259,11 @@ export const en = {
     tryModifySearch: 'Try modifying your search criteria',
   },
   visaCases: {
+    dossierState: 'Dossier state',
+    caseDocuments: 'Case documents',
+    markComplete: 'Mark complete',
+    markIncomplete: 'Mark incomplete',
+    completeHint: 'The case returns to pending once the missing pieces arrive.',
     generalInfo: 'General information',
     title: 'Visa Cases',
     searchClientPlaceholder: 'Search by name, phone or passport...',
