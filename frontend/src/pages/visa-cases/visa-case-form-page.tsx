@@ -60,7 +60,6 @@ export function VisaCaseFormPage() {
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPassport, setNewClientPassport] = useState('');
   const [newClientPassportExpiry, setNewClientPassportExpiry] = useState('');
-  const [newClientNationality, setNewClientNationality] = useState('');
   const [newClientNotes, setNewClientNotes] = useState('');
 
   const [showAddCountry, setShowAddCountry] = useState(false);
@@ -196,7 +195,6 @@ export function VisaCaseFormPage() {
       email?: string;
       passportNumber?: string;
       passportExpiry?: string;
-      nationality?: string;
       notes?: string;
     }) => clientsService.create(data),
     onSuccess: (newClient) => {
@@ -211,7 +209,6 @@ export function VisaCaseFormPage() {
       setNewClientEmail('');
       setNewClientPassport('');
       setNewClientPassportExpiry('');
-      setNewClientNationality('');
       setNewClientNotes('');
     },
     onError: (error) => {
@@ -543,19 +540,6 @@ export function VisaCaseFormPage() {
                   onChange={(e) => setNewClientPassportExpiry(e.target.value)}
                 />
               </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>{t('clients:nationality')}</Label>
-                <Input
-                  value={newClientNationality}
-                  onChange={(e) => setNewClientNationality(e.target.value)}
-                  list="nationalities-list"
-                />
-                <datalist id="nationalities-list">
-                  {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
-                    <option key={n} value={n} />
-                  ))}
-                </datalist>
-              </div>
             </div>
 
             <div className="space-y-2">
@@ -583,7 +567,6 @@ export function VisaCaseFormPage() {
                 email: newClientEmail || undefined,
                 passportNumber: newClientPassport || undefined,
                 passportExpiry: newClientPassportExpiry || undefined,
-                nationality: newClientNationality || undefined,
                 notes: newClientNotes || undefined,
               });
             }} disabled={addClientMutation.isPending}>

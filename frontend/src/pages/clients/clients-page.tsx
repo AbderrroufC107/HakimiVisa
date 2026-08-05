@@ -64,10 +64,6 @@ export function ClientsPage() {
       accessor: (c) => c.passportExpiry ? new Date(c.passportExpiry).toLocaleDateString() : '—',
     },
     {
-      header: t('clients:nationality'),
-      accessor: (c) => c.nationality ?? '—',
-    },
-    {
       header: t('clients:visaCases'),
       accessor: (c) => (
         <Badge className="bg-primary/10 text-primary">

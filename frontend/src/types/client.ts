@@ -10,7 +10,6 @@ export interface Client {
   email: string | null;
   passportNumber: string | null;
   passportExpiry: string | null;
-  nationality: string | null;
   notes: string | null;
   createdBy: string;
   createdAt: string;
@@ -97,7 +96,6 @@ export interface CreateClientRequest {
   email?: string;
   passportNumber?: string;
   passportExpiry?: string;
-  nationality?: string;
   notes?: string;
 }
 

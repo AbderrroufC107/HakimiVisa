@@ -46,7 +46,6 @@ export class KanbanService {
             email: true,
             passportNumber: true,
             passportExpiry: true,
-            nationality: true,
           },
         },
         creator: {

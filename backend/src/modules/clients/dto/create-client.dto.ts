@@ -26,11 +26,6 @@ export class CreateClientDto {
   @MaxLength(50)
   passportNumber?: string;
 
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  nationality?: string;
-
   @IsOptional()
   @IsDateString()
   passportExpiry?: string;

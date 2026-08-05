@@ -7,7 +7,6 @@ import {
   Plus,
   Phone,
   Mail,
-  Globe,
   FileText,
   MessageCircle,
   Copy,
@@ -386,15 +385,6 @@ export function ClientProfilePage() {
               <div className="flex items-center gap-1.5">
                 <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-sm font-medium">{new Date(profile.passportExpiry).toLocaleDateString()}</span>
-              </div>
-            </div>
-          )}
-          {profile.nationality && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">{t('clients:nationality')}</p>
-              <div className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm font-medium">{profile.nationality}</span>
               </div>
             </div>
           )}

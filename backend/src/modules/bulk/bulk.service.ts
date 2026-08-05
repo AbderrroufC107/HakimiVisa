@@ -216,12 +216,11 @@ export class BulkService {
       throw new BadRequestException('No valid visa cases found');
     }
 
-    const rows = cases.map((vc: { caseNumber: string; client: { fullName: string; phoneNumber: string; passportNumber: string | null; nationality: string | null }; visaCountry: string; visaType: string; currentStatus: string; openingDate: Date; createdAt: Date }) => ({
+    const rows = cases.map((vc: { caseNumber: string; client: { fullName: string; phoneNumber: string; passportNumber: string | null }; visaCountry: string; visaType: string; currentStatus: string; openingDate: Date; createdAt: Date }) => ({
       caseNumber: vc.caseNumber,
       clientName: vc.client.fullName,
       phoneNumber: vc.client.phoneNumber,
       passportNumber: vc.client.passportNumber ?? '',
-      nationality: vc.client.nationality ?? '',
       visaCountry: vc.visaCountry,
       visaType: vc.visaType,
       currentStatus: vc.currentStatus,
@@ -234,7 +233,6 @@ export class BulkService {
       { header: 'Client Name', key: 'clientName' },
       { header: 'Phone', key: 'phoneNumber' },
       { header: 'Passport', key: 'passportNumber' },
-      { header: 'Nationality', key: 'nationality' },
       { header: 'Visa Country', key: 'visaCountry' },
       { header: 'Visa Type', key: 'visaType' },
       { header: 'Status', key: 'currentStatus' },

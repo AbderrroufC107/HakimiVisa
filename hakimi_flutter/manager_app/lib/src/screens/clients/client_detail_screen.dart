@@ -153,12 +153,6 @@ class _InfoTab extends StatelessWidget {
               label: 'Exp. passeport',
               value: client.passportExpiry!.formatDate(),
             ),
-          if (client.nationality != null && client.nationality!.isNotEmpty)
-            _InfoRow(
-              icon: Icons.flag,
-              label: 'Nationalité',
-              value: client.nationality!,
-            ),
           if (client.notes != null && client.notes!.isNotEmpty)
             _InfoRow(icon: Icons.note, label: 'Notes', value: client.notes!),
           _InfoRow(

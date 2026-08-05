@@ -33,7 +33,6 @@ export function ClientFormPage() {
     email: z.string().email(t('validation:invalidEmail')).max(200).optional().or(z.literal('')),
     passportNumber: z.string().max(50).optional().or(z.literal('')),
     passportExpiry: z.string().optional().or(z.literal('')),
-    nationality: z.string().max(100).optional().or(z.literal('')),
     notes: z.string().max(2000).optional().or(z.literal('')),
   });
 
@@ -66,7 +65,6 @@ export function ClientFormPage() {
         // The API returns a full ISO timestamp; a date input only renders
         // YYYY-MM-DD and shows blank for anything longer.
         passportExpiry: c.passportExpiry ? c.passportExpiry.slice(0, 10) : '',
-        nationality: c.nationality ?? '',
         notes: c.notes ?? '',
       });
     }
@@ -151,10 +149,6 @@ export function ClientFormPage() {
                 <Label htmlFor="passportExpiry">{t('visaCases:passportExpiry')}</Label>
                 <Input id="passportExpiry" type="date" {...register('passportExpiry')} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="nationality">{t('clients:nationality')}</Label>
-                <Input id="nationality" list="nationalities-list" {...register('nationality')} />
-              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">{t('common:notes')}</Label>
@@ -176,11 +170,6 @@ export function ClientFormPage() {
                     : t('clients:addClient')}
               </Button>
             </div>
-            <datalist id="nationalities-list">
-              {['Algérienne', 'Marocaine', 'Tunisienne', 'Libyenne', 'Mauritanienne', 'Sahraouie', 'Française', 'Espagnole', 'Italienne', 'Allemande', 'Anglaise', 'Américaine', 'Canadienne', 'Chinoise', 'Turque', 'Émiratie', 'Saoudienne', 'Qatarie', 'Koweïtienne', 'Omanaise', 'Bahreïnienne', 'Jordanie', 'Égyptienne', 'Syrienne', 'Irakienne', 'Libanaise', 'Palestinienne', 'Soudanaise', 'Nigériane', 'Sénégalaise', 'Malienne', 'Nigerienne', 'Tchadienne', 'Camerounaise', 'Ivoirienne', 'Ghanéenne', 'Congolaise', 'Angolaise', 'Sud-Africaine', 'Russe', 'Indienne', 'Pakistanaise', 'Bangladeshie', 'Indonésienne', 'Malaisienne', 'Japonaise', 'Coréenne', 'Australienne'].map(n => (
-                <option key={n} value={n} />
-              ))}
-            </datalist>
           </form>
         </CardContent>
       </Card>

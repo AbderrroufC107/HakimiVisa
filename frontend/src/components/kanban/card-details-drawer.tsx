@@ -7,7 +7,7 @@ import { visaCasesService, templatesService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/shared/badge';
-import { X, ExternalLink, Clock, User, FileText, Globe, Phone, Mail, MessageCircle, Loader2, IdCard } from 'lucide-react';
+import { X, ExternalLink, Clock, User, FileText, Phone, Mail, MessageCircle, Loader2, IdCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppointmentPicker } from './appointment-picker';
 import type { VisaCase, VisaStatus, Client } from '@/types';
@@ -173,12 +173,6 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
                         <div className="flex items-center gap-2">
                           <FileText className="h-3 w-3" />
                           {t('visaCases:passportExpiry')}: {new Date(client.passportExpiry).toLocaleDateString()}
-                        </div>
-                      )}
-                      {client?.nationality && (
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-3 w-3" />
-                          {client.nationality}
                         </div>
                       )}
                     </div>

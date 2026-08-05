@@ -21,17 +21,15 @@ export class ExcelService {
       { header: 'WhatsApp', key: 'whatsappNumber' },
       { header: 'Email', key: 'email' },
       { header: 'Passeport', key: 'passportNumber' },
-      { header: 'Nationalité', key: 'nationality' },
       { header: 'Dossiers', key: 'visaCasesCount' },
       { header: 'Date création', key: 'createdAt' },
-    ], clients.map((c: { id: string; fullName: string; phoneNumber: string; whatsappNumber: string | null; email: string | null; passportNumber: string | null; nationality: string | null; _count: { visaCases: number }; createdAt: Date }) => ({
+    ], clients.map((c: { id: string; fullName: string; phoneNumber: string; whatsappNumber: string | null; email: string | null; passportNumber: string | null; _count: { visaCases: number }; createdAt: Date }) => ({
       id: c.id,
       fullName: c.fullName,
       phoneNumber: c.phoneNumber,
       whatsappNumber: c.whatsappNumber ?? '',
       email: c.email ?? '',
       passportNumber: c.passportNumber ?? '',
-      nationality: c.nationality ?? '',
       visaCasesCount: c._count.visaCases,
       createdAt: c.createdAt.toISOString(),
     })));

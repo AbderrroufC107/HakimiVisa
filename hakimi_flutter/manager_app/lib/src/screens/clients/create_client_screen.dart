@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
-import '../../constants/nationalities.dart';
 import '../../providers/clients_providers.dart';
-import '../../widgets/suggest_field.dart';
 
 class CreateClientScreen extends ConsumerStatefulWidget {
   const CreateClientScreen({super.key});
@@ -22,7 +20,6 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
   final _whatsappNumberController = TextEditingController();
   final _emailController = TextEditingController();
   final _passportNumberController = TextEditingController();
-  final _nationalityController = TextEditingController();
   final _notesController = TextEditingController();
   DateTime? _passportExpiry;
   bool _isSaving = false;
@@ -66,7 +63,6 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
     _whatsappNumberController.dispose();
     _emailController.dispose();
     _passportNumberController.dispose();
-    _nationalityController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -90,9 +86,6 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
             ? null
             : _passportNumberController.text.trim(),
         'passportExpiry': _passportExpiry?.toIso8601String(),
-        'nationality': _nationalityController.text.trim().isEmpty
-            ? null
-            : _nationalityController.text.trim(),
         'notes': _notesController.text.trim().isEmpty
             ? null
             : _notesController.text.trim(),
@@ -199,13 +192,6 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
                         : null,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SuggestField(
-                controller: _nationalityController,
-                options: kNationalities,
-                label: 'Nationalité',
-                icon: Icons.flag,
               ),
               const SizedBox(height: 16),
               TextFormField(

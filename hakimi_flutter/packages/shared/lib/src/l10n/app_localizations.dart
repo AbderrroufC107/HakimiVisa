@@ -174,7 +174,6 @@ class AppLocalizations {
       'operationSuccessful': 'Opération réussie',
       'operationFailed': 'Opération échouée',
       'passportNumber': 'Numéro de passeport',
-      'nationality': 'Nationalité',
       'phoneNumber': 'Numéro de téléphone',
       'whatsappNumber': 'Numéro WhatsApp',
       'fullName': 'Nom complet',
@@ -346,7 +345,6 @@ class AppLocalizations {
       'operationSuccessful': 'Operation successful',
       'operationFailed': 'Operation failed',
       'passportNumber': 'Passport number',
-      'nationality': 'Nationality',
       'phoneNumber': 'Phone number',
       'whatsappNumber': 'WhatsApp number',
       'fullName': 'Full name',
@@ -518,7 +516,6 @@ class AppLocalizations {
       'operationSuccessful': 'العملية ناجحة',
       'operationFailed': 'العملية فشلت',
       'passportNumber': 'رقم جواز السفر',
-      'nationality': 'الجنسية',
       'phoneNumber': 'رقم الهاتف',
       'whatsappNumber': 'رقم واتساب',
       'fullName': 'الاسم الكامل',
@@ -636,7 +633,6 @@ class AppLocalizations {
   String get operationSuccessful => translate('operationSuccessful');
   String get operationFailed => translate('operationFailed');
   String get passportNumber => translate('passportNumber');
-  String get nationality => translate('nationality');
   String get phoneNumber => translate('phoneNumber');
   String get phoneOrPassport => translate('phoneOrPassport');
   String get phoneOrPassportRequired => translate('phoneOrPassportRequired');

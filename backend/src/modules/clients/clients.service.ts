@@ -54,7 +54,6 @@ export class ClientsService {
         whatsappNumber: dto.whatsappNumber,
         email: dto.email,
         passportNumber: dto.passportNumber,
-        nationality: dto.nationality,
         passportExpiry: dto.passportExpiry ? new Date(dto.passportExpiry) : undefined,
         notes: dto.notes,
         createdBy: userId,

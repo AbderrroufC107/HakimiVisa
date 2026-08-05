@@ -354,7 +354,7 @@ describe('AppointmentsService', () => {
           visaCase: {
             select: {
               id: true, caseNumber: true, visaCountry: true, visaType: true, currentStatus: true,
-              client: { select: { id: true, fullName: true, phoneNumber: true, email: true, passportNumber: true, nationality: true } },
+              client: { select: { id: true, fullName: true, phoneNumber: true, email: true, passportNumber: true } },
             },
           },
           user: { select: { id: true, firstName: true, lastName: true } },

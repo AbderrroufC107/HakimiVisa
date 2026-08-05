@@ -8,7 +8,6 @@ class ClientModel {
   final String? email;
   final String passportNumber;
   final DateTime? passportExpiry;
-  final String? nationality;
   final String? notes;
   final DateTime createdAt;
   final List<VisaCaseModel>? visaCases;
@@ -21,7 +20,6 @@ class ClientModel {
     this.email,
     required this.passportNumber,
     this.passportExpiry,
-    this.nationality,
     this.notes,
     required this.createdAt,
     this.visaCases,
@@ -38,7 +36,6 @@ class ClientModel {
       passportExpiry: DateTime.tryParse(
         (json['passport_expiry'] ?? json['passportExpiry']) as String? ?? '',
       ),
-      nationality: json['nationality'] as String? ?? '',
       notes: json['notes'] as String?,
       createdAt: DateTime.parse((json['created_at'] ?? json['createdAt']) as String),
       visaCases: ((json['visa_cases'] ?? json['visaCases']) as List<dynamic>?)
@@ -56,7 +53,6 @@ class ClientModel {
       'email': email,
       'passport_number': passportNumber,
       'passport_expiry': passportExpiry?.toIso8601String(),
-      'nationality': nationality,
       'notes': notes,
       'created_at': createdAt.toIso8601String(),
       'visa_cases': visaCases?.map((e) => e.toJson()).toList(),

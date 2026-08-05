@@ -138,7 +138,7 @@ export class PdfService {
   }
 
   private drawClientInfo(doc: PDFKit.PDFDocument, client: {
-    fullName: string; phoneNumber: string; passportNumber: string | null; nationality: string | null;
+    fullName: string; phoneNumber: string; passportNumber: string | null;
   }) {
     const lx = 40;
     const vx = 170;
@@ -152,7 +152,6 @@ export class PdfService {
       ['Nom Complet', client.fullName],
       ['Téléphone', client.phoneNumber],
       ['Passeport', client.passportNumber || '-'],
-      ['Nationalité', client.nationality || '-'],
     ];
 
     for (const [label, value] of rows) {

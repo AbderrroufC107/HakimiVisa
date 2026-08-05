@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hakimi_shared/shared.dart';
-import '../../constants/nationalities.dart';
 import '../../providers/clients_providers.dart';
-import '../../widgets/suggest_field.dart';
 
 /// Edits an existing client. Mirrors [CreateClientScreen] field for field so
 /// anything captured on creation can also be corrected here.
@@ -24,7 +22,6 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
   final _whatsappNumberController = TextEditingController();
   final _emailController = TextEditingController();
   final _passportNumberController = TextEditingController();
-  final _nationalityController = TextEditingController();
   final _notesController = TextEditingController();
   DateTime? _passportExpiry;
   bool _isSaving = false;
@@ -37,7 +34,6 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
     _whatsappNumberController.dispose();
     _emailController.dispose();
     _passportNumberController.dispose();
-    _nationalityController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -50,7 +46,6 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
     _whatsappNumberController.text = client.whatsappNumber ?? '';
     _emailController.text = client.email ?? '';
     _passportNumberController.text = client.passportNumber;
-    _nationalityController.text = client.nationality ?? '';
     _notesController.text = client.notes ?? '';
     _passportExpiry = client.passportExpiry;
   }
@@ -87,7 +82,6 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
           'email': orNull(_emailController),
           'passportNumber': orNull(_passportNumberController),
           'passportExpiry': _passportExpiry?.toIso8601String(),
-          'nationality': orNull(_nationalityController),
           'notes': orNull(_notesController),
         },
       )).future);
@@ -204,13 +198,6 @@ class _EditClientScreenState extends ConsumerState<EditClientScreen> {
                             : null,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  SuggestField(
-                    controller: _nationalityController,
-                    options: kNationalities,
-                    label: 'Nationalité',
-                    icon: Icons.flag,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
