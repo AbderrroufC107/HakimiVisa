@@ -158,7 +158,14 @@ export function Navbar() {
                         >
                           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <span className="block truncate font-medium">{r.label}</span>
+                            <span className="flex items-center gap-1.5 truncate font-medium">
+                              {r.label}
+                              {r.agencyName && (
+                                <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                  {r.agencyName}
+                                </span>
+                              )}
+                            </span>
                             <span className="block truncate text-xs text-muted-foreground">{r.sublabel}</span>
                           </div>
                         </button>
@@ -184,7 +191,14 @@ export function Navbar() {
                         >
                           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <span className="block truncate font-medium">{r.label}</span>
+                            <span className="flex items-center gap-1.5 truncate font-medium">
+                              {r.label}
+                              {r.agencyName && (
+                                <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                  {r.agencyName}
+                                </span>
+                              )}
+                            </span>
                             <span className="block truncate text-xs text-muted-foreground">{r.sublabel}</span>
                           </div>
                         </button>
@@ -210,7 +224,14 @@ export function Navbar() {
                         >
                           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           <div className="min-w-0 flex-1">
-                            <span className="block truncate font-medium">{r.label}</span>
+                            <span className="flex items-center gap-1.5 truncate font-medium">
+                              {r.label}
+                              {r.agencyName && (
+                                <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                  {r.agencyName}
+                                </span>
+                              )}
+                            </span>
                             <span className="block truncate text-xs text-muted-foreground">{r.sublabel}</span>
                           </div>
                         </button>

@@ -100,7 +100,10 @@ export class ClientsService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { visaCases: true } } },
+        include: {
+          _count: { select: { visaCases: true } },
+          creator: { select: { agency: { select: { id: true, name: true } } } },
+        },
       }),
       this.prisma.client.count({ where }),
     ]);

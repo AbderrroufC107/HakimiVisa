@@ -120,6 +120,7 @@ export class VisaCasesService {
         include: {
           client: { select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true } },
           creator: { select: { id: true, firstName: true, lastName: true } },
+          submittedByAgency: { select: { id: true, name: true } },
           appointments: {
             orderBy: { appointmentDate: 'desc' as const },
             take: 1,
@@ -171,6 +172,7 @@ export class VisaCasesService {
       include: {
         client: true,
         creator: { select: { id: true, firstName: true, lastName: true } },
+        submittedByAgency: { select: { id: true, name: true } },
         statusHistories: {
           orderBy: { changedAt: 'desc' },
           include: {

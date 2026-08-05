@@ -64,6 +64,17 @@ export function ClientsPage() {
       accessor: (c) => c.passportExpiry ? new Date(c.passportExpiry).toLocaleDateString() : '—',
     },
     {
+      header: t('nav:agencies'),
+      accessor: (c) =>
+        c.creator?.agency?.name ? (
+          <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[11px] font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+            {c.creator.agency.name}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
       header: t('clients:visaCases'),
       accessor: (c) => (
         <Badge className="bg-primary/10 text-primary">

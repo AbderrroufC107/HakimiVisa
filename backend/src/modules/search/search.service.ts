@@ -21,6 +21,8 @@ export class SearchService {
         fullName: true,
         phoneNumber: true,
         passportNumber: true,
+        // A client entered by an agency's staff belongs to that agency.
+        creator: { select: { agency: { select: { id: true, name: true } } } },
       },
     });
 
@@ -36,6 +38,7 @@ export class SearchService {
       take: 5,
       include: {
         client: { select: { fullName: true } },
+        submittedByAgency: { select: { id: true, name: true } },
       },
     });
 
@@ -57,19 +60,27 @@ export class SearchService {
     });
 
     return {
-      clients: clients.map((c: { id: string; fullName: string; phoneNumber: string; passportNumber: string | null }) => ({
+      clients: clients.map((c: {
+        id: string; fullName: string; phoneNumber: string; passportNumber: string | null;
+        creator?: { agency?: { id: string; name: string } | null } | null;
+      }) => ({
         id: c.id,
         label: c.fullName,
         sublabel: c.phoneNumber,
         href: `/clients/${c.id}`,
         type: 'client' as const,
+        agencyName: c.creator?.agency?.name ?? null,
       })),
-      visaCases: visaCases.map((vc: { id: string; caseNumber: string; visaCountry: string; client: { fullName: string } }) => ({
+      visaCases: visaCases.map((vc: {
+        id: string; caseNumber: string; visaCountry: string; client: { fullName: string };
+        submittedByAgency?: { id: string; name: string } | null;
+      }) => ({
         id: vc.id,
         label: vc.caseNumber,
         sublabel: `${vc.client.fullName} - ${vc.visaCountry}`,
         href: `/visa-cases/${vc.id}`,
         type: 'visa-case' as const,
+        agencyName: vc.submittedByAgency?.name ?? null,
       })),
       appointments: appointments.map((a: { id: string; appointmentCenter: string; appointmentDate: Date; visaCaseId: string; visaCase: { caseNumber: string; client: { fullName: string } } }) => ({
         id: a.id,

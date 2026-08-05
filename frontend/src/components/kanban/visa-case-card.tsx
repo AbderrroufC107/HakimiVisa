@@ -4,7 +4,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, Loader2, IdCard, Phone, Globe2 } from 'lucide-react';
+import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, Loader2, IdCard, Phone, Globe2, Building2 } from 'lucide-react';
 import { templatesService } from '@/services';
 import { AppointmentPicker } from './appointment-picker';
 import { STATUS_PIPELINE } from '@/constants';
@@ -203,6 +203,16 @@ export const VisaCaseCard = memo(function VisaCaseCard({
             <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground/70">
               {card.caseNumber}
             </p>
+            {/* Whose desk this came from matters at a glance once partners file. */}
+            {card.submittedByAgency && (
+              <span
+                className="mt-1 inline-flex max-w-full items-center gap-1 truncate rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/25"
+                title={card.submittedByAgency.name}
+              >
+                <Building2 className="h-3 w-3 shrink-0" />
+                <span className="truncate">{card.submittedByAgency.name}</span>
+              </span>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-0.5">

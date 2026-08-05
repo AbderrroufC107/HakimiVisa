@@ -13,6 +13,16 @@ export interface Client {
   notes: string | null;
   createdBy: string;
   createdAt: string;
+  /**
+   * The list carries only the agency (to mark partner clients); the profile
+   * endpoint returns the full user, so both shapes have to fit.
+   */
+  creator?: {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    agency?: { id: string; name: string } | null;
+  } | null;
   updatedAt: string;
   _count?: { visaCases: number };
   visaCases?: VisaCase[];

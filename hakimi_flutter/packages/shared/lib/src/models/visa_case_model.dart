@@ -21,6 +21,9 @@ class VisaCaseModel {
   final double? price;
   final bool isPaid;
 
+  /// Name of the partner agency that filed this case; null when the desk did.
+  final String? submittedByAgencyName;
+
   const VisaCaseModel({
     this.id,
     required this.caseNumber,
@@ -37,6 +40,7 @@ class VisaCaseModel {
     this.statusHistories,
     this.appointments,
     this.visaDetails,
+    this.submittedByAgencyName,
     this.price,
     this.isPaid = false,
   });
@@ -71,6 +75,8 @@ class VisaCaseModel {
           ? (json['price'] as num).toDouble()
           : null,
       isPaid: json['isPaid'] as bool? ?? false,
+      submittedByAgencyName:
+          (json['submittedByAgency'] as Map<String, dynamic>?)?['name'] as String?,
     );
   }
 
@@ -93,6 +99,8 @@ class VisaCaseModel {
       'visaDetails': visaDetails?.toJson(),
       'price': price,
       'isPaid': isPaid,
+      'submittedByAgency':
+          submittedByAgencyName == null ? null : {'name': submittedByAgencyName},
     };
   }
 }

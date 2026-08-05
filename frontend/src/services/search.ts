@@ -6,6 +6,8 @@ export interface SearchResult {
   sublabel: string;
   href: string;
   type: 'client' | 'visa-case' | 'appointment';
+  /** Name of the partner agency behind this record, when there is one. */
+  agencyName?: string | null;
 }
 
 export interface SearchResults {

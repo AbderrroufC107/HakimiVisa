@@ -116,6 +116,32 @@ class _VisaCasesListScreenState extends ConsumerState<VisaCasesListScreen> {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                // Tells the desk at a glance whose client this is.
+                if (vc.submittedByAgencyName != null) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.indigo.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.apartment, size: 11, color: Colors.indigo),
+                        const SizedBox(width: 4),
+                        Text(
+                          vc.submittedByAgencyName!,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.indigo.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

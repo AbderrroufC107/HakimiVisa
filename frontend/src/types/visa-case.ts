@@ -20,6 +20,8 @@ export interface VisaCase {
     passportExpiry?: string | null;
   };
   creator?: { id: string; firstName: string; lastName: string };
+  /** Set when a partner agency filed this case rather than the desk. */
+  submittedByAgency?: { id: string; name: string } | null;
   visaCountry: string;
   visaType: string;
   currentStatus: VisaStatus;

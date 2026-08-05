@@ -110,6 +110,24 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
           Text('Créé le: ${vc.createdAt?.formatDate() ?? ''}',
               style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant)),
+          if (vc.submittedByAgencyName != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.apartment, size: 14, color: Colors.indigo),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Déposé par ${vc.submittedByAgencyName}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.indigo.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
