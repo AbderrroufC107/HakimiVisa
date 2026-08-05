@@ -7,12 +7,18 @@ import type { LoginRequest } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 export function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.KANBAN} replace />;
+    // The board is desk work; an agency starts on the cases it filed.
+    return (
+      <Navigate
+        to={user?.role === 'AGENCY' ? ROUTES.VISA_CASES : ROUTES.KANBAN}
+        replace
+      />
+    );
   }
 
   const handleSubmit = async (data: LoginRequest) => {

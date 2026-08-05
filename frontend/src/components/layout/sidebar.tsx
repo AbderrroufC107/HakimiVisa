@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ROUTES } from '@/constants';
+import { useAuth } from '@/providers/auth-provider';
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +23,8 @@ import {
   CheckCircle,
   MessageSquareText,
   type LucideIcon,
+  Building2,
+  ListChecks,
 } from 'lucide-react';
 
 interface NavItem {
@@ -37,26 +40,39 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  // A partner agency deposits and follows; showing it the desk's tools would
+  // only offer doors the API refuses to open.
+  const isAgency = user?.role === 'AGENCY';
 
-  const mainNavItems: NavItem[] = [
-    { label: t('nav:dashboard'), href: ROUTES.DASHBOARD, icon: LayoutDashboard },
-    { label: t('nav:clients'), href: ROUTES.CLIENTS, icon: Users },
-    { label: t('nav:visaCases'), href: ROUTES.VISA_CASES, icon: FileText },
-    { label: t('nav:visaDecisions'), href: ROUTES.VISA_DECISIONS, icon: CheckCircle },
-    { label: t('nav:kanbanBoard'), href: ROUTES.KANBAN, icon: KanbanSquare },
-    { label: t('nav:appointments'), href: ROUTES.APPOINTMENTS, icon: Calendar },
-  ];
+  const mainNavItems: NavItem[] = isAgency
+    ? [
+        { label: t('nav:clients'), href: ROUTES.CLIENTS, icon: Users },
+        { label: t('nav:visaCases'), href: ROUTES.VISA_CASES, icon: FileText },
+      ]
+    : [
+        { label: t('nav:dashboard'), href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+        { label: t('nav:clients'), href: ROUTES.CLIENTS, icon: Users },
+        { label: t('nav:visaCases'), href: ROUTES.VISA_CASES, icon: FileText },
+        { label: t('nav:visaDecisions'), href: ROUTES.VISA_DECISIONS, icon: CheckCircle },
+        { label: t('nav:kanbanBoard'), href: ROUTES.KANBAN, icon: KanbanSquare },
+        { label: t('nav:appointments'), href: ROUTES.APPOINTMENTS, icon: Calendar },
+      ];
 
-  const secondaryNavItems: NavItem[] = [
-    { label: t('nav:templates'), href: ROUTES.TEMPLATES, icon: MessageSquareText },
-    { label: t('nav:notifications'), href: ROUTES.NOTIFICATIONS, icon: Bell },
-    { label: t('nav:auditLogs'), href: ROUTES.AUDIT_LOGS, icon: ScrollText },
-    { label: t('nav:pdfPrinting'), href: ROUTES.PDF, icon: FileDown },
-    { label: t('nav:managers'), href: ROUTES.USERS, icon: Users },
-    { label: t('nav:backupCenter'), href: ROUTES.BACKUP_CENTER, icon: Database },
-    { label: t('nav:systemHealth'), href: ROUTES.SYSTEM_HEALTH, icon: Activity },
-    { label: t('nav:systemLogs'), href: ROUTES.SYSTEM_LOGS, icon: FileWarning },
-  ];
+  const secondaryNavItems: NavItem[] = isAgency
+    ? []
+    : [
+        { label: t('nav:templates'), href: ROUTES.TEMPLATES, icon: MessageSquareText },
+        { label: t('nav:agencies'), href: ROUTES.AGENCIES, icon: Building2 },
+        { label: t('nav:requiredDocuments'), href: ROUTES.REQUIRED_DOCUMENTS, icon: ListChecks },
+        { label: t('nav:notifications'), href: ROUTES.NOTIFICATIONS, icon: Bell },
+        { label: t('nav:auditLogs'), href: ROUTES.AUDIT_LOGS, icon: ScrollText },
+        { label: t('nav:pdfPrinting'), href: ROUTES.PDF, icon: FileDown },
+        { label: t('nav:managers'), href: ROUTES.USERS, icon: Users },
+        { label: t('nav:backupCenter'), href: ROUTES.BACKUP_CENTER, icon: Database },
+        { label: t('nav:systemHealth'), href: ROUTES.SYSTEM_HEALTH, icon: Activity },
+        { label: t('nav:systemLogs'), href: ROUTES.SYSTEM_LOGS, icon: FileWarning },
+      ];
 
   return (
     <aside

@@ -11,6 +11,8 @@ export const ROUTES = {
   KANBAN: '/kanban',
   APPOINTMENTS: '/appointments',
   TEMPLATES: '/templates',
+  AGENCIES: '/agencies',
+  REQUIRED_DOCUMENTS: '/required-documents',
   NOTIFICATIONS: '/notifications',
   AUDIT_LOGS: '/audit-logs',
   PDF: '/pdf',

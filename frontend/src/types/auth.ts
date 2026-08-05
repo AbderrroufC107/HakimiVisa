@@ -36,4 +36,4 @@ export interface LoginResponse {
   refreshToken: string;
 }
 
-export type UserRole = 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'AGENT' | 'VIEWER' | 'AGENCY';

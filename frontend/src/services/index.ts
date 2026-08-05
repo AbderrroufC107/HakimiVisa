@@ -14,3 +14,4 @@ export { refDataService } from './ref-data';
 export { templatesService } from './templates';
 export { filesService, visaCaseFilesService } from './client-files';
 export type { ClientFile, StorageUsage } from './client-files';
+export { agenciesService, requiredDocumentsService } from './agencies';

@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { QueryProvider } from '@/providers/query-provider';
-import { AuthProvider, WebSocketProvider } from '@/providers';
+import { AuthProvider, WebSocketProvider, useAuth } from '@/providers';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { Toaster } from 'sonner';
 import { DashboardLayout, ProtectedRoute, ScrollToTop, ErrorBoundary } from '@/components/layout';
@@ -20,6 +20,14 @@ const VisaDecisionsPage = lazy(() => import('./pages/visa-cases/visa-decisions-p
 const KanbanPage = lazy(() => import('./pages/kanban-page').then((m) => ({ default: m.KanbanPage })));
 const AppointmentsPage = lazy(() => import('./pages/appointments/appointments-page').then((m) => ({ default: m.AppointmentsPage })));
 const TemplatesPage = lazy(() => import('./pages/templates/templates-page').then((m) => ({ default: m.TemplatesPage })));
+/** The board is desk work, so an agency lands on the cases it filed. */
+function HomeRedirect() {
+  const { user } = useAuth();
+  return <Navigate to={user?.role === 'AGENCY' ? ROUTES.VISA_CASES : ROUTES.KANBAN} replace />;
+}
+
+const AgenciesPage = lazy(() => import('./pages/agencies/agencies-page').then((m) => ({ default: m.AgenciesPage })));
+const RequiredDocumentsPage = lazy(() => import('./pages/agencies/required-documents-page').then((m) => ({ default: m.RequiredDocumentsPage })));
 const TrackingPage = lazy(() => import('./pages/tracking-page').then((m) => ({ default: m.TrackingPage })));
 const NotificationsPage = lazy(() => import('./pages/notifications/notifications-page').then((m) => ({ default: m.NotificationsPage })));
 const BackupCenterPage = lazy(() => import('./pages/backup/backup-center-page').then((m) => ({ default: m.BackupCenterPage })));
@@ -66,6 +74,8 @@ export function App() {
                       <Route path={ROUTES.KANBAN} element={<KanbanPage />} />
                       <Route path={ROUTES.APPOINTMENTS} element={<AppointmentsPage />} />
                       <Route path={ROUTES.TEMPLATES} element={<TemplatesPage />} />
+                      <Route path={ROUTES.AGENCIES} element={<AgenciesPage />} />
+                      <Route path={ROUTES.REQUIRED_DOCUMENTS} element={<RequiredDocumentsPage />} />
                       <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
                       <Route path={ROUTES.BACKUP_CENTER} element={<BackupCenterPage />} />
                       <Route path={ROUTES.SYSTEM_HEALTH} element={<SystemHealthPage />} />
@@ -74,7 +84,7 @@ export function App() {
                       <Route path={ROUTES.PDF} element={<PdfPrintingPage />} />
                       <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
                       <Route path={ROUTES.USERS} element={<ManagersPage />} />
-                      <Route path="/" element={<Navigate to={ROUTES.KANBAN} replace />} />
+                      <Route path="/" element={<HomeRedirect />} />
                     </Route>
                   </Route>
                   <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />

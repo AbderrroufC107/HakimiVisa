@@ -11,6 +11,7 @@ export * from './visa-details';
 export * from './tracking';
 export * from './template';
 export * from './notification';
+export * from './agency';
 
 export type Nullable<T> = T | null;
 export type Optional<T> = T | undefined;

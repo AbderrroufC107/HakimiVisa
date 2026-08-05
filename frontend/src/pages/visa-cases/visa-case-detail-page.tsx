@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCircle, Mail, IdCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { CaseFilesPanel } from '@/components/visa-cases/case-files-panel';
+import { RequiredDocumentsChecklist } from '@/components/visa-cases/required-documents-checklist';
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
 import { visaCasesService, pdfService, visaDetailsService, appointmentsService, templatesService } from '@/services';
@@ -23,11 +24,16 @@ import {
 } from '@/components/ui/dialog';
 import { VISA_STATUS_COLORS, type VisaStatus, type EntryType, type ApiError } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/providers';
 
 const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  // An agency deposits and follows; the pipeline belongs to the desk, so the
+  // controls that would only earn a 403 are not shown at all.
+  const canDecide = user?.role !== 'AGENCY';
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -210,6 +216,7 @@ export function VisaCaseDetailPage() {
         </div>
       </div>
 
+      {canDecide && (
       <div className="flex items-center gap-4 rounded-lg border p-4">
         <div className="flex-1">
           <p className="text-sm text-muted-foreground">{t('common:status')}</p>
@@ -237,11 +244,19 @@ export function VisaCaseDetailPage() {
           </Button>
         )}
       </div>
+      )}
 
       {/* Documents sit beside the completeness call: the desk decides after
           looking at what has actually been supplied. */}
       <div className="grid gap-6 md:grid-cols-2">
-        <CaseFilesPanel visaCaseId={id!} />
+        <div className="space-y-6">
+          <CaseFilesPanel visaCaseId={id!} />
+          <RequiredDocumentsChecklist
+            visaCaseId={id!}
+            country={visaCase.visaCountry}
+            visaType={visaCase.visaType}
+          />
+        </div>
 
         <Card>
           <CardHeader className="pb-3">
@@ -263,7 +278,7 @@ export function VisaCaseDetailPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className={canDecide ? 'flex flex-wrap gap-2' : 'hidden'}>
                   <Button
                     size="sm"
                     onClick={() => statusMutation.mutate({ status: 'EN_ATTENTE' })}
@@ -287,6 +302,7 @@ export function VisaCaseDetailPage() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">{t('visaCases:completeHint')}</p>
+                {canDecide && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -297,6 +313,7 @@ export function VisaCaseDetailPage() {
                   <AlertTriangle className="mr-1 h-4 w-4 text-amber-500" />
                   {t('visaCases:markIncomplete')}
                 </Button>
+                )}
               </>
             )}
           </CardContent>

@@ -22,6 +22,7 @@ const NAMESPACES = [
   'settings', 'validation', 'table', 'dialog', 'status',
   'statusTabs', 'label', 'templates', 'roles',
   'appointmentType', 'entryType', 'trackingStep', 'caseTimeline',
+  'agencies', 'requiredDocs',
 ] as const;
 
 function buildResources(lang: Record<string, unknown>) {
