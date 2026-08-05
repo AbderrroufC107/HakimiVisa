@@ -32,9 +32,11 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
   void _onIdentityChanged(String _) {
     final name = _fullNameController.text.trim();
     final phone = _phoneNumberController.text.trim();
-    final probe = phone.length >= 4 ? phone : (name.length >= 3 ? name : '');
+    // From the very first letter: the point is to catch the duplicate before
+    // the agent has typed the whole name, not after.
+    final probe = phone.length >= 3 ? phone : (name.isNotEmpty ? name : '');
     _duplicateDebounce?.cancel();
-    _duplicateDebounce = Timer(const Duration(milliseconds: 400), () {
+    _duplicateDebounce = Timer(const Duration(milliseconds: 180), () {
       if (mounted && probe != _duplicateQuery) {
         setState(() => _duplicateQuery = probe);
       }
@@ -229,8 +231,9 @@ class _CreateClientScreenState extends ConsumerState<CreateClientScreen> {
   }
 }
 
-/// Shows clients already on file that match what is being typed, so a client
-/// the agency forgot about is reused instead of duplicated.
+/// Live lookup while the agent types: existing clients appear as a list to
+/// tap, and an explicit "nouveau" line confirms the name is genuinely new
+/// rather than leaving silence to be read either way.
 class _DuplicateHint extends ConsumerWidget {
   final String query;
 
@@ -240,53 +243,127 @@ class _DuplicateHint extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (query.isEmpty) return const SizedBox.shrink();
 
-    final matches = ref.watch(clientsProvider(query)).valueOrNull ?? const [];
-    if (matches.isEmpty) return const SizedBox.shrink();
-
     final theme = Theme.of(context);
+    final async = ref.watch(clientsProvider(query));
+    final matches = async.valueOrNull;
+
+    // Keep the previous list on screen while the next one loads so the panel
+    // does not flicker on every keystroke.
+    if (matches == null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(
+              height: 14,
+              width: 14,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 10),
+            Text('Recherche...', style: theme.textTheme.bodySmall),
+          ],
+        ),
+      );
+    }
+
+    if (matches.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.10),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.person_add_alt_1, size: 18, color: Colors.green),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Nouveau client — aucun dossier existant',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.green.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.12),
+        color: Colors.amber.withValues(alpha: 0.10),
         border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.info_outline, size: 18, color: Colors.orange),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Client déjà existant ?',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 18, color: Colors.orange),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${matches.length} client(s) déjà au fichier',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          for (final c in matches.take(4))
+          for (final c in matches.take(5))
             InkWell(
               onTap: () => context.push('/clients/${c.id}'),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
-                    Expanded(
+                    CircleAvatar(
+                      radius: 13,
+                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                       child: Text(
-                        '${c.fullName} · ${c.phoneNumber}',
-                        style: theme.textTheme.bodySmall,
+                        c.fullName.isNotEmpty ? c.fullName[0].toUpperCase() : '?',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right, size: 16),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            c.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          Text(c.phoneNumber, style: theme.textTheme.bodySmall),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 18),
                   ],
                 ),
               ),
             ),
+          const SizedBox(height: 6),
         ],
       ),
     );
