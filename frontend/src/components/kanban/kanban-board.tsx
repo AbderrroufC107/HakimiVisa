@@ -36,7 +36,7 @@ export function KanbanBoard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="flex h-full gap-4 overflow-x-auto pb-4">
+      <div className="scrollbar-thin flex h-full gap-4 overflow-x-auto pb-3">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}

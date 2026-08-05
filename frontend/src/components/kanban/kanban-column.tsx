@@ -38,7 +38,7 @@ export const KanbanColumn = memo(function KanbanColumn({
     <div
       data-testid={`kanban-column-${column.id}`}
       className={cn(
-        'flex w-[19rem] shrink-0 flex-col rounded-xl border border-border bg-muted/30 transition-colors',
+        'flex w-[17rem] shrink-0 flex-col rounded-xl border border-border bg-muted/30 transition-colors',
         isOver && 'border-primary/50 bg-primary/5 ring-2 ring-primary/30',
       )}
     >
