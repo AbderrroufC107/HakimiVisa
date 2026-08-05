@@ -725,6 +725,11 @@ export const en = {
     print: 'Print',
   },
   templates: {
+    group_client: 'Client',
+    group_case: 'Case',
+    group_appointment: 'Appointment',
+    group_visa: 'Visa',
+    group_agency: 'Agency',
     title: 'Message Templates',
     subtitle: 'Manage WhatsApp and Email templates with automatic variables',
     newTemplate: 'New template',

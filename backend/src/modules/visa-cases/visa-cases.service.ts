@@ -322,9 +322,12 @@ export class VisaCasesService {
     try {
       const visaCase = await this.prisma.visaCase.findUnique({
         where: { id: visaCaseId },
-        include: { client: true },
+        include: { client: true, visaDetails: true },
       });
       if (!visaCase) { this.logger.warn('Visa case not found for auto notification'); return; }
+      // Same variable set as a manual send, so an auto message can quote the
+      // granted visa dates and sign with the agency too.
+      const agency = await this.prisma.agencySettings.findFirst();
       this.logger.log(`Auto notification: case=${visaCase.caseNumber}, client=${visaCase.client.fullName}`);
 
       const context = { country: visaCase.visaCountry, visaType: visaCase.visaType };
@@ -337,7 +340,7 @@ export class VisaCasesService {
       }
       this.logger.log(`WA template: ${waTemplate ? waTemplate.name : 'none'}`);
       if (waTemplate) {
-        const variables = this.templates.buildVariables(visaCase as never);
+        const variables = this.templates.buildVariables(visaCase as never, null, agency);
         const body = this.templates.renderText(waTemplate.body, variables);
         const rawPhone = visaCase.client.whatsappNumber || visaCase.client.phoneNumber;
         if (rawPhone) {

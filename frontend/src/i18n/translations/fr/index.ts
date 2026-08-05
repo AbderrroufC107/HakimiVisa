@@ -727,6 +727,11 @@ export const fr = {
     print: 'Imprimer',
   },
   templates: {
+    group_client: 'Client',
+    group_case: 'Dossier',
+    group_appointment: 'Rendez-vous',
+    group_visa: 'Visa',
+    group_agency: 'Agence',
     title: 'Modèles de messages',
     subtitle: 'Gérez les modèles WhatsApp et Email avec variables automatiques',
     newTemplate: 'Nouveau modèle',

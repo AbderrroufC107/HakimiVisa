@@ -56,7 +56,9 @@ export class MessagesService {
     const rawPhone =
       rendered.client.whatsappNumber || rendered.client.phoneNumber;
     if (!rawPhone) {
-      throw new BadRequestException('Client has no phone number');
+      throw new BadRequestException(
+        "Ce client n'a pas de numéro de téléphone. Ajoutez-le sur sa fiche avant d'envoyer un WhatsApp.",
+      );
     }
 
     const digits = this.toInternationalDigits(rawPhone);
@@ -73,7 +75,7 @@ export class MessagesService {
 
     if (!host || !user || !pass) {
       throw new ServiceUnavailableException(
-        'SMTP is not configured on the server (SMTP_HOST/SMTP_USER/SMTP_PASS)',
+        "L'envoi d'emails n'est pas configuré sur le serveur. Contactez l'administrateur, ou utilisez WhatsApp en attendant.",
       );
     }
 
@@ -84,7 +86,9 @@ export class MessagesService {
 
     const to = dto.to || rendered.client.email;
     if (!to) {
-      throw new BadRequestException('Client has no email address');
+      throw new BadRequestException(
+        "Ce client n'a pas d'adresse email. Ajoutez-la sur sa fiche, ou contactez-le par WhatsApp.",
+      );
     }
 
     const port = Number(this.config.get<string>('SMTP_PORT') ?? 587);
@@ -106,7 +110,9 @@ export class MessagesService {
       });
     } catch (error) {
       this.logger.error(`Failed to send email to ${to}`, error as Error);
-      throw new ServiceUnavailableException('Failed to send email');
+      throw new ServiceUnavailableException(
+        "L'email n'a pas pu être envoyé. Vérifiez l'adresse du client puis réessayez.",
+      );
     }
 
     return { sent: true, to, subject: rendered.subject, body: rendered.body };

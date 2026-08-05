@@ -25,7 +25,7 @@ import {
 import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
 import { Plus, Pencil, Trash2, MessageCircle, Mail, Loader2, FileText } from 'lucide-react';
 import type { MessageTemplate, TemplateChannel, CreateTemplateRequest, AppointmentType, ApiError } from '@/types';
-import { TEMPLATE_VARIABLES } from '@/types';
+import { TEMPLATE_VARIABLE_GROUPS } from '@/types';
 import { EmptyState } from '@/components/shared/empty-state';
 
 const NONE = '__none__';
@@ -288,18 +288,25 @@ export function TemplatesPage() {
               <div className="flex items-center justify-between">
                 <Label>{t('templates:body')} <span className="text-destructive">*</span></Label>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {TEMPLATE_VARIABLES.map((v) => (
-                  <Button
-                    key={v}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-6 px-1.5 text-[10px] font-mono"
-                    onClick={() => insertVariable(v)}
-                  >
-                    {`{{${v}}}`}
-                  </Button>
+              <div className="space-y-1.5 rounded-lg border bg-muted/30 p-2">
+                {TEMPLATE_VARIABLE_GROUPS.map((group) => (
+                  <div key={group.key} className="flex flex-wrap items-center gap-1">
+                    <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t(`templates:group_${group.key}`)}
+                    </span>
+                    {group.variables.map((v) => (
+                      <Button
+                        key={v}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-1.5 text-[10px] font-mono"
+                        onClick={() => insertVariable(v)}
+                      >
+                        {`{{${v}}}`}
+                      </Button>
+                    ))}
+                  </div>
                 ))}
               </div>
               <textarea

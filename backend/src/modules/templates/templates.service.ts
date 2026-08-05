@@ -120,6 +120,13 @@ export class TemplatesService {
         passportNumber?: string | null;
         passportExpiry?: Date | null;
       };
+      visaDetails?: {
+        validFrom: Date;
+        validUntil: Date;
+        durationDays: number;
+        entryType: string;
+        visaNumber: string | null;
+      } | null;
     },
     appointment?: {
       appointmentDate: Date;
@@ -127,7 +134,15 @@ export class TemplatesService {
       appointmentCenter: string;
       appointmentType: string;
     } | null,
+    agency?: {
+      agencyName: string;
+      agencyPhone?: string | null;
+      agencyEmail?: string | null;
+      agencyAddress?: string | null;
+    } | null,
   ): Record<string, string> {
+    const visa = visaCase.visaDetails;
+
     return {
       client_name: visaCase.client.fullName,
       passport: visaCase.client.passportNumber ?? '',
@@ -140,6 +155,17 @@ export class TemplatesService {
       appointment_time: appointment?.appointmentTime ?? '',
       appointment_center: appointment?.appointmentCenter ?? '',
       appointment_type: appointment?.appointmentType ?? '',
+      // Granted-visa details: only filled once the decision is recorded.
+      visa_valid_from: this.formatDate(visa?.validFrom),
+      visa_valid_until: this.formatDate(visa?.validUntil),
+      visa_duration: visa ? String(visa.durationDays) : '',
+      visa_number: visa?.visaNumber ?? '',
+      entry_type: visa?.entryType ?? '',
+      agency_name: agency?.agencyName ?? '',
+      agency_phone: agency?.agencyPhone ?? '',
+      agency_email: agency?.agencyEmail ?? '',
+      agency_address: agency?.agencyAddress ?? '',
+      today: this.formatDate(new Date()),
     };
   }
 
@@ -152,9 +178,12 @@ export class TemplatesService {
   async render(dto: RenderTemplateDto) {
     const visaCase = await this.prisma.visaCase.findUnique({
       where: { id: dto.visaCaseId },
-      include: { client: true },
+      include: { client: true, visaDetails: true },
     });
     if (!visaCase) throw new NotFoundException('Visa case not found');
+
+    // The agency identity lets a template sign itself without hard-coding.
+    const agency = await this.prisma.agencySettings.findFirst();
 
     let appointment: {
       appointmentDate: Date;
@@ -198,22 +227,31 @@ export class TemplatesService {
     }
 
     if (!template) {
-      throw new NotFoundException('No matching template found');
+      throw new NotFoundException(
+        "Aucun modèle de message ne correspond à ce dossier. Créez-en un dans Modèles, ou laissez ses filtres vides pour qu'il serve à tous les dossiers.",
+      );
     }
 
-    // A template that quotes the appointment would otherwise reach the client
-    // as "Date:  a , Centre: " when no appointment exists yet.
-    if (!appointment) {
-      const source = `${template.subject ?? ''} ${template.body}`;
-      const missing = /\{\{\s*appointment_(date|time|center)\s*\}\}/.test(source);
-      if (missing) {
-        throw new BadRequestException(
-          "Ce modèle contient les détails du rendez-vous, mais aucun rendez-vous n'est enregistré pour ce dossier. Ajoutez le rendez-vous avant d'envoyer.",
-        );
-      }
+    // A template that quotes data the case does not have yet would otherwise
+    // reach the client with the blanks left in — "Date:  a , Centre: ".
+    const source = `${template.subject ?? ''} ${template.body}`;
+
+    if (!appointment && /\{\{\s*appointment_(date|time|center)\s*\}\}/.test(source)) {
+      throw new BadRequestException(
+        "Ce modèle contient les détails du rendez-vous, mais aucun rendez-vous n'est enregistré pour ce dossier. Ajoutez le rendez-vous avant d'envoyer.",
+      );
     }
 
-    const variables = this.buildVariables(visaCase, appointment);
+    if (
+      !visaCase.visaDetails &&
+      /\{\{\s*(visa_valid_from|visa_valid_until|visa_duration|visa_number|entry_type)\s*\}\}/.test(source)
+    ) {
+      throw new BadRequestException(
+        "Ce modèle cite les dates du visa, mais aucun visa n'est encore enregistré pour ce dossier. Saisissez les détails du visa avant d'envoyer.",
+      );
+    }
+
+    const variables = this.buildVariables(visaCase, appointment, agency);
 
     return {
       templateId: template.id,

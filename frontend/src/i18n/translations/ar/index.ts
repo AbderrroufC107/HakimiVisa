@@ -723,6 +723,11 @@ export const ar = {
     print: 'طباعة',
   },
   templates: {
+    group_client: 'العميل',
+    group_case: 'الملف',
+    group_appointment: 'الموعد',
+    group_visa: 'التأشيرة',
+    group_agency: 'الوكالة',
     title: 'قوالب الرسائل',
     subtitle: 'إدارة قوالب واتساب والبريد الإلكتروني مع متغيرات تلقائية',
     newTemplate: 'قالب جديد',
