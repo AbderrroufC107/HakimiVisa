@@ -10,7 +10,7 @@ import { Badge } from '@/components/shared/badge';
 import { X, ExternalLink, Clock, User, FileText, Phone, Mail, MessageCircle, Loader2, IdCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppointmentPicker } from './appointment-picker';
-import type { VisaCase, VisaStatus, Client } from '@/types';
+import type { VisaCase, VisaStatus, Client, ApiError } from '@/types';
 
 interface CardDetailsDrawerProps {
   card: VisaCase | null;
@@ -58,8 +58,10 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
       const res = await templatesService.whatsappLink({ visaCaseId: card.id, channel: 'WHATSAPP' });
       window.open(res.url, '_blank');
       toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }
@@ -71,11 +73,13 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
     try {
       const client = fullData?.client as Client | undefined;
       const to = client?.email;
-      if (!to) { toast.error(t('common:error')); setSending(null); return; }
+      if (!to) { toast.error(t('templates:clientNoEmail')); setSending(null); return; }
       const res = await templatesService.sendEmail({ visaCaseId: card.id, channel: 'EMAIL', to });
       if (res.sent) toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }

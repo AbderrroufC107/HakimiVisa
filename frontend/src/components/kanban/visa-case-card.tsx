@@ -8,7 +8,7 @@ import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDolla
 import { templatesService } from '@/services';
 import { AppointmentPicker } from './appointment-picker';
 import { STATUS_PIPELINE } from '@/constants';
-import type { VisaCase, VisaStatus } from '@/types';
+import type { VisaCase, VisaStatus, ApiError } from '@/types';
 
 const COLUMN_FLOW = STATUS_PIPELINE;
 
@@ -137,8 +137,10 @@ export const VisaCaseCard = memo(function VisaCaseCard({
       const res = await templatesService.whatsappLink({ visaCaseId: card.id, channel: 'WHATSAPP' });
       window.open(res.url, '_blank');
       toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }
@@ -151,11 +153,13 @@ export const VisaCaseCard = memo(function VisaCaseCard({
     try {
       const client = card.client as { id: string; fullName: string; phoneNumber: string; email?: string | null; passportNumber?: string | null; passportExpiry?: string | null } | undefined;
       const to = client?.email;
-      if (!to) { toast.error(t('common:error')); setSending(null); return; }
+      if (!to) { toast.error(t('templates:clientNoEmail')); setSending(null); return; }
       await templatesService.sendEmail({ visaCaseId: card.id, channel: 'EMAIL', to });
       toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }

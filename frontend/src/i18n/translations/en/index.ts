@@ -725,6 +725,7 @@ export const en = {
     print: 'Print',
   },
   templates: {
+    clientNoEmail: 'This client has no email address. Add one on their file.',
     group_client: 'Client',
     group_case: 'Case',
     group_appointment: 'Appointment',

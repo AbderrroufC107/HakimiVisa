@@ -727,6 +727,7 @@ export const fr = {
     print: 'Imprimer',
   },
   templates: {
+    clientNoEmail: "Ce client n'a pas d'adresse email. Ajoutez-la sur sa fiche.",
     group_client: 'Client',
     group_case: 'Dossier',
     group_appointment: 'Rendez-vous',

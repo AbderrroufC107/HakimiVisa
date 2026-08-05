@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { VISA_STATUS_COLORS, type VisaStatus, type EntryType } from '@/types';
+import { VISA_STATUS_COLORS, type VisaStatus, type EntryType, type ApiError } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
@@ -40,8 +40,8 @@ export function VisaCaseDetailPage() {
     setPrinting(true);
     try {
       await pdfService.printBordereau(id);
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setPrinting(false);
     }
@@ -114,8 +114,10 @@ export function VisaCaseDetailPage() {
       const res = await templatesService.whatsappLink({ visaCaseId: visaCase.id, channel: 'WHATSAPP' });
       window.open(res.url, '_blank', 'noopener');
       toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }
@@ -126,15 +128,17 @@ export function VisaCaseDetailPage() {
     const client = visaCase.client as { id: string; fullName: string; phoneNumber: string; email?: string | null; passportNumber?: string | null; passportExpiry?: string | null };
     const email = client.email;
     if (!email) {
-      toast.error(t('common:error'));
+      toast.error(t('templates:clientNoEmail'));
       return;
     }
     setSending('email');
     try {
       await templatesService.sendEmail({ visaCaseId: visaCase.id, channel: 'EMAIL', to: email });
       toast.success(t('common:success'));
-    } catch {
-      toast.error(t('common:error'));
+    } catch (error) {
+      // The API explains what is missing (no email, no template...); showing
+      // a generic word instead would hide the one thing the agent needs.
+      toast.error((error as ApiError)?.message || t('common:error'));
     } finally {
       setSending(null);
     }

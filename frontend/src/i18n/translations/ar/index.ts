@@ -723,6 +723,7 @@ export const ar = {
     print: 'طباعة',
   },
   templates: {
+    clientNoEmail: 'هذا العميل بلا بريد إلكتروني. أضفه في بطاقته.',
     group_client: 'العميل',
     group_case: 'الملف',
     group_appointment: 'الموعد',
