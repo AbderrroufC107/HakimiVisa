@@ -8,13 +8,22 @@ final trackedPhoneProvider = StateProvider<String>((ref) => '');
 
 final trackedReferenceProvider = StateProvider<String>((ref) => '');
 
+/// A passport number carries letters or is short; a phone is digits, often
+/// with a leading 0 or +. Guessing right means one request instead of a
+/// failing passport lookup followed by the real one.
+List<String> _lookupOrder(String query) {
+  final digitsOnly = RegExp(r'^[+0-9\s-]+$').hasMatch(query);
+  final looksLikePhone = digitsOnly && query.replaceAll(RegExp(r'[^0-9]'), '').length >= 9;
+  return looksLikePhone ? ['phone', 'passport'] : ['passport', 'phone'];
+}
+
 final trackingSearchProvider = FutureProvider.autoDispose
     .family<TrackingQueryResult, ({String query, String reference})>((ref, params) async {
   final apiClient = ref.read(apiClientProvider);
   final query = params.query.trim();
 
   Object? lastError;
-  for (final key in ['passport', 'phone']) {
+  for (final key in _lookupOrder(query)) {
     try {
       final response = await apiClient.get(
         ApiConstants.publicTracking,
@@ -25,6 +34,9 @@ final trackingSearchProvider = FutureProvider.autoDispose
         fromJsonT: (json) => TrackingQueryResult.fromJson(json),
       );
       if (response.data != null) {
+        // Hold the result so moving to the results screen reuses it instead
+        // of dropping the provider and running the whole search again.
+        ref.keepAlive();
         return response.data!;
       }
     } catch (e) {
