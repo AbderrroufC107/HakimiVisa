@@ -31,6 +31,8 @@ import { VisaExpirationModule } from './modules/visa-expiration/visa-expiration.
 import { ExcelModule } from './modules/excel/excel.module';
 import { FilesModule } from './modules/files/files.module';
 import { TemplatesModule } from './modules/templates/templates.module';
+import { AgenciesModule } from './modules/agencies/agencies.module';
+import { RequiredDocumentsModule } from './modules/required-documents/required-documents.module';
 import { LoggerModule } from './logger/logger.module';
 import configuration from './config/configuration';
 
@@ -65,6 +67,8 @@ import configuration from './config/configuration';
     ExcelModule,
     FilesModule,
     TemplatesModule,
+    AgenciesModule,
+    RequiredDocumentsModule,
     SearchModule,
     AuditLogsModule,
     PdfModule,

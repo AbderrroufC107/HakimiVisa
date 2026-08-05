@@ -71,11 +71,15 @@ export class ClientsService {
     return client;
   }
 
-  async findAll(query: QueryClientDto) {
+  async findAll(query: QueryClientDto, agencyId?: string | null) {
     const { search, dateFrom, dateTo, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
+    // An agency user only ever sees clients its own staff entered.
+    if (agencyId) {
+      where.creator = { agencyId };
+    }
     if (search) {
       where.OR = [
         { fullName: { contains: search } },

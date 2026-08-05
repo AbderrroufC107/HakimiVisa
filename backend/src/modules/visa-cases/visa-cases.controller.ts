@@ -27,13 +27,20 @@ export class VisaCasesController {
   constructor(private visaCasesService: VisaCasesService) {}
 
   @Post()
-  create(@Body() dto: CreateVisaCaseDto, @CurrentUser('id') userId: string) {
-    return this.visaCasesService.create(dto, userId);
+  create(
+    @Body() dto: CreateVisaCaseDto,
+    @CurrentUser('id') userId: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.visaCasesService.create(dto, userId, agencyId);
   }
 
   @Get()
-  findAll(@Query() query: QueryVisaCaseDto) {
-    return this.visaCasesService.findAll(query);
+  findAll(
+    @Query() query: QueryVisaCaseDto,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.visaCasesService.findAll(query, agencyId);
   }
 
   @Get(':id')

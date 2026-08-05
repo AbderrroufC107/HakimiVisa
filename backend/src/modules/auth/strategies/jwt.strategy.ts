@@ -28,6 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         lastName: true,
         role: true,
         isActive: true,
+        // Scoping needs this on every request: an AGENCY user must only ever
+        // reach its own agency's data.
+        agencyId: true,
       },
     });
 

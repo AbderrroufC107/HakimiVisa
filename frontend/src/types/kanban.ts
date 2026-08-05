@@ -1,7 +1,10 @@
 import type { VisaCase, VisaStatus } from './visa-case';
 
+/** Column ids are statuses plus EN_ATTENTE_AGENCE, a view of EN_ATTENTE. */
+export type KanbanColumnId = VisaStatus | 'EN_ATTENTE_AGENCE';
+
 export interface KanbanColumn {
-  id: VisaStatus;
+  id: KanbanColumnId;
   title: string;
   color: string;
   cards: VisaCase[];

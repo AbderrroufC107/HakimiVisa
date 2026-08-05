@@ -8,7 +8,7 @@ export class KanbanService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getBoard(query: QueryKanbanDto) {
+  async getBoard(query: QueryKanbanDto, agencyId?: string | null) {
     const { search, country, type, dateFrom, dateTo } = query;
 
     const where: Record<string, unknown> = {};
@@ -33,6 +33,11 @@ export class KanbanService {
       ];
     }
 
+    // An agency sees only its own submissions.
+    if (agencyId) {
+      where.submittedByAgencyId = agencyId;
+    }
+
     const cases = await this.prisma.visaCase.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
@@ -51,6 +56,7 @@ export class KanbanService {
         creator: {
           select: { id: true, firstName: true, lastName: true },
         },
+        submittedByAgency: { select: { id: true, name: true } },
         appointments: {
           select: {
             id: true,
@@ -64,9 +70,13 @@ export class KanbanService {
       },
     });
 
+    // "En attente" is split by where the case came from: the desk's own
+    // intake, and what partner agencies have sent in for review. It is the
+    // same status underneath — only the column is separate.
     const grouped: Record<string, typeof cases> = {
       DOSSIER_INCOMPLET: [],
       EN_ATTENTE: [],
+      EN_ATTENTE_AGENCE: [],
       EN_TRAITEMENT: [],
       RDV_OK: [],
       LIVREE: [],
@@ -74,7 +84,9 @@ export class KanbanService {
 
     for (const c of cases) {
       const status = c.currentStatus;
-      if (grouped[status]) {
+      if (status === 'EN_ATTENTE') {
+        grouped[c.submittedByAgencyId ? 'EN_ATTENTE_AGENCE' : 'EN_ATTENTE'].push(c);
+      } else if (grouped[status]) {
         grouped[status].push(c);
       } else {
         grouped.EN_ATTENTE.push(c);
@@ -83,6 +95,7 @@ export class KanbanService {
 
     const columnColors: Record<string, string> = {
       EN_ATTENTE: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      EN_ATTENTE_AGENCE: 'bg-indigo-100 text-indigo-800 border-indigo-300',
       DOSSIER_INCOMPLET: 'bg-amber-100 text-amber-800 border-amber-300',
       EN_TRAITEMENT: 'bg-blue-100 text-blue-800 border-blue-300',
       RDV_OK: 'bg-orange-100 text-orange-800 border-orange-300',
@@ -91,6 +104,7 @@ export class KanbanService {
 
     const columnLabels: Record<string, string> = {
       EN_ATTENTE: 'En Attente',
+      EN_ATTENTE_AGENCE: 'En Attente — Agences',
       DOSSIER_INCOMPLET: 'Dossier Incomplet',
       EN_TRAITEMENT: 'En Traitement',
       RDV_OK: 'RDV OK',

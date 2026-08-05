@@ -12,6 +12,9 @@ enum UserRole {
   MANAGER
   AGENT
   VIEWER
+  // A partner agency: signs in to the same app but only ever sees the
+  // clients and cases it submitted itself.
+  AGENCY
 }
 
 enum VisaStatus {
@@ -71,6 +74,9 @@ model User {
   lastName  String
   role      UserRole @default(AGENT)
   isActive  Boolean  @default(true)
+  // Set for AGENCY users; null for the agency's own staff.
+  agencyId  String?
+  agency    Agency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -163,6 +169,10 @@ model VisaCase {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  // Which partner agency sent this case in; null when the desk created it.
+  submittedByAgencyId String?
+  submittedByAgency   Agency? @relation(fields: [submittedByAgencyId], references: [id], onDelete: SetNull)
+
   statusHistories StatusHistory[]
   appointments    Appointment[]
   documents       Document[]
@@ -173,7 +183,42 @@ model VisaCase {
   @@index([createdBy])
   @@index([currentStatus])
   @@index([archived])
+  @@index([submittedByAgencyId])
   @@map("visa_cases")
+}
+
+model Agency {
+  id           String   @id @default(cuid())
+  name         String
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users     User[]
+  visaCases VisaCase[]
+
+  @@map("agencies")
+}
+
+/// The checklist the desk expects with an application. Leaving country or
+/// visaType null makes an item apply to everything, the same way a message
+/// template with no filters serves every case.
+model RequiredDocument {
+  id        String   @id @default(cuid())
+  label     String
+  country   String?
+  visaType  String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([country])
+  @@index([visaType])
+  @@map("required_documents")
 }
 
 model StatusHistory {

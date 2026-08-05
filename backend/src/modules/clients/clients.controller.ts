@@ -42,8 +42,11 @@ export class ClientsController {
   }
 
   @Get()
-  findAll(@Query() query: QueryClientDto) {
-    return this.clientsService.findAll(query);
+  findAll(
+    @Query() query: QueryClientDto,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.findAll(query, agencyId);
   }
 
   @Get(':id')

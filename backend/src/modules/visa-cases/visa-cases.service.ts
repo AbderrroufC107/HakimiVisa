@@ -35,7 +35,7 @@ export class VisaCasesService {
     private messages: MessagesService,
   ) {}
 
-  async create(dto: CreateVisaCaseDto, userId: string) {
+  async create(dto: CreateVisaCaseDto, userId: string, agencyId?: string | null) {
     const client = await this.prisma.client.findUnique({
       where: { id: dto.clientId },
     });
@@ -52,6 +52,9 @@ export class VisaCasesService {
         visaCountry: dto.visaCountry,
         visaType: dto.visaType,
         currentStatus: dto.currentStatus ?? 'EN_ATTENTE',
+        // Stamped from the token, never from the payload, so an agency cannot
+        // file a case under another's name.
+        submittedByAgencyId: agencyId ?? null,
         notes: dto.notes,
         price: dto.price,
         isPaid: dto.isPaid ?? false,
@@ -78,11 +81,15 @@ export class VisaCasesService {
     return visaCase;
   }
 
-  async findAll(query: QueryVisaCaseDto) {
+  async findAll(query: QueryVisaCaseDto, agencyId?: string | null) {
     const { search, status, clientId, dateFrom, dateTo, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
+    // An agency user only ever sees the cases it submitted.
+    if (agencyId) {
+      where.submittedByAgencyId = agencyId;
+    }
 
     if (status) {
       where.currentStatus = status;

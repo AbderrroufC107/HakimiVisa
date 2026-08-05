@@ -4,12 +4,14 @@ import { toast } from 'sonner';
 import i18next from 'i18next';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { kanbanService, visaCasesService } from '@/services';
-import type { KanbanColumn, KanbanFilters, VisaCase, VisaStatus } from '@/types';
+import type { KanbanColumn, KanbanColumnId, KanbanFilters, VisaCase, VisaStatus } from '@/types';
 export type { KanbanFilters } from '@/types';
 
-const COLUMN_ORDER: VisaStatus[] = [
+/** Board column ids — EN_ATTENTE_AGENCE is a view of EN_ATTENTE, not a status. */
+const COLUMN_ORDER: KanbanColumnId[] = [
   'DOSSIER_INCOMPLET',
   'EN_ATTENTE',
+  'EN_ATTENTE_AGENCE',
   'EN_TRAITEMENT',
   'RDV_OK',
   'LIVREE',
@@ -37,7 +39,7 @@ export function useKanbanBoard() {
 
   const sortedColumns = useMemo(() => {
     const map = new Map(rawColumns.map((c) => [c.id, c]));
-    const fallback = (id: VisaStatus): KanbanColumn => ({
+    const fallback = (id: KanbanColumnId): KanbanColumn => ({
       id,
       title: i18next.t('status:' + id, id.replace(/_/g, ' ')),
       color: '',
@@ -166,7 +168,10 @@ export function useKanbanBoard() {
       const { active, over } = event;
       if (!over) return;
 
-      const newStatus = over.id as VisaStatus;
+      // "En attente — Agences" is a view of EN_ATTENTE, not a status of its
+      // own, so a card dropped there moves to the real status behind it.
+      const dropped = String(over.id);
+      const newStatus = (dropped === 'EN_ATTENTE_AGENCE' ? 'EN_ATTENTE' : dropped) as VisaStatus;
       const fromColumn = sortedColumns.find((col) =>
         col.cards.some((c) => c.id === active.id),
       );
