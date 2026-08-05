@@ -3,11 +3,12 @@ import {
 } from '@nestjs/common';
 import { VisaDetailsService } from './visa-details.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CreateVisaDetailsDto, UpdateVisaDetailsDto } from './dto';
 
 @Controller('visa-cases/:visaCaseId/visa-details')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, DeskOnlyGuard)
 export class VisaDetailsController {
   constructor(private visaDetailsService: VisaDetailsService) {}
 

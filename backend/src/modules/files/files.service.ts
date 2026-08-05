@@ -99,9 +99,10 @@ export class FilesService {
   }
 
   /** Documents attached to one application, newest first. */
-  async getFilesByVisaCase(visaCaseId: string) {
-    const visaCase = await this.prisma.visaCase.findUnique({
-      where: { id: visaCaseId },
+  async getFilesByVisaCase(visaCaseId: string, agencyId?: string | null) {
+    // An agency reaches only the documents of a case it submitted.
+    const visaCase = await this.prisma.visaCase.findFirst({
+      where: { id: visaCaseId, ...(agencyId ? { submittedByAgencyId: agencyId } : {}) },
       select: { id: true },
     });
     if (!visaCase) throw new NotFoundException('Visa case not found');
@@ -121,9 +122,13 @@ export class FilesService {
     });
   }
 
-  async uploadToVisaCase(visaCaseId: string, file: Express.Multer.File) {
-    const visaCase = await this.prisma.visaCase.findUnique({
-      where: { id: visaCaseId },
+  async uploadToVisaCase(
+    visaCaseId: string,
+    file: Express.Multer.File,
+    agencyId?: string | null,
+  ) {
+    const visaCase = await this.prisma.visaCase.findFirst({
+      where: { id: visaCaseId, ...(agencyId ? { submittedByAgencyId: agencyId } : {}) },
       select: { clientId: true },
     });
     if (!visaCase) throw new NotFoundException('Visa case not found');

@@ -13,6 +13,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as fs from 'fs';
 import { FilesService } from './files.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 
 const UPLOAD_LIMITS = {
@@ -47,19 +48,29 @@ export class VisaCaseFilesController {
   async uploadFile(
     @Param('visaCaseId') visaCaseId: string,
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('agencyId') agencyId: string | null,
   ) {
     if (!file) throw new BadRequestException('No file provided');
-    return this.filesService.uploadToVisaCase(visaCaseId, file);
+    return this.filesService.uploadToVisaCase(visaCaseId, file, agencyId);
   }
 
   @Get()
   @ApiOperation({ summary: 'List the documents of a visa case' })
-  async getFiles(@Param('visaCaseId') visaCaseId: string) {
-    return this.filesService.getFilesByVisaCase(visaCaseId);
+  async getFiles(
+    @Param('visaCaseId') visaCaseId: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.filesService.getFilesByVisaCase(visaCaseId, agencyId);
   }
 
   @Get(':fileId/download')
-  async downloadFile(@Param('fileId') fileId: string, @Res() res: Response) {
+  async downloadFile(
+    @Param('fileId') fileId: string,
+    @Param('visaCaseId') visaCaseId: string,
+    @Res() res: Response,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    await this.filesService.getFilesByVisaCase(visaCaseId, agencyId);
     const file = await this.filesService.getFile(fileId);
     if (!fs.existsSync(file.path)) {
       res.status(404).json({ message: 'File not found on disk' });
@@ -73,7 +84,12 @@ export class VisaCaseFilesController {
   }
 
   @Delete(':fileId')
-  async deleteFile(@Param('fileId') fileId: string) {
+  async deleteFile(
+    @Param('fileId') fileId: string,
+    @Param('visaCaseId') visaCaseId: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    await this.filesService.getFilesByVisaCase(visaCaseId, agencyId);
     return this.filesService.deleteFile(fileId);
   }
 }

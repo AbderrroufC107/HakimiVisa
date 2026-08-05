@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { VisaCasesService } from './visa-cases.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
@@ -44,11 +45,15 @@ export class VisaCasesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.visaCasesService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.visaCasesService.findOne(id, agencyId);
   }
 
   @Patch(':id')
+  @UseGuards(DeskOnlyGuard)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateVisaCaseDto,
@@ -58,6 +63,7 @@ export class VisaCasesController {
   }
 
   @Patch(':id/status')
+  @UseGuards(DeskOnlyGuard)
   updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateStatusDto,
@@ -67,7 +73,12 @@ export class VisaCasesController {
   }
 
   @Get(':id/history')
-  getHistory(@Param('id') id: string) {
+  async getHistory(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    // Reading its own case's history is the whole point of the portal.
+    await this.visaCasesService.findOne(id, agencyId);
     return this.visaCasesService.getHistory(id);
   }
 

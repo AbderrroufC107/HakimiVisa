@@ -3,11 +3,12 @@ import {
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { CreateAppointmentDto, UpdateAppointmentDto, QueryAppointmentDto } from './dto';
 
 @Controller('appointments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, DeskOnlyGuard)
 export class AppointmentsController {
   constructor(private appointmentsService: AppointmentsService) {}
 

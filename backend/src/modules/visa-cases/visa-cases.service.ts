@@ -147,7 +147,25 @@ export class VisaCasesService {
     };
   }
 
-  async findOne(id: string) {
+
+  /**
+   * An agency may only ever touch a case it submitted. Guards cover *what*
+   * an agency may do; this covers *which* rows it may do it to.
+   */
+  private async assertAgencyOwns(id: string, agencyId?: string | null) {
+    if (!agencyId) return;
+    const owned = await this.prisma.visaCase.findFirst({
+      where: { id, submittedByAgencyId: agencyId },
+      select: { id: true },
+    });
+    if (!owned) {
+      throw new NotFoundException('Visa case not found');
+    }
+  }
+
+  async findOne(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
+
     const visaCase = await this.prisma.visaCase.findUnique({
       where: { id },
       include: {

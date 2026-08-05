@@ -13,6 +13,7 @@ import { TemplatesService } from './templates.service';
 import { MessagesService } from './messages.service';
 import { CreateTemplateDto, UpdateTemplateDto, RenderTemplateDto } from './dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
 
 @Controller('templates')
 @UseGuards(JwtAuthGuard)
@@ -33,16 +34,19 @@ export class TemplatesController {
   }
 
   @Post()
+  @UseGuards(DeskOnlyGuard)
   create(@Body() dto: CreateTemplateDto) {
     return this.templatesService.create(dto);
   }
 
   @Patch(':id')
+  @UseGuards(DeskOnlyGuard)
   update(@Param('id') id: string, @Body() dto: UpdateTemplateDto) {
     return this.templatesService.update(id, dto);
   }
 
   @Delete(':id')
+  @UseGuards(DeskOnlyGuard)
   remove(@Param('id') id: string) {
     return this.templatesService.remove(id);
   }
@@ -53,11 +57,13 @@ export class TemplatesController {
   }
 
   @Post('whatsapp-link')
+  @UseGuards(DeskOnlyGuard)
   whatsappLink(@Body() dto: RenderTemplateDto) {
     return this.messagesService.buildWhatsappLink(dto);
   }
 
   @Post('send-email')
+  @UseGuards(DeskOnlyGuard)
   sendEmail(@Body() dto: RenderTemplateDto & { to?: string }) {
     return this.messagesService.sendEmail(dto);
   }
