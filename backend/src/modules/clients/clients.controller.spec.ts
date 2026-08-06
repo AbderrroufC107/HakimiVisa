@@ -141,10 +141,10 @@ describe('ClientsController', () => {
     it('should return a client', async () => {
       mockClientsService.findOne.mockResolvedValue(row(mockClient));
 
-      const result = await controller.findOne('client-1');
+      const result = await controller.findOne('client-1', null);
 
       expect(result).toBe(mockClient);
-      expect(mockClientsService.findOne).toHaveBeenCalledWith('client-1');
+      expect(mockClientsService.findOne).toHaveBeenCalledWith('client-1', null);
     });
 
     it('should propagate NotFoundException', async () => {
@@ -152,7 +152,7 @@ describe('ClientsController', () => {
         new NotFoundException('Client not found'),
       );
 
-      await expect(controller.findOne('bad-id')).rejects.toThrow(
+      await expect(controller.findOne('bad-id', null)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -166,10 +166,10 @@ describe('ClientsController', () => {
       };
       mockClientsService.getProfile.mockResolvedValue(profile as any);
 
-      const result = await controller.getProfile('client-1');
+      const result = await controller.getProfile('client-1', null);
 
       expect(result).toBe(profile);
-      expect(mockClientsService.getProfile).toHaveBeenCalledWith('client-1');
+      expect(mockClientsService.getProfile).toHaveBeenCalledWith('client-1', null);
     });
   });
 
@@ -180,10 +180,10 @@ describe('ClientsController', () => {
       ];
       mockClientsService.getTimeline.mockResolvedValue(timeline as any);
 
-      const result = await controller.getTimeline('client-1');
+      const result = await controller.getTimeline('client-1', null);
 
       expect(result).toBe(timeline);
-      expect(mockClientsService.getTimeline).toHaveBeenCalledWith('client-1');
+      expect(mockClientsService.getTimeline).toHaveBeenCalledWith('client-1', null);
     });
   });
 
@@ -204,10 +204,10 @@ describe('ClientsController', () => {
       };
       mockClientsService.getStats.mockResolvedValue(stats);
 
-      const result = await controller.getStats('client-1');
+      const result = await controller.getStats('client-1', null);
 
       expect(result).toBe(stats);
-      expect(mockClientsService.getStats).toHaveBeenCalledWith('client-1');
+      expect(mockClientsService.getStats).toHaveBeenCalledWith('client-1', null);
     });
   });
 
@@ -227,10 +227,10 @@ describe('ClientsController', () => {
       ];
       mockClientsService.getDocuments.mockResolvedValue(docs as any);
 
-      const result = await controller.getDocuments('client-1');
+      const result = await controller.getDocuments('client-1', null);
 
       expect(result).toBe(docs);
-      expect(mockClientsService.getDocuments).toHaveBeenCalledWith('client-1');
+      expect(mockClientsService.getDocuments).toHaveBeenCalledWith('client-1', null);
     });
   });
 
@@ -240,13 +240,14 @@ describe('ClientsController', () => {
       const updated = { ...mockClient, fullName: 'Updated Name' };
       mockClientsService.update.mockResolvedValue(row(updated));
 
-      const result = await controller.update('client-1', dto, mockUserId);
+      const result = await controller.update('client-1', dto, mockUserId, null);
 
       expect(result).toBe(updated);
       expect(mockClientsService.update).toHaveBeenCalledWith(
         'client-1',
         dto,
         mockUserId,
+        null,
       );
     });
 
@@ -256,7 +257,7 @@ describe('ClientsController', () => {
       );
 
       await expect(
-        controller.update('bad-id', { fullName: 'X' }, mockUserId),
+        controller.update('bad-id', { fullName: 'X' }, mockUserId, null),
       ).rejects.toThrow(NotFoundException);
     });
   });

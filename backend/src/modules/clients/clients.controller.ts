@@ -50,28 +50,43 @@ export class ClientsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.clientsService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.findOne(id, agencyId);
   }
 
   @Get(':id/profile')
-  getProfile(@Param('id') id: string) {
-    return this.clientsService.getProfile(id);
+  getProfile(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.getProfile(id, agencyId);
   }
 
   @Get(':id/timeline')
-  getTimeline(@Param('id') id: string) {
-    return this.clientsService.getTimeline(id);
+  getTimeline(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.getTimeline(id, agencyId);
   }
 
   @Get(':id/stats')
-  getStats(@Param('id') id: string) {
-    return this.clientsService.getStats(id);
+  getStats(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.getStats(id, agencyId);
   }
 
   @Get(':id/documents')
-  getDocuments(@Param('id') id: string) {
-    return this.clientsService.getDocuments(id);
+  getDocuments(
+    @Param('id') id: string,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.getDocuments(id, agencyId);
   }
 
   @Patch(':id')
@@ -79,8 +94,9 @@ export class ClientsController {
     @Param('id') id: string,
     @Body() dto: UpdateClientDto,
     @CurrentUser('id') userId: string,
+    @CurrentUser('agencyId') agencyId: string | null,
   ) {
-    return this.clientsService.update(id, dto, userId);
+    return this.clientsService.update(id, dto, userId, agencyId);
   }
 
   @Delete(':id')

@@ -119,7 +119,24 @@ export class ClientsService {
     };
   }
 
-  async findOne(id: string) {
+  /**
+   * Scoping the list is not enough on its own: an agency holding an id from
+   * anywhere else must not be able to open the record either. Answering "not
+   * found" rather than "forbidden" also keeps it from confirming the id exists.
+   */
+  private async assertAgencyOwns(id: string, agencyId?: string | null) {
+    if (!agencyId) return;
+    const owned = await this.prisma.client.findFirst({
+      where: { id, creator: { agencyId } },
+      select: { id: true },
+    });
+    if (!owned) {
+      throw new NotFoundException('Client not found');
+    }
+  }
+
+  async findOne(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const client = await this.prisma.client.findUnique({
       where: { id },
       include: {
@@ -137,7 +154,8 @@ export class ClientsService {
     return client;
   }
 
-  async update(id: string, dto: UpdateClientDto, userId: string) {
+  async update(id: string, dto: UpdateClientDto, userId: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const existing = await this.prisma.client.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Client not found');
@@ -187,7 +205,8 @@ export class ClientsService {
     ]);
   }
 
-  async getProfile(id: string) {
+  async getProfile(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const client = await this.prisma.client.findUnique({
       where: { id },
       include: {
@@ -214,7 +233,8 @@ export class ClientsService {
     return client;
   }
 
-  async getTimeline(id: string) {
+  async getTimeline(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const client = await this.prisma.client.findUnique({
       where: { id },
       select: { id: true, createdAt: true, createdBy: true, fullName: true },
@@ -319,7 +339,8 @@ export class ClientsService {
     return timeline;
   }
 
-  async getStats(id: string) {
+  async getStats(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
     if (!client) throw new NotFoundException('Client not found');
 
@@ -398,7 +419,8 @@ export class ClientsService {
     };
   }
 
-  async getDocuments(id: string) {
+  async getDocuments(id: string, agencyId?: string | null) {
+    await this.assertAgencyOwns(id, agencyId);
     const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
     if (!client) throw new NotFoundException('Client not found');
 
