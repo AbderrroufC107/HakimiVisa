@@ -47,7 +47,12 @@ class _ManagerAppState extends ConsumerState<ManagerApp> with WidgetsBindingObse
           PushNotificationService.instance.setUserId(next.user!.id);
         } else if (next.status == AuthStatus.unauthenticated) {
           router.go('/login');
-          PushNotificationService.instance.unregisterToken();
+          // Only a real sign-out has a token to hand back. A cold start also
+          // lands here, and calling then both 401s and forgets the device's
+          // token — which would leave the next session without notifications.
+          if (prev?.status == AuthStatus.authenticated) {
+            PushNotificationService.instance.unregisterToken();
+          }
         }
       }
     });

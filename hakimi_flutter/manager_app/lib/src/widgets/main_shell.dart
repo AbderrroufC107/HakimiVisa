@@ -163,6 +163,16 @@ class MainShell extends ConsumerWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.folder),
+              title: Text(l10n.visaCases),
+              selected: currentIndex == 2,
+              selectedTileColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.go('/visa-cases');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.dashboard_customize),
               title: Text(l10n.kanban),
               onTap: () {

@@ -19,16 +19,10 @@ class _VisaCasesListScreenState extends ConsumerState<VisaCasesListScreen> {
     final casesAsync = ref.watch(visaCasesProvider(const {}));
     final theme = Theme.of(context);
 
+    // The shell around this tab already carries a title bar and this screen
+    // already carries a "+" button, so adding either here stacks a second copy
+    // of both.
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dossiers Visa'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => context.push('/visa-cases/new'),
-          ),
-        ],
-      ),
       body: Column(
         children: [
           Padding(

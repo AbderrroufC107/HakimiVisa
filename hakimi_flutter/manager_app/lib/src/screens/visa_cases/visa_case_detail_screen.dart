@@ -203,7 +203,7 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
                             style: theme.textTheme.bodyMedium,
                           ),
                           Text(
-                            '${h.changedBy} - ${h.changedAt.formatRelative()}',
+                            '${h.changedByName ?? ''}${h.changedByName == null ? '' : ' - '}${h.changedAt.formatRelative()}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -222,7 +222,9 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
   Widget _buildAppointmentsSection(VisaCaseModel vc, ThemeData theme) {
     return AppCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        // Without this the card shrinks to fit its text when there is no
+        // appointment, and sits narrower than every card around it.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Rendez-vous',
               style: theme.textTheme.titleMedium
