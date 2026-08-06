@@ -4,6 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { VisaCasesController } from './visa-cases.controller';
 import { VisaCasesService } from './visa-cases.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { row } from '../../test-utils/prisma-row';
 
 describe('VisaCasesController', () => {
   let controller: VisaCasesController;
@@ -56,12 +57,12 @@ describe('VisaCasesController', () => {
         visaType: 'B1',
         notes: 'Test note',
       };
-      mockVisaCasesService.create.mockResolvedValue(mockVisaCase);
+      mockVisaCasesService.create.mockResolvedValue(row(mockVisaCase));
 
-      const result = await controller.create(dto, mockUserId);
+      const result = await controller.create(dto, mockUserId, null);
 
       expect(result).toBe(mockVisaCase);
-      expect(mockVisaCasesService.create).toHaveBeenCalledWith(dto, mockUserId);
+      expect(mockVisaCasesService.create).toHaveBeenCalledWith(dto, mockUserId, null);
     });
 
     it('should propagate NotFoundException when client missing', async () => {
@@ -73,6 +74,7 @@ describe('VisaCasesController', () => {
         controller.create(
           { clientId: 'bad-id', visaCountry: 'US', visaType: 'B1' },
           mockUserId,
+          null,
         ),
       ).rejects.toThrow(NotFoundException);
     });
@@ -85,12 +87,12 @@ describe('VisaCasesController', () => {
         data: [mockVisaCase],
         meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
       };
-      mockVisaCasesService.findAll.mockResolvedValue(expected);
+      mockVisaCasesService.findAll.mockResolvedValue(row(expected));
 
-      const result = await controller.findAll(query);
+      const result = await controller.findAll(query, null);
 
       expect(result).toBe(expected);
-      expect(mockVisaCasesService.findAll).toHaveBeenCalledWith(query);
+      expect(mockVisaCasesService.findAll).toHaveBeenCalledWith(query, null);
     });
 
     it('should pass empty query when none provided', async () => {
@@ -100,20 +102,20 @@ describe('VisaCasesController', () => {
         meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
       });
 
-      await controller.findAll(query);
+      await controller.findAll(query, null);
 
-      expect(mockVisaCasesService.findAll).toHaveBeenCalledWith(query);
+      expect(mockVisaCasesService.findAll).toHaveBeenCalledWith(query, null);
     });
   });
 
   describe('GET /visa-cases/:id', () => {
     it('should return a visa case', async () => {
-      mockVisaCasesService.findOne.mockResolvedValue(mockVisaCase);
+      mockVisaCasesService.findOne.mockResolvedValue(row(mockVisaCase));
 
-      const result = await controller.findOne('vc-1');
+      const result = await controller.findOne('vc-1', null);
 
       expect(result).toBe(mockVisaCase);
-      expect(mockVisaCasesService.findOne).toHaveBeenCalledWith('vc-1');
+      expect(mockVisaCasesService.findOne).toHaveBeenCalledWith('vc-1', null);
     });
 
     it('should propagate NotFoundException', async () => {
@@ -121,7 +123,7 @@ describe('VisaCasesController', () => {
         new NotFoundException('Visa case not found'),
       );
 
-      await expect(controller.findOne('bad-id')).rejects.toThrow(
+      await expect(controller.findOne('bad-id', null)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -131,7 +133,7 @@ describe('VisaCasesController', () => {
     it('should update a visa case', async () => {
       const dto = { visaCountry: 'Canada' };
       const updated = { ...mockVisaCase, visaCountry: 'Canada' };
-      mockVisaCasesService.update.mockResolvedValue(updated);
+      mockVisaCasesService.update.mockResolvedValue(row(updated));
 
       const result = await controller.update('vc-1', dto, mockUserId);
 
@@ -158,7 +160,7 @@ describe('VisaCasesController', () => {
     it('should update status', async () => {
       const dto = { status: 'EN_TRAITEMENT' as any };
       const updated = { ...mockVisaCase, currentStatus: 'EN_TRAITEMENT' };
-      mockVisaCasesService.updateStatus.mockResolvedValue(updated);
+      mockVisaCasesService.updateStatus.mockResolvedValue(row(updated));
 
       const result = await controller.updateStatus('vc-1', dto, mockUserId);
 
@@ -203,9 +205,12 @@ describe('VisaCasesController', () => {
       ];
       mockVisaCasesService.getHistory.mockResolvedValue(history as any);
 
-      const result = await controller.getHistory('vc-1');
+      const result = await controller.getHistory('vc-1', null);
 
       expect(result).toBe(history);
+      // The controller checks agency ownership through findOne before reading
+      // the history, so the history lookup itself stays unscoped.
+      expect(mockVisaCasesService.findOne).toHaveBeenCalledWith('vc-1', null);
       expect(mockVisaCasesService.getHistory).toHaveBeenCalledWith('vc-1');
     });
 
@@ -214,7 +219,7 @@ describe('VisaCasesController', () => {
         new NotFoundException('Visa case not found'),
       );
 
-      await expect(controller.getHistory('bad-id')).rejects.toThrow(
+      await expect(controller.getHistory('bad-id', null)).rejects.toThrow(
         NotFoundException,
       );
     });

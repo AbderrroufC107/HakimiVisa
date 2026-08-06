@@ -13,8 +13,11 @@ test.describe('Appointment Workflow', () => {
 test('should render calendar view', async ({ page }) => {
     await navigateToAppointments(page);
 
-    await expect(page.getByTestId('page-heading')).toHaveText('Rendez-vous');
-    await expect(page.locator('.grid').filter({ hasText: 'Lun' }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('page-heading')).toHaveText('Appointments');
+    // The page opens on the month view; assert on the grid itself rather than a
+    // weekday label, which changes with the interface language.
+    await page.getByTestId('calendar-view-month').click();
+    await expect(page.getByTestId('calendar-month-grid')).toBeVisible({ timeout: 10000 });
     // Calendar grid cells should be present
     await expect(page.locator('[class*="min-h-24"]').first()).toBeVisible({ timeout: 5000 });
   });

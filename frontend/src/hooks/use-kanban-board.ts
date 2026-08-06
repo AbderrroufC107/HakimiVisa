@@ -34,7 +34,11 @@ export function useKanbanBoard() {
   const { data: rawColumns = [], isLoading } = useQuery({
     queryKey: ['kanban', 'board'],
     queryFn: () => kanbanService.getBoard(),
-    refetchInterval: 30_000,
+    // Hold the periodic refresh while a card is in hand: re-rendering the
+    // columns underneath a drag drops the card back where it started, which
+    // reads as the board refusing the move.
+    refetchInterval: activeCard ? false : 30_000,
+    refetchOnWindowFocus: !activeCard,
   });
 
   const sortedColumns = useMemo(() => {

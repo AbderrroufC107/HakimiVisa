@@ -575,7 +575,7 @@ export function AppointmentsPage() {
   };
 
   const renderMonthGrid = () => (
-    <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
+    <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden" data-testid="calendar-month-grid">
       {[t('appointments:monday'), t('appointments:tuesday'), t('appointments:wednesday'), t('appointments:thursday'), t('appointments:friday'), t('appointments:saturday'), t('appointments:sunday')].map((d) => (
         <div key={d} className="bg-muted/50 px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">{d}</div>
       ))}
@@ -664,7 +664,7 @@ export function AppointmentsPage() {
             </div>
             <div className="flex items-center gap-1 rounded-lg border p-0.5">
               {(['month', 'week', 'day'] as ViewMode[]).map((mode) => (
-                <Button key={mode} variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setViewMode(mode)}>
+                <Button key={mode} variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" className="h-7 text-xs" data-testid={`calendar-view-${mode}`} onClick={() => setViewMode(mode)}>
                   {mode === 'month' ? t('appointments:month') : mode === 'week' ? t('appointments:week') : t('appointments:day')}
                 </Button>
               ))}

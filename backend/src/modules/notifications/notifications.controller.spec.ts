@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mockDeep } from 'jest-mock-extended';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
@@ -37,7 +38,7 @@ describe('NotificationsController', () => {
         message: 'Test',
         userId: 'user-1',
       };
-      mockService.create.mockResolvedValue(mockNotification);
+      mockService.create.mockResolvedValue(row(mockNotification));
 
       const result = await controller.create(dto);
       expect(result).toBe(mockNotification);
@@ -49,7 +50,7 @@ describe('NotificationsController', () => {
     it('should call service.findByUser with user id and query', async () => {
       const query = { page: 1, limit: 20 };
       const expected = { data: [mockNotification], meta: { total: 1, page: 1, limit: 20, totalPages: 1, unreadCount: 0 } };
-      mockService.findByUser.mockResolvedValue(expected);
+      mockService.findByUser.mockResolvedValue(row(expected));
 
       const result = await controller.findAll(mockUser as any, query);
       expect(result).toBe(expected);

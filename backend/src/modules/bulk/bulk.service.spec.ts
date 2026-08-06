@@ -8,6 +8,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AppGateway } from '../gateway/app.gateway';
 import { PdfService } from '../pdf/pdf.service';
 import { ExcelService } from '../excel/excel.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('BulkService', () => {
   let service: BulkService;
@@ -51,8 +52,8 @@ describe('BulkService', () => {
 
   describe('statusChange', () => {
     it('should process status changes in batches and broadcast', async () => {
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases);
-      mockPrisma.client.findMany.mockResolvedValue(mockClients);
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases));
+      mockPrisma.client.findMany.mockResolvedValue(row(mockClients));
       mockPrisma.$transaction.mockResolvedValue([{ id: 'case-1' }, { id: 'case-1-history' }]);
 
       const result = await service.statusChange(
@@ -74,9 +75,9 @@ describe('BulkService', () => {
 
     it('should skip cases already in the target status', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue([
-        { id: 'case-1', caseNumber: 'VC-001', currentStatus: 'VISA_OK', clientId: 'client-1' },
+        row({ id: 'case-1', caseNumber: 'VC-001', currentStatus: 'VISA_OK', clientId: 'client-1' }),
       ]);
-      mockPrisma.client.findMany.mockResolvedValue(mockClients);
+      mockPrisma.client.findMany.mockResolvedValue(row(mockClients));
 
       const result = await service.statusChange(
         { ids: ['case-1'], status: 'VISA_OK' },
@@ -89,11 +90,11 @@ describe('BulkService', () => {
     });
 
     it('should continue processing on individual errors', async () => {
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases);
-      mockPrisma.client.findMany.mockResolvedValue(mockClients);
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases));
+      mockPrisma.client.findMany.mockResolvedValue(row(mockClients));
       mockPrisma.$transaction.mockResolvedValue([{ id: 'case-1'}]);
       mockNotifications.create
-        .mockResolvedValueOnce(undefined)
+        .mockResolvedValueOnce(row(undefined))
         .mockRejectedValueOnce(new Error('DB error'));
 
       const result = await service.statusChange(
@@ -124,8 +125,8 @@ describe('BulkService', () => {
         id: `client-${i}`,
         fullName: `Client ${i}`,
       }));
-      mockPrisma.visaCase.findMany.mockResolvedValue(manyCases);
-      mockPrisma.client.findMany.mockResolvedValue(manyClients);
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(manyCases));
+      mockPrisma.client.findMany.mockResolvedValue(row(manyClients));
       mockPrisma.$transaction.mockResolvedValue([{ id: 'updated' }, { id: 'history' }]);
 
       const result = await service.statusChange(
@@ -150,8 +151,8 @@ describe('BulkService', () => {
     };
 
     it('should create appointments for all cases', async () => {
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases.map(({ clientId, ...rest }) => rest));
-      mockPrisma.appointment.create.mockResolvedValue({ id: 'apt-1' });
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases.map(({ clientId, ...rest }) => rest)));
+      mockPrisma.appointment.create.mockResolvedValue(row({ id: 'apt-1' }));
 
       const result = await service.createAppointments(dto, 'user-1');
       expect(result.total).toBe(2);
@@ -169,7 +170,7 @@ describe('BulkService', () => {
 
     it('should continue on individual creation errors', async () => {
       const callLog: string[] = [];
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases.map(({ clientId, ...rest }) => rest));
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases.map(({ clientId, ...rest }) => rest)));
       (mockPrisma.appointment.create as jest.Mock)
         .mockImplementationOnce(() => {
           callLog.push('first');
@@ -193,7 +194,7 @@ describe('BulkService', () => {
         set: jest.fn(),
       } as any;
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPdfService.generateBordereauBuffer
         .mockResolvedValueOnce(Buffer.from('pdf1'))
@@ -219,7 +220,7 @@ describe('BulkService', () => {
         set: jest.fn(),
       } as any;
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.slice(0, 1).map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.slice(0, 1).map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPdfService.generateBordereauBuffer.mockRejectedValue(new Error('PDF error'));
 
@@ -238,7 +239,7 @@ describe('BulkService', () => {
     it('should return a workbook buffer', async () => {
       const mockCasesWithClient = mockCases.map((c) => ({
         ...c,
-        client: { fullName: 'John Doe', phoneNumber: '+213600000000', passportNumber: 'AB123', nationality: 'Algerian' },
+        client: { fullName: 'John Doe', phoneNumber: '+213600000000', passportNumber: 'AB123' },
         visaCountry: 'France',
         visaType: 'TOURIST',
         openingDate: new Date('2025-01-01'),
@@ -262,7 +263,7 @@ describe('BulkService', () => {
   describe('archive', () => {
     it('should toggle archive to true', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPrisma.visaCase.update.mockResolvedValue({} as any);
 
@@ -279,7 +280,7 @@ describe('BulkService', () => {
   describe('restore', () => {
     it('should toggle archive to false', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPrisma.visaCase.update.mockResolvedValue({} as any);
 
@@ -296,7 +297,7 @@ describe('BulkService', () => {
   describe('delete', () => {
     it('should delete all cases and broadcast', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPrisma.visaCase.delete.mockResolvedValue({} as any);
 
@@ -316,7 +317,7 @@ describe('BulkService', () => {
 
     it('should continue on individual delete errors', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue(
-        mockCases.map(({ clientId, currentStatus, ...rest }) => rest),
+        row(mockCases.map(({ clientId, currentStatus, ...rest }) => rest)),
       );
       mockPrisma.visaCase.delete
         .mockResolvedValueOnce({} as any)

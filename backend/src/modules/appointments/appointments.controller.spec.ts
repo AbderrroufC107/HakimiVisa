@@ -4,6 +4,8 @@ import { NotFoundException } from '@nestjs/common';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
+import { row } from '../../test-utils/prisma-row';
 
 describe('AppointmentsController', () => {
   let controller: AppointmentsController;
@@ -39,11 +41,12 @@ describe('AppointmentsController', () => {
   });
 
   describe('Guard protection', () => {
-    it('should have @UseGuards(JwtAuthGuard) at class level', () => {
+    it('should require a signed-in desk user at class level', () => {
       const guards = Reflect.getMetadata('__guards__', AppointmentsController);
       expect(guards).toBeDefined();
-      expect(guards.length).toBe(1);
-      expect(guards[0]).toBe(JwtAuthGuard);
+      // Appointments are the desk's own work: partner agencies upload files,
+      // they never book, so DeskOnlyGuard sits behind the auth guard.
+      expect(guards).toEqual([JwtAuthGuard, DeskOnlyGuard]);
     });
   });
 
@@ -57,7 +60,7 @@ describe('AppointmentsController', () => {
         appointmentType: 'VISA_INTERVIEW' as any,
         notes: 'Bring passport',
       };
-      mockAppointmentsService.create.mockResolvedValue(mockAppointment);
+      mockAppointmentsService.create.mockResolvedValue(row(mockAppointment));
 
       const result = await controller.create(dto, mockUserId);
 
@@ -95,7 +98,7 @@ describe('AppointmentsController', () => {
         dateFrom: '2025-06-01',
         dateTo: '2025-06-30',
       };
-      mockAppointmentsService.findAll.mockResolvedValue([mockAppointment]);
+      mockAppointmentsService.findAll.mockResolvedValue([row(mockAppointment)]);
 
       const result = await controller.findAll(query);
 
@@ -115,7 +118,7 @@ describe('AppointmentsController', () => {
 
   describe('GET /appointments/:id', () => {
     it('should return an appointment', async () => {
-      mockAppointmentsService.findOne.mockResolvedValue(mockAppointment);
+      mockAppointmentsService.findOne.mockResolvedValue(row(mockAppointment));
 
       const result = await controller.findOne('apt-1');
 
@@ -138,7 +141,7 @@ describe('AppointmentsController', () => {
     it('should update an appointment', async () => {
       const dto = { appointmentCenter: 'Updated Center' };
       const updated = { ...mockAppointment, appointmentCenter: 'Updated Center' };
-      mockAppointmentsService.update.mockResolvedValue(updated);
+      mockAppointmentsService.update.mockResolvedValue(row(updated));
 
       const result = await controller.update('apt-1', dto, mockUserId);
 

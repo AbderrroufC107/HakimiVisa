@@ -6,6 +6,10 @@ test.describe('Kanban Drag & Drop', () => {
   let auth: LoginResponse;
 
   test.beforeEach(async ({ page }) => {
+    // All six columns fit at this width, so the board does not scroll sideways
+    // mid-drag. That keeps the test about the drop itself rather than about
+    // chasing a column that is sliding under the cursor.
+    await page.setViewportSize({ width: 2000, height: 1000 });
     auth = await loginAsAdmin(page);
   });
 
@@ -22,7 +26,6 @@ test.describe('Kanban Drag & Drop', () => {
           fullName: `Kanban Move ${suffix}`,
           phoneNumber: `+213665${suffix.slice(-6)}`,
           passportNumber: `KM${suffix.slice(-7)}`,
-          nationality: 'Algeria',
         },
       }),
     );
@@ -50,23 +53,43 @@ test.describe('Kanban Drag & Drop', () => {
     await expect(target).toBeVisible();
 
     const handleBox = await handle.boundingBox();
-    const targetBox = await target.boundingBox();
     expect(handleBox).not.toBeNull();
-    expect(targetBox).not.toBeNull();
 
     const start = {
       x: handleBox!.x + handleBox!.width / 2,
       y: handleBox!.y + handleBox!.height / 2,
     };
-    const end = {
-      x: targetBox!.x + targetBox!.width / 2,
-      y: targetBox!.y + Math.min(80, targetBox!.height / 2),
+
+    // The board is wider than the viewport, so it scrolls sideways while a card
+    // is held. A column measured before the drag has moved by the time the
+    // pointer arrives — measure again once dragging has settled, or the card
+    // lands in whichever column slid under the cursor.
+    const centreOf = async () => {
+      const box = await target.boundingBox();
+      expect(box).not.toBeNull();
+      return { x: box!.x + box!.width / 2, y: box!.y + Math.min(80, box!.height / 2) };
     };
 
     await page.mouse.move(start.x, start.y);
     await page.mouse.down();
     await page.mouse.move(start.x + 12, start.y + 12, { steps: 4 });
-    await page.mouse.move(end.x, end.y, { steps: 20 });
+
+    const firstPass = await centreOf();
+    await page.mouse.move(firstPass.x, firstPass.y, { steps: 20 });
+
+    // Chase the column until it is genuinely the active drop target: each move
+    // can nudge the board along, so one correction is not always enough.
+    await expect
+      .poll(
+        async () => {
+          const settled = await centreOf();
+          await page.mouse.move(settled.x, settled.y, { steps: 8 });
+          return target.getAttribute('data-drop-active');
+        },
+        { timeout: 10000 },
+      )
+      .toBe('true');
+
     await page.mouse.up();
 
     await expect

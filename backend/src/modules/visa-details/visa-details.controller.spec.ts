@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mockDeep } from 'jest-mock-extended';
 import { VisaDetailsController } from './visa-details.controller';
 import { VisaDetailsService } from './visa-details.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('VisaDetailsController', () => {
   let controller: VisaDetailsController;
@@ -37,7 +38,7 @@ describe('VisaDetailsController', () => {
         durationDays: 90,
         entryType: 'MULTIPLE' as const,
       };
-      mockService.create.mockResolvedValue(mockVisaDetails);
+      mockService.create.mockResolvedValue(row(mockVisaDetails));
 
       const result = await controller.create('case-1', dto, 'user-1');
       expect(result).toBe(mockVisaDetails);
@@ -47,7 +48,7 @@ describe('VisaDetailsController', () => {
 
   describe('findByVisaCase', () => {
     it('should call service.findByVisaCase with visaCaseId', async () => {
-      mockService.findByVisaCase.mockResolvedValue(mockVisaDetails);
+      mockService.findByVisaCase.mockResolvedValue(row(mockVisaDetails));
 
       const result = await controller.findByVisaCase('case-1');
       expect(result).toBe(mockVisaDetails);
@@ -58,7 +59,7 @@ describe('VisaDetailsController', () => {
   describe('update', () => {
     it('should call service.update with params', async () => {
       const dto = { durationDays: 60 };
-      mockService.update.mockResolvedValue(mockVisaDetails);
+      mockService.update.mockResolvedValue(row(mockVisaDetails));
 
       const result = await controller.update('case-1', dto, 'user-1');
       expect(result).toBe(mockVisaDetails);

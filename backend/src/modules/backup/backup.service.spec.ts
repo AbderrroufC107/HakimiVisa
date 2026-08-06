@@ -4,6 +4,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { BackupService } from './backup.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EventEmitter } from 'events';
+import { row } from '../../test-utils/prisma-row';
 
 jest.mock('fs', () => ({
   existsSync: jest.fn(),
@@ -280,7 +281,7 @@ describe('BackupService', () => {
 
     it('should create settings when none exist', async () => {
       mockPrisma.backupSettings.findFirst.mockResolvedValue(null);
-      mockPrisma.backupSettings.create.mockResolvedValue({ id: 'new', ...data, createdAt: new Date(), updatedAt: new Date() });
+      mockPrisma.backupSettings.create.mockResolvedValue(row({ id: 'new', ...data, createdAt: new Date(), updatedAt: new Date() }));
 
       const result = await service.updateSettings(data);
       expect(mockPrisma.backupSettings.create).toHaveBeenCalledWith({ data });
@@ -344,8 +345,8 @@ describe('BackupService', () => {
       ];
 
       mockPrisma.backup.findMany
-        .mockResolvedValueOnce(oldBackups)
-        .mockResolvedValueOnce(allBackups);
+        .mockResolvedValueOnce(row(oldBackups))
+        .mockResolvedValueOnce(row(allBackups));
 
       (fs.existsSync as jest.Mock).mockReturnValue(true);
 

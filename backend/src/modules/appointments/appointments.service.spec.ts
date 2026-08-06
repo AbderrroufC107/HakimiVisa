@@ -340,7 +340,7 @@ describe('AppointmentsService', () => {
           visaCountry: 'US',
           visaType: 'B1',
           currentStatus: 'EN_ATTENTE',
-          client: { id: 'client-1', fullName: 'John Doe', phoneNumber: '+123', email: 'john@test.com', passportNumber: 'AB123', nationality: 'US' },
+          client: { id: 'client-1', fullName: 'John Doe', phoneNumber: '+123', email: 'john@test.com', passportNumber: 'AB123' },
         },
         user: { id: 'user-1', firstName: 'Admin', lastName: 'User' },
       };
@@ -442,14 +442,25 @@ describe('AppointmentsService', () => {
 
   describe('remove', () => {
     it('should delete an appointment in a transaction and broadcast', async () => {
-      const existing = { id: 'apt-1', visaCaseId: 'vc-1' };
+      // The cancellation notice names the client, so the lookup pulls the case
+      // and its client along with the appointment.
+      const existing = {
+        id: 'apt-1',
+        visaCaseId: 'vc-1',
+        visaCase: { caseNumber: 'VISA-2026-0001', client: { fullName: 'John Doe' } },
+      };
       mockPrisma.appointment.findUnique.mockResolvedValue(existing as any);
       (mockPrisma.$transaction as jest.Mock).mockResolvedValue([{}, {}]);
       mockGateway.broadcast.mockReturnValue(undefined);
 
       await service.remove('apt-1', mockUserId);
 
-      expect(mockPrisma.appointment.findUnique).toHaveBeenCalledWith({ where: { id: 'apt-1' } });
+      expect(mockPrisma.appointment.findUnique).toHaveBeenCalledWith({
+        where: { id: 'apt-1' },
+        include: {
+          visaCase: { select: { caseNumber: true, client: { select: { fullName: true } } } },
+        },
+      });
       expect(mockPrisma.$transaction).toHaveBeenCalledWith([
         mockPrisma.appointment.delete({ where: { id: 'apt-1' } }),
         mockPrisma.auditLog.create({

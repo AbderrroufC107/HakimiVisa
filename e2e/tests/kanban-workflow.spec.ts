@@ -13,9 +13,23 @@ test.describe('Kanban Board Workflow', () => {
   test('displays all kanban columns', async ({ page }) => {
     await navigateToKanban(page);
 
-    await expect(page.getByTestId('page-heading')).toHaveText('Kanban Board');
-    for (const status of ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE']) {
-      await expect(page.getByTestId(`kanban-column-${status}`)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId('page-heading')).toHaveText('Case Tracking');
+    // The board tracks a case up to delivery; the approve/refuse outcome lives
+    // on the decisions page, not here. EN_ATTENTE_AGENCE is the same status as
+    // EN_ATTENTE, split out so agency submissions queue separately.
+    const columns = [
+      'DOSSIER_INCOMPLET',
+      'EN_ATTENTE',
+      'EN_ATTENTE_AGENCE',
+      'EN_TRAITEMENT',
+      'RDV_OK',
+      'LIVREE',
+    ];
+    for (const status of columns) {
+      // The last column sits off-screen on a narrow viewport, so scroll it in.
+      const column = page.getByTestId(`kanban-column-${status}`);
+      await column.scrollIntoViewIfNeeded();
+      await expect(column).toBeVisible({ timeout: 5000 });
     }
   });
 

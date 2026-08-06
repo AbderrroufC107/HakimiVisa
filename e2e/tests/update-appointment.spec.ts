@@ -22,7 +22,6 @@ test.describe('Update Appointment', () => {
           fullName: `Appointment Update ${suffix}`,
           phoneNumber: `+213664${suffix.slice(-6)}`,
           passportNumber: `AU${suffix.slice(-7)}`,
-          nationality: 'Algeria',
         },
       }),
     );

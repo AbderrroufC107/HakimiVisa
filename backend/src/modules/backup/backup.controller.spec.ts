@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mockDeep } from 'jest-mock-extended';
 import { BackupController } from './backup.controller';
 import { BackupService } from './backup.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('BackupController', () => {
   let controller: BackupController;
@@ -40,7 +41,7 @@ describe('BackupController', () => {
   describe('findAll', () => {
     it('should call service.findAll', async () => {
       const expected = [mockBackup];
-      mockService.findAll.mockResolvedValue(expected);
+      mockService.findAll.mockResolvedValue(row(expected));
 
       const result = await controller.findAll();
       expect(result).toBe(expected);

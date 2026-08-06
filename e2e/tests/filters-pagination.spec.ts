@@ -14,7 +14,7 @@ test.describe('Filters & Pagination', () => {
     await navigateToClients(page);
     await expect(page.getByTestId('data-table-row').first()).toBeVisible({ timeout: 10000 });
 
-    await page.getByPlaceholder(/search/i).fill('HV-A10001');
+    await page.getByTestId('page-search').fill('HV-A10001');
     await expect(page.getByTestId('data-table-row')).toHaveCount(1, { timeout: 10000 });
     await expect(page.getByTestId('data-table-row').first()).toContainText('Mohammed Benali');
   });
@@ -23,7 +23,7 @@ test.describe('Filters & Pagination', () => {
     await navigateToVisaCases(page);
     await expect(page.getByTestId('data-table-row').first()).toBeVisible({ timeout: 10000 });
 
-    await page.getByPlaceholder(/search/i).fill('E2E-2026-0001');
+    await page.getByTestId('page-search').fill('E2E-2026-0001');
     await expect(page.getByTestId('data-table-row')).toHaveCount(1, { timeout: 10000 });
     await expect(page.getByTestId('data-table-row').first()).toContainText('E2E-2026-0001');
   });

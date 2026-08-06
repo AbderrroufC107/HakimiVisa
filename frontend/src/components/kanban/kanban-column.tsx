@@ -55,6 +55,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div
         ref={setNodeRef}
         data-testid={`kanban-dropzone-${column.id}`}
+        data-drop-active={isOver}
         className="flex flex-col gap-2.5 overflow-y-auto p-2.5"
         style={{ minHeight: 120 }}
       >

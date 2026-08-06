@@ -13,7 +13,10 @@ class EnvironmentManager {
 
   static const String _cachedUrlKey = 'hakimi_dev_server_url';
   static const String _productionUrl = 'https://hakimivisa.cloud/api';
-  static const String _emulatorUrl = 'http://2.24.160.223:4000/api';
+  // 10.0.2.2 is the emulator's alias for the host machine's loopback, so this
+  // keeps working when the developer's LAN address changes. A physical device
+  // still reaches the dev server through the in-app configuration screen.
+  static const String _emulatorUrl = 'http://10.0.2.2:4000/api';
   static const Duration _healthCheckTimeout = Duration(seconds: 5);
 
   final ValueNotifier<EnvConnectionState> connectionState =

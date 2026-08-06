@@ -12,7 +12,6 @@ async function createClientAndCase(page: import('@playwright/test').Page, auth: 
         whatsappNumber: `+213666${suffix.slice(-6)}`,
         email: `visa-flow-${suffix}@example.com`,
         passportNumber: `VF${suffix.slice(-7)}`,
-        nationality: 'Algeria',
       },
     }),
   );
@@ -47,13 +46,13 @@ test.describe('Visa Approval & Rejection', () => {
     const { visaCase } = await createClientAndCase(page, auth, `A${Date.now()}`);
 
     await navigateToVisaCases(page);
-    await page.getByPlaceholder(/search/i).fill(visaCase.caseNumber);
+    await page.getByTestId('page-search').fill(visaCase.caseNumber);
     await expect(page.getByTestId('data-table-row')).toHaveCount(1);
-    await page.getByLabel(`View visa case ${visaCase.caseNumber}`).click();
+    await page.getByLabel(`View case ${visaCase.caseNumber}`).click();
 
     await expect(page.getByTestId('page-heading')).toHaveText(visaCase.caseNumber);
     await page.getByTestId('status-select').click();
-    await page.getByRole('option', { name: /visa ok/i }).click();
+    await page.getByTestId('status-option-VISA_OK').click();
 
     const updated = await expectOkJson<{ currentStatus: string }>(
       await page.request.get(`${API_URL}/visa-cases/${visaCase.id}`, {

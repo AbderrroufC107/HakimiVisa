@@ -12,7 +12,6 @@ async function createClient(page: import('@playwright/test').Page, auth: LoginRe
         phoneNumber: `+213663${suffix.slice(-6)}`,
         email: `${label.toLowerCase().replace(/\s+/g, '-')}-${suffix}@example.com`,
         passportNumber: `CW${suffix.slice(-7)}`,
-        nationality: 'Algeria',
       },
     }),
   );
@@ -37,17 +36,17 @@ test.describe('Client Workflow', () => {
     await navigateToClients(page);
     await page.getByTestId('add-client-button').click();
     await page.waitForURL('**/clients/new');
-    await expect(page.getByTestId('page-heading')).toHaveText('New Client');
+    await expect(page.getByTestId('page-heading')).toHaveText('Add Client');
 
     await page.fill('#fullName', fullName);
     await page.fill('#phoneNumber', phoneNumber);
     await page.fill('#email', `client-${suffix}@example.com`);
     await page.fill('#passportNumber', `CU${suffix.slice(-7)}`);
-    await page.fill('#nationality', 'Algeria');
+    await page.fill('#passportExpiry', '2030-01-01');
     await page.click('button[type="submit"]');
 
     await page.waitForURL('**/clients');
-    await page.getByPlaceholder(/search/i).fill(fullName);
+    await page.getByTestId('page-search').fill(fullName);
     await expect(page.getByTestId('data-table-row')).toHaveCount(1, { timeout: 10000 });
     await expect(page.getByTestId('data-table-row').first()).toContainText(phoneNumber);
   });
@@ -56,7 +55,7 @@ test.describe('Client Workflow', () => {
     const client = await createClient(page, auth, 'Display Client');
 
     await navigateToClients(page);
-    await page.getByPlaceholder(/search/i).fill(client.fullName);
+    await page.getByTestId('page-search').fill(client.fullName);
     await expect(page.getByTestId('data-table-row')).toHaveCount(1, { timeout: 10000 });
     await expect(page.getByTestId('data-table-row').first()).toContainText(client.fullName);
   });
@@ -67,15 +66,15 @@ test.describe('Client Workflow', () => {
     await expectOkJson(
       await page.request.patch(`${API_URL}/clients/${client.id}`, {
         headers: authHeaders(auth),
-        data: { nationality: 'France' },
+        data: { notes: 'Edited by the update test' },
       }),
     );
 
-    const updated = await expectOkJson<{ nationality: string }>(
+    const updated = await expectOkJson<{ notes: string }>(
       await page.request.get(`${API_URL}/clients/${client.id}`, {
         headers: authHeaders(auth),
       }),
     );
-    expect(updated.nationality).toBe('France');
+    expect(updated.notes).toBe('Edited by the update test');
   });
 });

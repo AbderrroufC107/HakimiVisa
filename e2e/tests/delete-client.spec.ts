@@ -24,16 +24,15 @@ test.describe('Delete Client', () => {
           whatsappNumber: `+213777${String(suffix).slice(-6)}`,
           email: `delete-${suffix}@example.com`,
           passportNumber: `DEL${String(suffix).slice(-7)}`,
-          nationality: 'Algeria',
         },
       }),
     );
 
     await navigateToClients(page);
-    await page.getByPlaceholder(/search/i).fill(client.fullName);
+    await page.getByTestId('page-search').fill(client.fullName);
     await expect(page.getByTestId('data-table-row')).toHaveCount(1);
 
-    await page.getByLabel(`Delete client ${client.fullName}`).click();
+    await page.getByLabel(`Delete ${client.fullName}`).click();
     await expect(page.locator('[role="alertdialog"], [role="dialog"]')).toBeVisible();
     await page.getByRole('button', { name: /delete|supprimer|confirm/i }).click();
 

@@ -11,7 +11,6 @@ async function createVisaCase(page: import('@playwright/test').Page, auth: Login
         fullName: `VisaCase Client ${suffix}`,
         phoneNumber: `+213661${suffix.slice(-6)}`,
         passportNumber: `VC${suffix.slice(-7)}`,
-        nationality: 'Algeria',
       },
     }),
   );
@@ -44,7 +43,7 @@ test.describe('Visa Case Workflow', () => {
     const visaCase = await createVisaCase(page, auth);
 
     await navigateToVisaCases(page);
-    await page.getByPlaceholder(/search/i).fill(visaCase.caseNumber);
+    await page.getByTestId('page-search').fill(visaCase.caseNumber);
     await expect(page.getByTestId('data-table-row')).toHaveCount(1, { timeout: 10000 });
     await expect(page.getByTestId('data-table-row').first()).toContainText('France');
     await expect(page.getByTestId('data-table-row').first()).toContainText('Schengen');
@@ -54,12 +53,12 @@ test.describe('Visa Case Workflow', () => {
     const visaCase = await createVisaCase(page, auth);
 
     await navigateToVisaCases(page);
-    await page.getByPlaceholder(/search/i).fill(visaCase.caseNumber);
-    await page.getByLabel(`View visa case ${visaCase.caseNumber}`).click();
+    await page.getByTestId('page-search').fill(visaCase.caseNumber);
+    await page.getByLabel(`View case ${visaCase.caseNumber}`).click();
     await expect(page.getByTestId('page-heading')).toHaveText(visaCase.caseNumber);
 
     await page.getByTestId('status-select').click();
-    await page.getByRole('option', { name: /en traitement/i }).click();
+    await page.getByTestId('status-option-EN_TRAITEMENT').click();
 
     await expect
       .poll(async () => {

@@ -3,6 +3,8 @@ import { mockDeep } from 'jest-mock-extended';
 import { NotificationsService } from './notifications.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppGateway } from '../gateway/app.gateway';
+import { FcmService } from './fcm.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
@@ -29,6 +31,7 @@ describe('NotificationsService', () => {
         NotificationsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: AppGateway, useValue: mockGateway },
+        { provide: FcmService, useValue: mockDeep<FcmService>() },
       ],
     }).compile();
     service = module.get(NotificationsService);
@@ -43,7 +46,7 @@ describe('NotificationsService', () => {
         userId: 'user-1',
         link: '/visa-cases/case-1',
       };
-      mockPrisma.notification.create.mockResolvedValue(mockNotification);
+      mockPrisma.notification.create.mockResolvedValue(row(mockNotification));
 
       const result = await service.create(dto);
       expect(result).toBe(mockNotification);
@@ -57,7 +60,7 @@ describe('NotificationsService', () => {
     const defaultQuery = { page: 1, limit: 20 };
 
     it('should return paginated notifications for user', async () => {
-      mockPrisma.notification.findMany.mockResolvedValue(mockNotifications);
+      mockPrisma.notification.findMany.mockResolvedValue(row(mockNotifications));
       mockPrisma.notification.count
         .mockResolvedValueOnce(1)
         .mockResolvedValueOnce(0);
@@ -72,7 +75,7 @@ describe('NotificationsService', () => {
     });
 
     it('should filter by read status when provided', async () => {
-      mockPrisma.notification.findMany.mockResolvedValue(mockNotifications);
+      mockPrisma.notification.findMany.mockResolvedValue(row(mockNotifications));
       mockPrisma.notification.count.mockResolvedValue(1);
 
       await service.findByUser('user-1', { ...defaultQuery, read: false });

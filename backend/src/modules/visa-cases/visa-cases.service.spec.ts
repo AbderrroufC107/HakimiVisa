@@ -6,6 +6,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AppGateway } from '../gateway/app.gateway';
+import { FcmService } from '../notifications/fcm.service';
+import { TemplatesService } from '../templates/templates.service';
+import { MessagesService } from '../templates/messages.service';
 import { VisaCasesService } from './visa-cases.service';
 import {
   CreateVisaCaseDto,
@@ -13,6 +16,7 @@ import {
   UpdateStatusDto,
   QueryVisaCaseDto,
 } from './dto';
+import { row } from '../../test-utils/prisma-row';
 
 describe('VisaCasesService', () => {
   let service: VisaCasesService;
@@ -57,6 +61,9 @@ describe('VisaCasesService', () => {
         { provide: AuditLogService, useValue: mockAuditLog },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: AppGateway, useValue: mockGateway },
+        { provide: FcmService, useValue: mockDeep<FcmService>() },
+        { provide: TemplatesService, useValue: mockDeep<TemplatesService>() },
+        { provide: MessagesService, useValue: mockDeep<MessagesService>() },
       ],
     }).compile();
 
@@ -78,7 +85,7 @@ describe('VisaCasesService', () => {
     it('should create a visa case with generated case number', async () => {
       mockPrisma.client.findUnique.mockResolvedValue(mockClient as any);
       mockPrisma.visaCase.findFirst.mockResolvedValue(null);
-      mockPrisma.visaCase.create.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.create.mockResolvedValue(row(mockVisaCase));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.create(dto, mockUserId);
@@ -88,13 +95,18 @@ describe('VisaCasesService', () => {
       });
       expect(mockPrisma.visaCase.create).toHaveBeenCalledWith({
         data: {
-    caseNumber: 'VISA-2026-0001',
+          caseNumber: 'VISA-2026-0001',
           clientId: 'client-1',
           visaCountry: 'US',
           visaType: 'B1',
           currentStatus: 'EN_ATTENTE',
           notes: 'Some notes',
+          price: undefined,
+          isPaid: false,
           createdBy: mockUserId,
+          // A desk-entered case carries no agency; an agency user's token
+          // stamps its own id here.
+          submittedByAgencyId: null,
         },
       });
       expect(mockAuditLog.log).toHaveBeenCalledWith({
@@ -116,7 +128,7 @@ describe('VisaCasesService', () => {
       };
       mockPrisma.client.findUnique.mockResolvedValue(mockClient as any);
       mockPrisma.visaCase.findFirst.mockResolvedValue(null);
-      mockPrisma.visaCase.create.mockResolvedValue({ ...mockVisaCase, currentStatus: 'EN_TRAITEMENT' });
+      mockPrisma.visaCase.create.mockResolvedValue(row({ ...mockVisaCase, currentStatus: 'EN_TRAITEMENT' }));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       await service.create(dtoWithStatus, mockUserId);
@@ -132,7 +144,7 @@ describe('VisaCasesService', () => {
       const lastCase = { caseNumber: 'VISA-2026-0005' };
       mockPrisma.client.findUnique.mockResolvedValue(mockClient as any);
       mockPrisma.visaCase.findFirst.mockResolvedValue(lastCase as any);
-      mockPrisma.visaCase.create.mockResolvedValue({ ...mockVisaCase, caseNumber: 'VISA-2026-0006' });
+      mockPrisma.visaCase.create.mockResolvedValue(row({ ...mockVisaCase, caseNumber: 'VISA-2026-0006' }));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       await service.create(dto, mockUserId);
@@ -167,8 +179,21 @@ describe('VisaCasesService', () => {
         take: 20,
         orderBy: { createdAt: 'desc' },
         include: {
-          client: { select: { id: true, fullName: true, phoneNumber: true } },
+          client: { select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true } },
           creator: { select: { id: true, firstName: true, lastName: true } },
+          // Names the partner agency on cards that did not come from the desk.
+          submittedByAgency: { select: { id: true, name: true } },
+          appointments: {
+            orderBy: { appointmentDate: 'desc' as const },
+            take: 1,
+            select: {
+              id: true,
+              appointmentDate: true,
+              appointmentTime: true,
+              appointmentCenter: true,
+              appointmentType: true,
+            },
+          },
         },
       });
       expect(result.meta).toEqual({ total: 1, page: 1, limit: 20, totalPages: 1 });
@@ -215,6 +240,7 @@ describe('VisaCasesService', () => {
             OR: [
               { caseNumber: { contains: 'VISA' } },
               { client: { fullName: { contains: 'VISA' } } },
+              { client: { passportNumber: { contains: 'VISA' } } },
             ],
           },
         }),
@@ -238,6 +264,7 @@ describe('VisaCasesService', () => {
             OR: [
               { caseNumber: { contains: 'John' } },
               { client: { fullName: { contains: 'John' } } },
+              { client: { passportNumber: { contains: 'John' } } },
             ],
           },
           skip: 10,
@@ -276,10 +303,12 @@ describe('VisaCasesService', () => {
         include: {
           client: true,
           creator: { select: { id: true, firstName: true, lastName: true } },
+          submittedByAgency: { select: { id: true, name: true } },
           statusHistories: {
             orderBy: { changedAt: 'desc' },
             include: { changer: { select: { id: true, firstName: true, lastName: true } } },
           },
+          appointments: { orderBy: { appointmentDate: 'desc' } },
         },
       });
       expect(result).toEqual(visaCaseWithRelations);
@@ -297,9 +326,9 @@ describe('VisaCasesService', () => {
     const dto: UpdateVisaCaseDto = { visaCountry: 'Canada', visaType: 'TRV' };
 
     it('should update a visa case and log audit', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       const updated = { ...mockVisaCase, visaCountry: 'Canada', visaType: 'TRV' };
-      mockPrisma.visaCase.update.mockResolvedValue(updated);
+      mockPrisma.visaCase.update.mockResolvedValue(row(updated));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.update('vc-1', dto, mockUserId);
@@ -326,7 +355,7 @@ describe('VisaCasesService', () => {
     });
 
     it('should throw NotFoundException when new clientId references non-existent client', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       mockPrisma.client.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -336,9 +365,9 @@ describe('VisaCasesService', () => {
     });
 
     it('should verify client exists when clientId is being changed', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       mockPrisma.client.findUnique.mockResolvedValue({ id: 'client-2', fullName: 'Jane', phoneNumber: '+222' } as any);
-      mockPrisma.visaCase.update.mockResolvedValue({ ...mockVisaCase, clientId: 'client-2' });
+      mockPrisma.visaCase.update.mockResolvedValue(row({ ...mockVisaCase, clientId: 'client-2' }));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       await service.update('vc-1', { clientId: 'client-2' }, mockUserId);
@@ -352,13 +381,13 @@ describe('VisaCasesService', () => {
 
     it('should update status via transaction and send notifications', async () => {
       mockPrisma.visaCase.findUnique
-        .mockResolvedValueOnce(mockVisaCase)         // first check
-        .mockResolvedValueOnce({                      // after update: findUnique with client
+        .mockResolvedValueOnce(row(mockVisaCase))         // first check
+        .mockResolvedValueOnce(row({                  // after update: findUnique with client
           ...mockUpdatedVisaCase,
           client: { fullName: 'John Doe' },
-        });
+        }));
       (mockPrisma.$transaction as jest.Mock).mockResolvedValue([mockUpdatedVisaCase]);
-      mockPrisma.user.findUnique.mockResolvedValue({ firstName: 'Admin', lastName: 'User' });
+      mockPrisma.user.findUnique.mockResolvedValue(row({ firstName: 'Admin', lastName: 'User' }));
       mockAuditLog.log.mockResolvedValue({} as any);
       mockNotifications.create.mockResolvedValue({} as any);
       mockGateway.broadcast.mockReturnValue(undefined);
@@ -366,7 +395,10 @@ describe('VisaCasesService', () => {
       const result = await service.updateStatus('vc-1', dto, mockUserId);
 
       expect(mockPrisma.$transaction).toHaveBeenCalledWith([
-        mockPrisma.visaCase.update({ where: { id: 'vc-1' }, data: { currentStatus: 'EN_TRAITEMENT' } }),
+        mockPrisma.visaCase.update({
+          where: { id: 'vc-1' },
+          data: { currentStatus: 'EN_TRAITEMENT', incompleteReason: null },
+        }),
         mockPrisma.statusHistory.create({
           data: { visaCaseId: 'vc-1', oldStatus: 'EN_ATTENTE', newStatus: 'EN_TRAITEMENT', changedBy: mockUserId },
         }),
@@ -378,11 +410,12 @@ describe('VisaCasesService', () => {
         userId: mockUserId,
         metadata: { caseNumber: 'VISA-2026-0001', from: 'EN_ATTENTE', to: 'EN_TRAITEMENT' },
       });
-      expect(mockNotifications.create).toHaveBeenCalledWith({
+      // A status change concerns the whole desk, so it broadcasts rather than
+      // notifying only the user who made the move.
+      expect(mockNotifications.broadcast).toHaveBeenCalledWith({
         type: 'STATUS_CHANGE',
-        title: 'Visa Case Status Updated',
-        message: expect.stringContaining('EN_ATTENTE to EN_TRAITEMENT'),
-        userId: mockUserId,
+        title: 'Statut du dossier mis à jour',
+        message: expect.stringContaining('de EN_ATTENTE à EN_TRAITEMENT'),
         link: '/visa-cases/vc-1',
       });
       expect(mockGateway.broadcast).toHaveBeenCalledWith('visaCase:statusChange', {
@@ -396,7 +429,7 @@ describe('VisaCasesService', () => {
     });
 
     it('should return existing case when status is unchanged', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       const sameStatusDto: UpdateStatusDto = { status: 'EN_ATTENTE' as any };
 
       const result = await service.updateStatus('vc-1', sameStatusDto, mockUserId);
@@ -415,8 +448,8 @@ describe('VisaCasesService', () => {
 
     it('should broadcast with "Unknown" when changer not found', async () => {
       mockPrisma.visaCase.findUnique
-        .mockResolvedValueOnce(mockVisaCase)
-        .mockResolvedValueOnce({ ...mockUpdatedVisaCase, client: { fullName: 'John Doe' } });
+        .mockResolvedValueOnce(row(mockVisaCase))
+        .mockResolvedValueOnce(row({ ...mockUpdatedVisaCase, client: { fullName: 'John Doe' } }));
       (mockPrisma.$transaction as jest.Mock).mockResolvedValue([mockUpdatedVisaCase]);
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockAuditLog.log.mockResolvedValue({} as any);
@@ -479,7 +512,7 @@ describe('VisaCasesService', () => {
 
   describe('remove', () => {
     it('should delete a visa case in a transaction', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       (mockPrisma.$transaction as jest.Mock).mockResolvedValue([{}, {}]);
 
       await service.remove('vc-1', mockUserId);

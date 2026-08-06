@@ -4,6 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ClientsController } from './clients.controller';
 import { ClientsService } from './clients.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { row } from '../../test-utils/prisma-row';
 
 describe('ClientsController', () => {
   let controller: ClientsController;
@@ -16,7 +17,6 @@ describe('ClientsController', () => {
     phoneNumber: '+123456789',
     email: 'john@example.com',
     passportNumber: 'AB123456',
-    nationality: 'US',
     notes: null,
     createdBy: mockUserId,
     createdAt: new Date(),
@@ -56,9 +56,9 @@ describe('ClientsController', () => {
         visaOk: 60,
         refuse: 20,
       };
-      mockClientsService.getDashboardStats.mockResolvedValue(stats);
+      mockClientsService.getDashboardStats.mockResolvedValue(row(stats));
 
-      const result = await controller.getDashboardStats();
+      const result = await controller.getDashboardStats({});
 
       expect(result).toBe(stats);
       expect(mockClientsService.getDashboardStats).toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('ClientsController', () => {
         phoneNumber: '+123456789',
         email: 'john@example.com',
       };
-      mockClientsService.create.mockResolvedValue(mockClient);
+      mockClientsService.create.mockResolvedValue(row(mockClient));
 
       const result = await controller.create(dto, mockUserId);
 
@@ -105,12 +105,12 @@ describe('ClientsController', () => {
         data: [mockClient],
         meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
       };
-      mockClientsService.findAll.mockResolvedValue(expected);
+      mockClientsService.findAll.mockResolvedValue(row(expected));
 
-      const result = await controller.findAll(query);
+      const result = await controller.findAll(query, null);
 
       expect(result).toBe(expected);
-      expect(mockClientsService.findAll).toHaveBeenCalledWith(query);
+      expect(mockClientsService.findAll).toHaveBeenCalledWith(query, null);
     });
 
     it('should pass empty query if none provided', async () => {
@@ -120,15 +120,26 @@ describe('ClientsController', () => {
         meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
       });
 
-      await controller.findAll(query);
+      await controller.findAll(query, null);
 
-      expect(mockClientsService.findAll).toHaveBeenCalledWith(query);
+      expect(mockClientsService.findAll).toHaveBeenCalledWith(query, null);
+    });
+
+    it('should scope the list to the caller agency', async () => {
+      mockClientsService.findAll.mockResolvedValue({
+        data: [],
+        meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      });
+
+      await controller.findAll({}, 'agency-1');
+
+      expect(mockClientsService.findAll).toHaveBeenCalledWith({}, 'agency-1');
     });
   });
 
   describe('GET /clients/:id', () => {
     it('should return a client', async () => {
-      mockClientsService.findOne.mockResolvedValue(mockClient);
+      mockClientsService.findOne.mockResolvedValue(row(mockClient));
 
       const result = await controller.findOne('client-1');
 
@@ -227,7 +238,7 @@ describe('ClientsController', () => {
     it('should update a client', async () => {
       const dto = { fullName: 'Updated Name' };
       const updated = { ...mockClient, fullName: 'Updated Name' };
-      mockClientsService.update.mockResolvedValue(updated);
+      mockClientsService.update.mockResolvedValue(row(updated));
 
       const result = await controller.update('client-1', dto, mockUserId);
 

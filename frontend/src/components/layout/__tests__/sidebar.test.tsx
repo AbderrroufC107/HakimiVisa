@@ -1,8 +1,19 @@
 import { render, screen } from '@/test/test-utils';
 import { Sidebar } from '@/components/layout/sidebar';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// The sidebar shows a different set of doors to a partner agency, so it reads
+// the signed-in user. Stub that rather than standing up the whole auth stack.
+const mockUser = vi.hoisted(() => ({ current: { role: 'ADMIN' } as { role: string } }));
+vi.mock('@/providers/auth-provider', () => ({
+  useAuth: () => ({ user: mockUser.current }),
+}));
 
 describe('Sidebar', () => {
+  beforeEach(() => {
+    mockUser.current = { role: 'ADMIN' };
+  });
+
   it('renders all main navigation links when expanded', () => {
     render(<Sidebar collapsed={false} onToggle={vi.fn()} />);
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
@@ -61,5 +72,18 @@ describe('Sidebar', () => {
     const toggleBtn = screen.getByRole('button', { name: 'Collapse menu' });
     await user.click(toggleBtn);
     expect(onToggle).toHaveBeenCalledOnce();
+  });
+
+  it('offers a partner agency only the pages it may use', () => {
+    mockUser.current = { role: 'AGENCY' };
+    render(<Sidebar collapsed={false} onToggle={vi.fn()} />);
+
+    expect(screen.getByText('Clients')).toBeInTheDocument();
+    expect(screen.getByText('Visa Cases')).toBeInTheDocument();
+    // The desk's own tools would only lead to calls the API refuses.
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
+    expect(screen.queryByText('Case Tracking')).not.toBeInTheDocument();
+    expect(screen.queryByText('Audit Logs')).not.toBeInTheDocument();
+    expect(screen.queryByText('Backup Center')).not.toBeInTheDocument();
   });
 });

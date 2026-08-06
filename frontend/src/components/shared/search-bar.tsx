@@ -24,6 +24,7 @@ export function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="pl-10 pr-10"
+        data-testid="page-search"
       />
       {value && (
         <Button

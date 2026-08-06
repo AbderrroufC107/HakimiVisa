@@ -3,6 +3,7 @@ import { mockDeep } from 'jest-mock-extended';
 import { NotFoundException } from '@nestjs/common';
 import { TrackingService } from './tracking.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('TrackingService', () => {
   let service: TrackingService;
@@ -63,8 +64,8 @@ describe('TrackingService', () => {
 
   describe('findByPhone', () => {
     it('should return client with cases when found', async () => {
-      mockPrisma.client.findFirst.mockResolvedValue(mockClient);
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases);
+      mockPrisma.client.findFirst.mockResolvedValue(row(mockClient));
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases));
 
       const result = await service.findByPhone({ phone: '+213600000000' });
       expect(result.clientName).toBe('John Doe');
@@ -77,8 +78,8 @@ describe('TrackingService', () => {
     });
 
     it('should filter by case number when case filter is provided', async () => {
-      mockPrisma.client.findFirst.mockResolvedValue(mockClient);
-      mockPrisma.visaCase.findMany.mockResolvedValue(mockCases);
+      mockPrisma.client.findFirst.mockResolvedValue(row(mockClient));
+      mockPrisma.visaCase.findMany.mockResolvedValue(row(mockCases));
 
       await service.findByPhone({ phone: '+213600000000', reference: 'VC-001' });
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
@@ -97,7 +98,7 @@ describe('TrackingService', () => {
 
   describe('findOneForPublic', () => {
     it('should return visa case with relations when found', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCaseFull);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCaseFull));
 
       const result = await service.findOneForPublic('case-1');
       expect(result).toBeDefined();

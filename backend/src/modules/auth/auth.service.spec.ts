@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto } from './dto';
+import { row } from '../../test-utils/prisma-row';
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn(),
@@ -85,14 +86,14 @@ describe('AuthService', () => {
       mockConfigService.get.mockReturnValue(true);
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockBcrypt.hash.mockResolvedValue('hashed-password-123' as never);
-      mockPrisma.user.create.mockResolvedValue(mockUser);
+      mockPrisma.user.create.mockResolvedValue(row(mockUser));
       mockJwtService.sign
         .mockReturnValueOnce('access-token-abc')
         .mockReturnValueOnce('refresh-token-456');
       mockConfigService.getOrThrow
         .mockReturnValueOnce('refresh-secret')
         .mockReturnValueOnce('7d');
-      mockPrisma.refreshToken.create.mockResolvedValue(mockRefreshToken);
+      mockPrisma.refreshToken.create.mockResolvedValue(row(mockRefreshToken));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.register(dto);
@@ -126,7 +127,7 @@ describe('AuthService', () => {
 
     it('should throw ConflictException when email already exists', async () => {
       mockConfigService.get.mockReturnValue(true);
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(row(mockUser));
 
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
       await expect(service.register(dto)).rejects.toThrow('Email already registered');
@@ -135,7 +136,7 @@ describe('AuthService', () => {
 
     it('should throw ConflictException for case-insensitive email conflict', async () => {
       mockConfigService.get.mockReturnValue(true);
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(row(mockUser));
 
       await expect(service.register(dto)).rejects.toThrow(ConflictException);
     });
@@ -145,7 +146,7 @@ describe('AuthService', () => {
     const dto: LoginDto = { email: 'test@example.com', password: 'password123' };
 
     it('should login successfully and return tokens', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(row(mockUser));
       mockBcrypt.compare.mockResolvedValue(true as never);
       mockJwtService.sign
         .mockReturnValueOnce('access-token-xyz')
@@ -153,7 +154,7 @@ describe('AuthService', () => {
       mockConfigService.getOrThrow
         .mockReturnValueOnce('refresh-secret')
         .mockReturnValueOnce('7d');
-      mockPrisma.refreshToken.create.mockResolvedValue(mockRefreshToken);
+      mockPrisma.refreshToken.create.mockResolvedValue(row(mockRefreshToken));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.login(dto);
@@ -175,14 +176,14 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException when account is inactive', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ ...mockUser, isActive: false });
+      mockPrisma.user.findUnique.mockResolvedValue(row({ ...mockUser, isActive: false }));
 
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
       await expect(service.login(dto)).rejects.toThrow('Account is inactive');
     });
 
     it('should throw UnauthorizedException when password is wrong', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      mockPrisma.user.findUnique.mockResolvedValue(row(mockUser));
       mockBcrypt.compare.mockResolvedValue(false as never);
 
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
@@ -207,11 +208,11 @@ describe('AuthService', () => {
     };
 
     it('should return new tokens on valid refresh token', async () => {
-      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+      mockPrisma.refreshToken.findUnique.mockResolvedValue(row({
         ...mockRefreshToken,
         token,
         user: mockUser,
-      });
+      }));
       mockPrisma.refreshToken.delete.mockResolvedValue({} as any);
       mockJwtService.sign
         .mockReturnValueOnce('new-access-token')
@@ -219,11 +220,11 @@ describe('AuthService', () => {
       mockConfigService.getOrThrow
         .mockReturnValueOnce('refresh-secret')
         .mockReturnValueOnce('7d');
-      mockPrisma.refreshToken.create.mockResolvedValue({
+      mockPrisma.refreshToken.create.mockResolvedValue(row({
         ...mockRefreshToken,
         id: 'rt-2',
         token: 'new-refresh-token',
-      });
+      }));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.refreshToken(token);
@@ -246,22 +247,22 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException when token is expired', async () => {
-      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+      mockPrisma.refreshToken.findUnique.mockResolvedValue(row({
         ...expiredRefreshToken,
         user: mockUser,
-      });
+      }));
 
       await expect(service.refreshToken('expired-token')).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException when expiresAt is just past', async () => {
-      mockPrisma.refreshToken.findUnique.mockResolvedValue({
+      mockPrisma.refreshToken.findUnique.mockResolvedValue(row({
         id: 'rt-expired',
         token: 'just-expired-token',
         userId: 'user-1',
         expiresAt: new Date(Date.now() - 1),
         user: mockUser,
-      });
+      }));
 
       await expect(service.refreshToken('just-expired-token')).rejects.toThrow(UnauthorizedException);
     });
@@ -278,7 +279,7 @@ describe('AuthService', () => {
         isActive: true,
         createdAt: new Date('2025-01-01'),
       };
-      mockPrisma.user.findUnique.mockResolvedValue(profileData);
+      mockPrisma.user.findUnique.mockResolvedValue(row(profileData));
 
       const result = await service.getProfile('user-1');
 

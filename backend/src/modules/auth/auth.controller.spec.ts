@@ -8,6 +8,7 @@ import {
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { row } from '../../test-utils/prisma-row';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -141,7 +142,7 @@ describe('AuthController', () => {
         isActive: true,
         createdAt: new Date(),
       };
-      mockAuthService.getProfile.mockResolvedValue(profile);
+      mockAuthService.getProfile.mockResolvedValue(row(profile));
 
       const result = await controller.getProfile(userId);
 

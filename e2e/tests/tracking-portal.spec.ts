@@ -6,7 +6,8 @@ test.describe('Public Tracking Portal', () => {
     await navigateToTracking(page);
 
     await expect(page.getByTestId('tracking-heading')).toBeVisible();
-    await expect(page.getByTestId('tracking-phone-input')).toBeVisible();
+    await expect(page.getByTestId('tracking-passport-input')).toBeVisible();
+    await expect(page.getByTestId('tracking-expiry-input')).toBeVisible();
     await expect(page.getByTestId('tracking-search-btn')).toBeVisible();
   });
 
@@ -16,17 +17,23 @@ test.describe('Public Tracking Portal', () => {
     await expect(page.getByTestId('tracking-empty-state')).toBeVisible();
   });
 
-  test('should show validation on short phone number', async ({ page }) => {
+  test('should keep search disabled until passport and expiry are both given', async ({ page }) => {
     await navigateToTracking(page);
 
-    await page.getByTestId('tracking-phone-input').fill('123');
+    // A passport number alone is not enough — the expiry date proves the
+    // caller is holding the document.
+    await page.getByTestId('tracking-passport-input').fill('AB12');
+    await expect(page.getByTestId('tracking-search-btn')).toBeDisabled();
+
+    await page.getByTestId('tracking-passport-input').fill('AB123456');
     await expect(page.getByTestId('tracking-search-btn')).toBeDisabled();
   });
 
-  test('should attempt tracking lookup with a phone number', async ({ page }) => {
+  test('should attempt tracking lookup with a passport and expiry', async ({ page }) => {
     await navigateToTracking(page);
 
-    await page.getByTestId('tracking-phone-input').fill('+213556677889');
+    await page.getByTestId('tracking-passport-input').fill('AB123456');
+    await page.getByTestId('tracking-expiry-input').fill('2030-01-01');
     await expect(page.getByTestId('tracking-search-btn')).toBeEnabled();
     await page.getByTestId('tracking-search-btn').click();
 

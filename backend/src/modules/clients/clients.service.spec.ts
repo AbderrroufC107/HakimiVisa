@@ -6,6 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
 import { ClientsService } from './clients.service';
 import { CreateClientDto, UpdateClientDto, QueryClientDto } from './dto';
+import { row } from '../../test-utils/prisma-row';
 
 describe('ClientsService', () => {
   let service: ClientsService;
@@ -19,7 +20,7 @@ describe('ClientsService', () => {
     whatsappNumber: '+123456789',
     email: 'john@example.com',
     passportNumber: 'AB123456',
-    nationality: 'US',
+    passportExpiry: new Date('2030-01-01'),
     notes: 'Some notes',
     createdBy: 'user-1',
     createdAt: new Date('2025-01-01'),
@@ -54,12 +55,12 @@ describe('ClientsService', () => {
       whatsappNumber: '+123456789',
       email: 'john@example.com',
       passportNumber: 'AB123456',
-      nationality: 'US',
+      passportExpiry: '2030-01-01',
       notes: 'Some notes',
     };
 
     it('should create a client and log audit', async () => {
-      mockPrisma.client.create.mockResolvedValue(mockClient);
+      mockPrisma.client.create.mockResolvedValue(row(mockClient));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.create(dto, mockUserId);
@@ -71,7 +72,7 @@ describe('ClientsService', () => {
           whatsappNumber: dto.whatsappNumber,
           email: dto.email,
           passportNumber: dto.passportNumber,
-          nationality: dto.nationality,
+          passportExpiry: new Date(dto.passportExpiry as string),
           notes: dto.notes,
           createdBy: mockUserId,
         },
@@ -99,7 +100,7 @@ describe('ClientsService', () => {
         whatsappNumber: null,
         email: null,
         passportNumber: null,
-        nationality: null,
+        passportExpiry: null,
         notes: null,
       };
       mockPrisma.client.create.mockResolvedValue(minimalClient as any);
@@ -114,7 +115,7 @@ describe('ClientsService', () => {
           whatsappNumber: undefined,
           email: undefined,
           passportNumber: undefined,
-          nationality: undefined,
+          passportExpiry: undefined,
           notes: undefined,
           createdBy: mockUserId,
         },
@@ -139,7 +140,11 @@ describe('ClientsService', () => {
         skip: 0,
         take: 20,
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { visaCases: true } } },
+        include: {
+          _count: { select: { visaCases: true } },
+          // Carries the partner agency so the list can mark its clients.
+          creator: { select: { agency: { select: { id: true, name: true } } } },
+        },
       });
       expect(result.meta).toEqual({ total: 1, page: 1, limit: 20, totalPages: 1 });
       expect(result.data).toEqual(mockData);
@@ -163,7 +168,11 @@ describe('ClientsService', () => {
         skip: 0,
         take: 10,
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { visaCases: true } } },
+        include: {
+          _count: { select: { visaCases: true } },
+          // Carries the partner agency so the list can mark its clients.
+          creator: { select: { agency: { select: { id: true, name: true } } } },
+        },
       });
     });
 
@@ -226,9 +235,9 @@ describe('ClientsService', () => {
     const dto: UpdateClientDto = { fullName: 'Updated Name', phoneNumber: '+999999999' };
 
     it('should update a client and log audit', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
+      mockPrisma.client.findUnique.mockResolvedValue(row(mockClient));
       const updatedClient = { ...mockClient, fullName: 'Updated Name', phoneNumber: '+999999999' };
-      mockPrisma.client.update.mockResolvedValue(updatedClient);
+      mockPrisma.client.update.mockResolvedValue(row(updatedClient));
       mockAuditLog.log.mockResolvedValue({} as any);
 
       const result = await service.update('client-1', dto, mockUserId);
@@ -258,7 +267,7 @@ describe('ClientsService', () => {
 
   describe('remove', () => {
     it('should delete a client and create audit log in transaction', async () => {
-      mockPrisma.client.findUnique.mockResolvedValue(mockClient);
+      mockPrisma.client.findUnique.mockResolvedValue(row(mockClient));
       (mockPrisma.$transaction as jest.Mock).mockResolvedValue([{}, {}]);
 
       await service.remove('client-1', mockUserId);
@@ -561,9 +570,12 @@ describe('ClientsService', () => {
       mockPrisma.client.count.mockResolvedValue(100);
       mockPrisma.visaCase.count
         .mockResolvedValueOnce(200)  // totalCases
+        .mockResolvedValueOnce(70)   // newCases
         .mockResolvedValueOnce(50)   // enAttente
         .mockResolvedValueOnce(40)   // enTraitement
         .mockResolvedValueOnce(30)   // rdvOk
+        .mockResolvedValueOnce(25)   // incomplete
+        .mockResolvedValueOnce(15)   // livree
         .mockResolvedValueOnce(60)   // visaOk
         .mockResolvedValueOnce(20);  // refuse
 
@@ -572,9 +584,12 @@ describe('ClientsService', () => {
       expect(result).toEqual({
         totalClients: 100,
         totalCases: 200,
+        newCases: 70,
         enAttente: 50,
         enTraitement: 40,
         rdvOk: 30,
+        incomplete: 25,
+        livree: 15,
         visaOk: 60,
         refuse: 20,
       });

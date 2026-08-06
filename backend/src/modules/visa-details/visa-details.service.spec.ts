@@ -4,6 +4,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { VisaDetailsService } from './visa-details.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
+import { row } from '../../test-utils/prisma-row';
 
 describe('VisaDetailsService', () => {
   let service: VisaDetailsService;
@@ -54,9 +55,9 @@ describe('VisaDetailsService', () => {
     };
 
     it('should create visa details and log audit', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
       mockPrisma.visaDetails.findUnique.mockResolvedValue(null);
-      mockPrisma.visaDetails.create.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaDetails.create.mockResolvedValue(row(mockVisaDetails));
 
       const result = await service.create('case-1', dto, 'user-1');
       expect(result).toBe(mockVisaDetails);
@@ -87,14 +88,14 @@ describe('VisaDetailsService', () => {
     });
 
     it('should throw BadRequestException when status is not VISA_OK', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue({ ...mockVisaCase, currentStatus: 'EN_ATTENTE' });
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row({ ...mockVisaCase, currentStatus: 'EN_ATTENTE' }));
       await expect(service.create('case-1', dto, 'user-1'))
         .rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException when visa details already exist', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValue(mockVisaCase);
-      mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaCase.findUnique.mockResolvedValue(row(mockVisaCase));
+      mockPrisma.visaDetails.findUnique.mockResolvedValue(row(mockVisaDetails));
       await expect(service.create('case-1', dto, 'user-1'))
         .rejects.toThrow(BadRequestException);
     });
@@ -102,7 +103,7 @@ describe('VisaDetailsService', () => {
 
   describe('findByVisaCase', () => {
     it('should return visa details when found', async () => {
-      mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaDetails.findUnique.mockResolvedValue(row(mockVisaDetails));
       const result = await service.findByVisaCase('case-1');
       expect(result).toBe(mockVisaDetails);
     });
@@ -118,9 +119,9 @@ describe('VisaDetailsService', () => {
     const dto = { durationDays: 60, notes: 'Updated notes' };
 
     it('should update visa details and log audit', async () => {
-      mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaDetails.findUnique.mockResolvedValue(row(mockVisaDetails));
       const updated = { ...mockVisaDetails, durationDays: 60, notes: 'Updated notes' };
-      mockPrisma.visaDetails.update.mockResolvedValue(updated);
+      mockPrisma.visaDetails.update.mockResolvedValue(row(updated));
 
       const result = await service.update('case-1', dto, 'user-1');
       expect(result).toBe(updated);
@@ -138,8 +139,8 @@ describe('VisaDetailsService', () => {
     });
 
     it('should convert date strings to Date objects', async () => {
-      mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
-      mockPrisma.visaDetails.update.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaDetails.findUnique.mockResolvedValue(row(mockVisaDetails));
+      mockPrisma.visaDetails.update.mockResolvedValue(row(mockVisaDetails));
 
       await service.update('case-1', { validFrom: '2025-08-01', validUntil: '2026-08-01' } as any, 'user-1');
       expect(mockPrisma.visaDetails.update).toHaveBeenCalledWith({
@@ -157,8 +158,8 @@ describe('VisaDetailsService', () => {
 
   describe('remove', () => {
     it('should delete visa details and log audit', async () => {
-      mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
-      mockPrisma.visaDetails.delete.mockResolvedValue(mockVisaDetails);
+      mockPrisma.visaDetails.findUnique.mockResolvedValue(row(mockVisaDetails));
+      mockPrisma.visaDetails.delete.mockResolvedValue(row(mockVisaDetails));
 
       await service.remove('case-1', 'user-1');
       expect(mockPrisma.visaDetails.delete).toHaveBeenCalledWith({
