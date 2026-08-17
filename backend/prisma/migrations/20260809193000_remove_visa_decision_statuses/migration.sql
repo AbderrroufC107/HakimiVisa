@@ -21,9 +21,7 @@ UPDATE `status_histories` SET `newStatus` = 'RDV_OK' WHERE `newStatus` = 'VISA_O
 DELETE FROM `status_histories`
 WHERE `oldStatus` = 'VISA_REFUSEE' OR `newStatus` = 'VISA_REFUSEE';
 
--- Guarded: production never had this table, and an unguarded DROP would abort
--- the migration after the updates above had already been applied.
-DROP TABLE IF EXISTS `visa_details`;
+DROP TABLE `visa_details`;
 
 ALTER TABLE `visa_cases`
   MODIFY `currentStatus` ENUM('EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE') NOT NULL DEFAULT 'EN_ATTENTE';
