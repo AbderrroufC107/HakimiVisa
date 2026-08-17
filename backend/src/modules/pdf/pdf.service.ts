@@ -27,6 +27,8 @@ const ROW_HEIGHT = 16;
 export class PdfService {
   private readonly logger = new Logger(PdfService.name);
   private logoBuffer: Buffer | null = null;
+  /** Intrinsic pixel size of the logo, so the header can reserve the right width. */
+  private logoAspect = 1;
   private qrCache = new Map<string, Buffer>();
   private pdfCache = new Map<string, { buffer: Buffer; timestamp: number }>();
   private readonly PDF_CACHE_TTL = 5 * 60 * 1000;
@@ -35,10 +37,25 @@ export class PdfService {
     try {
       const logoPath = join(process.cwd(), 'src', 'common', 'assets', 'logo.png');
       this.logoBuffer = readFileSync(logoPath);
-      this.logger.log('Logo cached in memory');
+      this.logoAspect = this.readPngAspect(this.logoBuffer) ?? 1;
+      this.logger.log(`Logo cached in memory (aspect ${this.logoAspect.toFixed(2)})`);
     } catch {
       this.logger.warn('Logo not found, using text fallback');
     }
+  }
+
+  /**
+   * Width/height from the PNG header. A square wordmark and a wide one need
+   * very different amounts of the header band, and reserving a fixed box for
+   * either leaves the other floating in dead space.
+   */
+  private readPngAspect(png: Buffer): number | null {
+    // 8-byte signature, then the IHDR chunk: length, type, width, height.
+    if (png.length < 24 || png.readUInt32BE(12) !== 0x49484452) return null;
+    const width = png.readUInt32BE(16);
+    const height = png.readUInt32BE(20);
+    if (!width || !height) return null;
+    return width / height;
   }
 
   async generateBordereau(visaCaseId: string, res: Response) {
@@ -124,26 +141,35 @@ export class PdfService {
    */
   private drawHeader(doc: PDFKit.PDFDocument, caseNumber: string) {
     const top = MARGIN;
-    const logoSize = 50;
+    const logoHeight = 50;
     let textX = MARGIN;
 
     if (this.logoBuffer) {
-      doc.image(this.logoBuffer, MARGIN, top, { fit: [logoSize, logoSize] });
-      textX = MARGIN + logoSize + 10;
+      // Scale by height and take whatever width the artwork needs, capped so a
+      // very wide wordmark cannot crowd out the case number.
+      const logoWidth = Math.min(logoHeight * this.logoAspect, 168);
+      doc.image(this.logoBuffer, MARGIN, top, { fit: [logoWidth, logoHeight] });
+      textX = MARGIN + logoWidth + 10;
+    } else {
+      // Only worth printing when there is no logo — the artwork carries the
+      // name itself, and setting it twice reads as a mistake.
+      doc.fillColor('#000').fontSize(FONT.agency).font('Helvetica-Bold');
+      doc.text('HAKIMI SOLUTIONS', textX, top + 8, { width: 220, lineBreak: false });
+      textX = MARGIN;
     }
 
-    doc.fillColor('#000').fontSize(FONT.agency).font('Helvetica-Bold');
-    doc.text('HAKIMI VISA', textX, top + 8, { width: 220, lineBreak: false });
-
     doc.fontSize(FONT.docTitle).font('Helvetica').fillColor('#555');
-    doc.text('BORDEREAU DE DOSSIER', textX, top + 30, { width: 220, lineBreak: false });
+    doc.text('BORDEREAU DE DOSSIER', textX, top + (this.logoBuffer ? 20 : 30), {
+      width: 150,
+      lineBreak: false,
+    });
 
     // The case number is what the desk looks for first, so it anchors the
     // opposite corner at the largest size on the card.
     doc.fontSize(FONT.caseNumber).font('Helvetica-Bold').fillColor('#000');
     doc.text(caseNumber, CONTENT_RIGHT - 190, top + 12, { width: 190, align: 'right', lineBreak: false });
 
-    const y = top + logoSize + 6;
+    const y = top + logoHeight + 6;
     doc.moveTo(MARGIN, y).lineTo(CONTENT_RIGHT, y).lineWidth(0.8).strokeColor('#bbb').stroke();
 
     doc.y = y + 9;
