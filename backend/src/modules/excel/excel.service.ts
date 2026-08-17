@@ -39,7 +39,6 @@ export class ExcelService {
     const cases = await this.prisma.visaCase.findMany({
       include: {
         client: { select: { fullName: true, phoneNumber: true } },
-        visaDetails: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -52,10 +51,7 @@ export class ExcelService {
       { header: 'Type visa', key: 'visaType' },
       { header: 'Statut', key: 'currentStatus' },
       { header: 'Date ouverture', key: 'openingDate' },
-      { header: 'N° visa', key: 'visaNumber' },
-      { header: 'Valide du', key: 'validFrom' },
-      { header: 'Valide jusqu\'au', key: 'validUntil' },
-    ], cases.map((vc: { caseNumber: string; client: { fullName: string; phoneNumber: string }; visaCountry: string; visaType: string; currentStatus: string; openingDate: Date; visaDetails: { visaNumber: string | null; validFrom: Date; validUntil: Date } | null }) => ({
+    ], cases.map((vc: { caseNumber: string; client: { fullName: string; phoneNumber: string }; visaCountry: string; visaType: string; currentStatus: string; openingDate: Date }) => ({
       caseNumber: vc.caseNumber,
       clientName: vc.client.fullName,
       phoneNumber: vc.client.phoneNumber,
@@ -63,9 +59,6 @@ export class ExcelService {
       visaType: vc.visaType,
       currentStatus: vc.currentStatus,
       openingDate: vc.openingDate.toISOString(),
-      visaNumber: vc.visaDetails?.visaNumber ?? '',
-      validFrom: vc.visaDetails?.validFrom?.toISOString() ?? '',
-      validUntil: vc.visaDetails?.validUntil?.toISOString() ?? '',
     })));
   }
 
@@ -96,69 +89,6 @@ export class ExcelService {
       appointmentType: a.appointmentType,
       createdBy: `${a.user.firstName} ${a.user.lastName}`,
       notes: a.notes ?? '',
-    })));
-  }
-
-  async exportApprovals() {
-    const cases = await this.prisma.visaCase.findMany({
-      where: { currentStatus: 'VISA_OK' },
-      include: {
-        client: { select: { fullName: true, passportNumber: true } },
-        visaDetails: true,
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
-
-    return this.buildWorkbook('Visas approuvés', [
-      { header: 'N° dossier', key: 'caseNumber' },
-      { header: 'Client', key: 'clientName' },
-      { header: 'Passeport', key: 'passportNumber' },
-      { header: 'Pays', key: 'visaCountry' },
-      { header: 'Type', key: 'visaType' },
-      { header: 'N° visa', key: 'visaNumber' },
-      { header: 'Valide du', key: 'validFrom' },
-      { header: 'Valide jusqu\'au', key: 'validUntil' },
-      { header: 'Durée (jours)', key: 'durationDays' },
-      { header: 'Entrée', key: 'entryType' },
-      { header: 'Date approbation', key: 'approvedAt' },
-    ], cases.map((vc: { caseNumber: string; client: { fullName: string; passportNumber: string | null }; visaCountry: string; visaType: string; visaDetails: { visaNumber: string | null; validFrom: Date; validUntil: Date; durationDays: number; entryType: string } | null; updatedAt: Date }) => ({
-      caseNumber: vc.caseNumber,
-      clientName: vc.client.fullName,
-      passportNumber: vc.client.passportNumber ?? '',
-      visaCountry: vc.visaCountry,
-      visaType: vc.visaType,
-      visaNumber: vc.visaDetails?.visaNumber ?? '',
-      validFrom: vc.visaDetails?.validFrom?.toISOString() ?? '',
-      validUntil: vc.visaDetails?.validUntil?.toISOString() ?? '',
-      durationDays: vc.visaDetails?.durationDays ?? 0,
-      entryType: vc.visaDetails?.entryType ?? '',
-      approvedAt: vc.updatedAt.toISOString(),
-    })));
-  }
-
-  async exportRefusals() {
-    const cases = await this.prisma.visaCase.findMany({
-      where: { currentStatus: 'VISA_REFUSEE' },
-      include: { client: { select: { fullName: true, passportNumber: true } } },
-      orderBy: { updatedAt: 'desc' },
-    });
-
-    return this.buildWorkbook('Visas refusés', [
-      { header: 'N° dossier', key: 'caseNumber' },
-      { header: 'Client', key: 'clientName' },
-      { header: 'Passeport', key: 'passportNumber' },
-      { header: 'Pays', key: 'visaCountry' },
-      { header: 'Type', key: 'visaType' },
-      { header: 'Date refus', key: 'refusedAt' },
-      { header: 'Notes', key: 'notes' },
-    ], cases.map((vc: { caseNumber: string; client: { fullName: string; passportNumber: string | null }; visaCountry: string; visaType: string; updatedAt: Date; notes: string | null }) => ({
-      caseNumber: vc.caseNumber,
-      clientName: vc.client.fullName,
-      passportNumber: vc.client.passportNumber ?? '',
-      visaCountry: vc.visaCountry,
-      visaType: vc.visaType,
-      refusedAt: vc.updatedAt.toISOString(),
-      notes: vc.notes ?? '',
     })));
   }
 

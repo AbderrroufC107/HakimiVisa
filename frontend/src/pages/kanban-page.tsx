@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@/hooks';
 import { useKanbanBoard } from '@/hooks';
 import { KanbanBoard, KanbanFilters, CardDetailsDrawer } from '@/components/kanban';
+import type { KanbanColumnId } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ export function KanbanPage() {
   const { t } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [incompleteReason, setIncompleteReason] = useState('');
+  const [expandedColumnId, setExpandedColumnId] = useState<KanbanColumnId | null>(null);
 
   const {
     columns,
@@ -48,6 +50,10 @@ export function KanbanPage() {
     setIncompleteReason('');
   };
 
+  const toggleColumnExpansion = (columnId: KanbanColumnId) => {
+    setExpandedColumnId((current) => current === columnId ? null : columnId);
+  };
+
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -75,6 +81,8 @@ export function KanbanPage() {
             onViewCard={openDrawer}
             onMoveCard={moveCard}
             onTogglePaid={togglePaid}
+            expandedColumnId={expandedColumnId}
+            onToggleColumn={toggleColumnExpansion}
           />
         </div>
       )}

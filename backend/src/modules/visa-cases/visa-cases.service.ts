@@ -85,7 +85,7 @@ export class VisaCasesService {
     const { search, status, clientId, dateFrom, dateTo, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { archived: false };
     // An agency user only ever sees the cases it submitted.
     if (agencyId) {
       where.submittedByAgencyId = agencyId;
@@ -349,7 +349,7 @@ export class VisaCasesService {
     try {
       const visaCase = await this.prisma.visaCase.findUnique({
         where: { id: visaCaseId },
-        include: { client: true, visaDetails: true },
+        include: { client: true },
       });
       if (!visaCase) { this.logger.warn('Visa case not found for auto notification'); return; }
       // Same variable set as a manual send, so an auto message can quote the
@@ -450,8 +450,6 @@ export class VisaCasesService {
       EN_ATTENTE: 'Dossier soumis',
       EN_TRAITEMENT: 'Dossier en cours',
       RDV_OK: 'Rendez-vous programmé',
-      VISA_OK: 'Visa accordé',
-      VISA_REFUSEE: 'Visa refusé',
       LIVREE: 'Dossier livré',
     };
     return titles[status] ?? 'Mise à jour de votre dossier';
@@ -462,8 +460,6 @@ export class VisaCasesService {
       EN_ATTENTE: 'Votre demande a été soumise et est en attente de traitement.',
       EN_TRAITEMENT: 'Votre dossier est en cours d\'examen.',
       RDV_OK: 'Un rendez-vous a été programmé pour le dépôt de votre dossier.',
-      VISA_OK: 'Félicitations, votre visa a été accordé.',
-      VISA_REFUSEE: 'Votre demande de visa a été refusée.',
       LIVREE: 'Votre dossier a été livré avec succès.',
     };
     return messages[status] ?? 'Le statut de votre dossier a été mis à jour.';

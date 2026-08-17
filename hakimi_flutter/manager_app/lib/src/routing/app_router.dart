@@ -133,11 +133,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SettingsScreen(),
           ),
           GoRoute(
-            path: '/developer-settings',
-            name: 'developer-settings',
-            builder: (context, state) => const DevSettingsScreen(),
-          ),
-          GoRoute(
             path: '/visa-cases',
             name: 'visa-cases',
             builder: (context, state) => const VisaCasesListScreen(),

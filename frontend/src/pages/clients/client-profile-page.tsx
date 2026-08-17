@@ -18,7 +18,6 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle2,
-  XCircle,
   Loader2,
   Send,
   Upload,
@@ -424,10 +423,9 @@ export function ClientProfilePage() {
       </div>
 
       {stats && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title={t('clients:totalApplications')} value={stats.totalApplications} icon={FileText} color="#3b82f6" />
-          <StatCard title={t('clients:approved')} value={stats.approved} icon={CheckCircle2} color="#22c55e" trend={stats.approvalRate > 0 ? { value: stats.approvalRate, positive: true } : undefined} />
-          <StatCard title={t('clients:refused')} value={stats.refused} icon={XCircle} color="#ef4444" trend={stats.refusalRate > 0 ? { value: stats.refusalRate, positive: false } : undefined} />
+          <StatCard title={t('status:LIVREE')} value={stats.delivered} icon={CheckCircle2} color="#14b8a6" />
           <StatCard title={t('clients:pending')} value={stats.pending} icon={Clock} color="#f59e0b" />
           <StatCard title={t('clients:avgDays')} value={stats.avgProcessingTime} icon={Calendar} color="#8b5cf6" subtitle={t('clients:processingTime')} />
         </div>
@@ -524,24 +522,6 @@ export function ClientProfilePage() {
                     <CardTitle>{t('clients:statistics')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">{t('clients:approvalRate')}</span>
-                        <span className="font-semibold text-emerald-600">{stats.approvalRate}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${stats.approvalRate}%` }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-muted-foreground">{t('clients:refusalRate')}</span>
-                        <span className="font-semibold text-red-600">{stats.refusalRate}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${stats.refusalRate}%` }} />
-                      </div>
-                    </div>
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <div className="rounded-lg bg-muted/50 p-3 text-center">
                         <p className="text-2xl font-bold">{stats.totalCountries}</p>
@@ -608,12 +588,6 @@ export function ClientProfilePage() {
                         <span className="text-muted-foreground">{t('clients:opened')}</span>
                         <span className="font-medium">{new Date(vc.openingDate || vc.createdAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</span>
                       </div>
-                      {vc.visaDetails?.validUntil && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">{t('clients:validUntil')}</span>
-                          <span className="font-medium">{new Date(vc.visaDetails.validUntil).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="mt-4 flex gap-2">
                       <Button

@@ -1,6 +1,5 @@
 import {
   AppointmentType,
-  EntryType,
   NotificationType,
   PrismaClient,
   UserRole,
@@ -166,13 +165,13 @@ async function main() {
     [0, VisaStatus.EN_ATTENTE, 'France', 'Schengen Tourism'],
     [1, VisaStatus.EN_TRAITEMENT, 'France', 'Long Stay Student'],
     [2, VisaStatus.RDV_OK, 'Spain', 'Schengen Business'],
-    [3, VisaStatus.VISA_OK, 'Canada', 'Visitor Visa'],
-    [4, VisaStatus.VISA_REFUSEE, 'United States', 'B1/B2'],
+    [3, VisaStatus.RDV_OK, 'Canada', 'Visitor Visa'],
+    [4, VisaStatus.DOSSIER_INCOMPLET, 'United States', 'B1/B2'],
     [5, VisaStatus.EN_ATTENTE, 'Italy', 'Schengen Tourism'],
     [6, VisaStatus.EN_TRAITEMENT, 'Germany', 'Work Visa'],
     [7, VisaStatus.RDV_OK, 'Netherlands', 'Schengen Family Visit'],
-    [8, VisaStatus.VISA_OK, 'United Kingdom', 'Standard Visitor'],
-    [9, VisaStatus.VISA_REFUSEE, 'France', 'Schengen Tourism'],
+    [8, VisaStatus.RDV_OK, 'United Kingdom', 'Standard Visitor'],
+    [9, VisaStatus.DOSSIER_INCOMPLET, 'France', 'Schengen Tourism'],
   ] as const;
 
   const cases = [];
@@ -246,28 +245,6 @@ async function main() {
       },
     });
 
-    if (currentStatus === VisaStatus.VISA_OK) {
-      await prisma.visaDetails.upsert({
-        where: { visaCaseId: visaCase.id },
-        update: {
-          validFrom: addDays(15),
-          validUntil: addDays(105),
-          durationDays: 90,
-          entryType: EntryType.MULTIPLE,
-          visaNumber: `HV-${caseNumber}`,
-          notes: 'Approved sample visa.',
-        },
-        create: {
-          visaCaseId: visaCase.id,
-          validFrom: addDays(15),
-          validUntil: addDays(105),
-          durationDays: 90,
-          entryType: EntryType.MULTIPLE,
-          visaNumber: `HV-${caseNumber}`,
-          notes: 'Approved sample visa.',
-        },
-      });
-    }
   }
 
   const notifications = [

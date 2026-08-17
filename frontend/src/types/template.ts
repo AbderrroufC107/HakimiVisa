@@ -23,7 +23,7 @@ export interface CreateTemplateRequest {
   body: string;
 }
 
-export interface UpdateTemplateRequest extends Partial<CreateTemplateRequest> {}
+export type UpdateTemplateRequest = Partial<CreateTemplateRequest>;
 
 export interface RenderTemplateRequest {
   templateId?: string;
@@ -56,7 +56,7 @@ export interface WhatsappLinkResponse {
 /**
  * Grouped so the picker stays readable as the list grows, and so it is obvious
  * which values only exist once a step has happened — a template quoting the
- * appointment or the granted visa is refused until that data is recorded.
+ * appointment data is recorded.
  */
 export const TEMPLATE_VARIABLE_GROUPS = [
   {
@@ -70,10 +70,6 @@ export const TEMPLATE_VARIABLE_GROUPS = [
   {
     key: 'appointment',
     variables: ['appointment_date', 'appointment_time', 'appointment_center', 'appointment_type'],
-  },
-  {
-    key: 'visa',
-    variables: ['visa_valid_from', 'visa_valid_until', 'visa_duration', 'visa_number', 'entry_type'],
   },
   {
     key: 'agency',

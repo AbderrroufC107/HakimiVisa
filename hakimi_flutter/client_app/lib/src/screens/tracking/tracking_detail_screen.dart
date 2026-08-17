@@ -14,9 +14,7 @@ class TrackingDetailScreen extends ConsumerWidget {
     final asyncCase = ref.watch(trackingCaseDetailProvider(caseNumber));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Détail du dossier'),
-      ),
+      appBar: AppBar(title: const Text('Detail du dossier')),
       body: asyncCase.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => AppErrorWidget(
@@ -37,10 +35,6 @@ class TrackingDetailScreen extends ConsumerWidget {
                   _StatusCard(caseData: caseData),
                   const SizedBox(height: AppSpacing.md),
                   _TimelinePreview(caseData: caseData, caseNumber: caseNumber),
-                  if (caseData.visaDetails != null) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    _VisaDetailsSection(visaDetails: caseData.visaDetails!),
-                  ],
                   const SizedBox(height: AppSpacing.md),
                   _CaseInfoCard(caseData: caseData),
                   const SizedBox(height: AppSpacing.md),
@@ -116,10 +110,6 @@ class _StatusCard extends StatelessWidget {
         return Icons.sync;
       case VisaStatus.rdvOk:
         return Icons.event_available;
-      case VisaStatus.visaOk:
-        return Icons.check_circle;
-      case VisaStatus.visaRefusee:
-        return Icons.cancel;
       case VisaStatus.livree:
         return Icons.inventory_2;
     }
@@ -169,8 +159,11 @@ class _TimelinePreview extends StatelessWidget {
                     children: [
                       Column(
                         children: [
-                          Icon(Icons.circle,
-                              size: 12, color: history.newStatus.color),
+                          Icon(
+                            Icons.circle,
+                            size: 12,
+                            color: history.newStatus.color,
+                          ),
                           Container(
                             width: 2,
                             height: 30,
@@ -209,48 +202,6 @@ class _TimelinePreview extends StatelessWidget {
   }
 }
 
-class _VisaDetailsSection extends StatelessWidget {
-  final VisaDetailsModel visaDetails;
-
-  const _VisaDetailsSection({required this.visaDetails});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SectionHeader(title: 'Détails du visa'),
-            const SizedBox(height: AppSpacing.sm),
-            _DetailRow(
-              label: 'Numéro de visa',
-              value: visaDetails.visaNumber ?? '-',
-            ),
-            _DetailRow(
-              label: 'Valide du',
-              value: visaDetails.validFrom.formatDate(),
-            ),
-            _DetailRow(
-              label: 'Valide jusqu\'au',
-              value: visaDetails.validUntil.formatDate(),
-            ),
-            _DetailRow(
-              label: 'Durée',
-              value: '${visaDetails.durationDays} jours',
-            ),
-            _DetailRow(
-              label: 'Type d\'entrée',
-              value: visaDetails.entryType.displayName,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CaseInfoCard extends StatelessWidget {
   final VisaCaseModel caseData;
 
@@ -266,11 +217,11 @@ class _CaseInfoCard extends StatelessWidget {
           children: [
             const SectionHeader(title: 'Informations du dossier'),
             const SizedBox(height: AppSpacing.sm),
-            _DetailRow(label: 'Numéro de dossier', value: caseData.caseNumber),
+            _DetailRow(label: 'Numero de dossier', value: caseData.caseNumber),
             _DetailRow(label: 'Pays de visa', value: caseData.visaCountry),
             _DetailRow(label: 'Type de visa', value: caseData.visaType),
             _DetailRow(
-              label: 'Date d\'ouverture',
+              label: 'Date ouverture',
               value: caseData.openingDate.formatDate(),
             ),
             if (caseData.notes != null && caseData.notes!.isNotEmpty)
@@ -295,11 +246,14 @@ class _ContactFooter extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.support_agent_outlined,
-              size: 28, color: theme.colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.support_agent_outlined,
+            size: 28,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Besoin d\'aide ? Contactez notre agence',
+            'Besoin aide ? Contactez notre agence',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

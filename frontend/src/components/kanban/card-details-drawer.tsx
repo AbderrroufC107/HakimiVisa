@@ -22,8 +22,6 @@ const statusColors: Record<VisaStatus, string> = {
   DOSSIER_INCOMPLET: 'bg-amber-100 text-amber-800',
   EN_TRAITEMENT: 'bg-blue-100 text-blue-800',
   RDV_OK: 'bg-orange-100 text-orange-800',
-  VISA_OK: 'bg-green-100 text-green-800',
-  VISA_REFUSEE: 'bg-red-100 text-red-800',
   LIVREE: 'bg-teal-100 text-teal-800',
 };
 

@@ -49,10 +49,6 @@ class StatusBadge extends StatelessWidget {
         return l10n.translate('statusEnTraitement');
       case VisaStatus.rdvOk:
         return l10n.translate('statusRdvOk');
-      case VisaStatus.visaOk:
-        return l10n.translate('statusVisaOk');
-      case VisaStatus.visaRefusee:
-        return l10n.translate('statusVisaRefusee');
       case VisaStatus.livree:
         return l10n.translate('statusLivree');
     }

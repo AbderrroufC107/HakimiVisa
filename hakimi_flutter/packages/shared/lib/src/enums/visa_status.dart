@@ -5,8 +5,6 @@ enum VisaStatus {
   dossierIncomplet,
   enTraitement,
   rdvOk,
-  visaOk,
-  visaRefusee,
   livree;
 
   String get displayName {
@@ -19,12 +17,8 @@ enum VisaStatus {
         return 'En traitement';
       case VisaStatus.rdvOk:
         return 'RDV OK';
-      case VisaStatus.visaOk:
-        return 'Visa OK';
-      case VisaStatus.visaRefusee:
-        return 'Visa refusée';
       case VisaStatus.livree:
-        return 'Livrée';
+        return 'Livree';
     }
   }
 
@@ -38,10 +32,6 @@ enum VisaStatus {
         return const Color(0xFF3B82F6);
       case VisaStatus.rdvOk:
         return const Color(0xFF8B5CF6);
-      case VisaStatus.visaOk:
-        return const Color(0xFF10B981);
-      case VisaStatus.visaRefusee:
-        return const Color(0xFFEF4444);
       case VisaStatus.livree:
         return const Color(0xFF22C55E);
     }
@@ -57,10 +47,6 @@ enum VisaStatus {
         return 'EN_TRAITEMENT';
       case VisaStatus.rdvOk:
         return 'RDV_OK';
-      case VisaStatus.visaOk:
-        return 'VISA_OK';
-      case VisaStatus.visaRefusee:
-        return 'VISA_REFUSEE';
       case VisaStatus.livree:
         return 'LIVREE';
     }

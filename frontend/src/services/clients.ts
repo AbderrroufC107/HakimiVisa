@@ -82,8 +82,6 @@ export const clientsService = {
     rdvOk: number;
     incomplete: number;
     livree: number;
-    visaOk: number;
-    refuse: number;
   }> {
     return api.get('/clients/dashboard');
   },

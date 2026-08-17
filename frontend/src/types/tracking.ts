@@ -26,14 +26,6 @@ export interface TrackingAppointment {
   appointmentType: string;
 }
 
-export interface TrackingVisaDetails {
-  validFrom: string;
-  validUntil: string;
-  durationDays: number;
-  entryType: string;
-  visaNumber: string | null;
-}
-
 export interface TrackingStatusHistory {
   oldStatus: VisaStatus;
   newStatus: VisaStatus;
@@ -57,6 +49,5 @@ export interface TrackingCaseDetail {
     passportExpiry?: string | null;
   };
   appointments: TrackingAppointment[];
-  visaDetails: TrackingVisaDetails | null;
   statusHistories: TrackingStatusHistory[];
 }

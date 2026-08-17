@@ -38,7 +38,6 @@ const mockClient = {
   whatsappNumber: '+212600000001',
   email: 'john@test.com',
   passportNumber: 'AB123456',
-  nationality: 'Morocco',
   notes: 'Test client',
   createdBy: mockUserId,
   createdAt: mockToday,
@@ -387,12 +386,12 @@ describe('Database Tests', () => {
     });
 
     it('should record old and new status in history', async () => {
-      await visaCasesService.updateStatus(mockId, { status: 'VISA_OK' as VisaStatus }, mockUserId);
+      await visaCasesService.updateStatus(mockId, { status: 'RDV_OK' as VisaStatus }, mockUserId);
       expect(mockPrisma.statusHistory.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             oldStatus: 'EN_ATTENTE',
-            newStatus: 'VISA_OK',
+            newStatus: 'RDV_OK',
           }),
         }),
       );

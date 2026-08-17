@@ -4,7 +4,7 @@ export interface MockVisaCase {
   clientId: string;
   visaCountry: string;
   visaType: string;
-  currentStatus: 'EN_ATTENTE' | 'EN_TRAITEMENT' | 'RDV_OK' | 'VISA_OK' | 'VISA_REFUSEE';
+  currentStatus: 'EN_ATTENTE' | 'DOSSIER_INCOMPLET' | 'EN_TRAITEMENT' | 'RDV_OK' | 'LIVREE';
   archived: boolean;
   openingDate: Date;
   notes: string | null;
@@ -18,8 +18,8 @@ export function generateMockVisaCases(count: number): MockVisaCase[] {
     'EN_ATTENTE',
     'EN_TRAITEMENT',
     'RDV_OK',
-    'VISA_OK',
-    'VISA_REFUSEE',
+    'DOSSIER_INCOMPLET',
+    'LIVREE',
   ];
   const countries = ['France', 'Spain', 'US', 'Canada', 'UK'];
   const visaTypes = ['Schengen', 'B1', 'F1', 'T4', 'Visitor'];

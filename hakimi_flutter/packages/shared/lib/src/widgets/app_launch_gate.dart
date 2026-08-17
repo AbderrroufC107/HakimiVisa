@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hakimi_shared/src/environment/environment_manager.dart';
@@ -54,7 +55,7 @@ class _AppLaunchGateState extends ConsumerState<AppLaunchGate> {
       return const _LanguageSelectionScreen();
     }
 
-    if (_showSetup) {
+    if (_showSetup && !kReleaseMode) {
       return Navigator(
         onGenerateRoute: (settings) => MaterialPageRoute(
           builder: (_) => DevServerSetupScreen(onSaved: _onServerSaved),
@@ -68,7 +69,7 @@ class _AppLaunchGateState extends ConsumerState<AppLaunchGate> {
           await env.retryConnection();
           if (mounted) setState(() {});
         },
-        onChangeServer: () {
+        onChangeServer: kReleaseMode ? null : () {
           setState(() => _showSetup = true);
         },
       );
@@ -84,7 +85,7 @@ class _AppLaunchGateState extends ConsumerState<AppLaunchGate> {
 
 class _UnableToConnectPage extends StatelessWidget {
   final VoidCallback onRetry;
-  final VoidCallback onChangeServer;
+  final VoidCallback? onChangeServer;
 
   const _UnableToConnectPage({
     required this.onRetry,
@@ -118,8 +119,7 @@ class _UnableToConnectPage extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 'Unable to connect to HakimiVisa server.\n'
-                'Make sure your computer and phone are '
-                'connected to the same Wi-Fi network.',
+                'Check your internet connection and try again.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
@@ -136,11 +136,12 @@ class _UnableToConnectPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: onChangeServer,
-                icon: const Icon(Icons.settings),
-                label: const Text('Change Server'),
-              ),
+              if (onChangeServer != null)
+                TextButton.icon(
+                  onPressed: onChangeServer,
+                  icon: const Icon(Icons.settings),
+                  label: const Text('Change Server'),
+                ),
             ],
           ),
         ),

@@ -10,7 +10,7 @@ interface BulkStatusChangeDialogProps {
   onConfirm: (status: string) => void;
 }
 
-const STATUSES: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE'];
+const STATUSES: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
 
 export function BulkStatusChangeDialog({ open, onOpenChange, count, onConfirm }: BulkStatusChangeDialogProps) {
   const { t } = useTranslation();

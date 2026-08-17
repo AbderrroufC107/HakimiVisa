@@ -29,18 +29,6 @@ export class ExcelController {
     this.sendExcel(res, buffer, 'rendez-vous.xlsx');
   }
 
-  @Get('approvals')
-  async exportApprovals(@Res() res: Response) {
-    const buffer = await this.excelService.exportApprovals();
-    this.sendExcel(res, buffer, 'visas-approuves.xlsx');
-  }
-
-  @Get('refusals')
-  async exportRefusals(@Res() res: Response) {
-    const buffer = await this.excelService.exportRefusals();
-    this.sendExcel(res, buffer, 'visas-refuses.xlsx');
-  }
-
   private sendExcel(res: Response, buffer: Buffer, filename: string) {
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

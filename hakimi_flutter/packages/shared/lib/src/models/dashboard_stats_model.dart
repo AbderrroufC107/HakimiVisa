@@ -4,8 +4,8 @@ class DashboardStats {
   final int enAttente;
   final int enTraitement;
   final int rdvOk;
-  final int visaOk;
-  final int refuse;
+  final int incomplete;
+  final int livree;
 
   const DashboardStats({
     this.totalClients = 0,
@@ -13,8 +13,8 @@ class DashboardStats {
     this.enAttente = 0,
     this.enTraitement = 0,
     this.rdvOk = 0,
-    this.visaOk = 0,
-    this.refuse = 0,
+    this.incomplete = 0,
+    this.livree = 0,
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
@@ -24,8 +24,8 @@ class DashboardStats {
       enAttente: (json['en_attente'] ?? json['enAttente']) as int? ?? 0,
       enTraitement: (json['en_traitement'] ?? json['enTraitement']) as int? ?? 0,
       rdvOk: (json['rdv_ok'] ?? json['rdvOk']) as int? ?? 0,
-      visaOk: (json['visa_ok'] ?? json['visaOk']) as int? ?? 0,
-      refuse: json['refuse'] as int? ?? 0,
+      incomplete: (json['incomplete'] ?? json['dossierIncomplet']) as int? ?? 0,
+      livree: (json['livree'] ?? json['delivered']) as int? ?? 0,
     );
   }
 
@@ -36,8 +36,8 @@ class DashboardStats {
       'en_attente': enAttente,
       'en_traitement': enTraitement,
       'rdv_ok': rdvOk,
-      'visa_ok': visaOk,
-      'refuse': refuse,
+      'incomplete': incomplete,
+      'livree': livree,
     };
   }
 }

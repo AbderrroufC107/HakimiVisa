@@ -2,13 +2,13 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Clock, Printer, FileText, Loader2, ChevronRight, MessageCircle, Mail, IdCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Clock, Printer, Loader2, ChevronRight, MessageCircle, Mail, IdCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { CaseFilesPanel } from '@/components/visa-cases/case-files-panel';
 import { RequiredDocumentsChecklist } from '@/components/visa-cases/required-documents-checklist';
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
-import { visaCasesService, pdfService, visaDetailsService, appointmentsService, templatesService } from '@/services';
-import { ROUTES, STATUS_PIPELINE } from '@/constants';
+import { visaCasesService, pdfService, appointmentsService, templatesService } from '@/services';
+import { NEXT_WORKFLOW_STATUS, ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/shared/badge';
@@ -22,11 +22,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { VISA_STATUS_COLORS, type VisaStatus, type EntryType, type ApiError } from '@/types';
+import { VISA_STATUS_COLORS, type VisaStatus, type ApiError } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/providers';
 
-const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE', 'LIVREE'];
+const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
 
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
@@ -60,12 +60,6 @@ export function VisaCaseDetailPage() {
   });
 
   const visaCase = data;
-
-  const { data: visaDetails } = useQuery({
-    queryKey: ['visa-details', id],
-    queryFn: () => visaDetailsService.findByVisaCase(id!),
-    enabled: !!id && visaCase?.currentStatus === 'VISA_OK',
-  });
 
   const { data: appointments = null } = useQuery({
     queryKey: ['appointments', 'by-case', id],
@@ -101,9 +95,8 @@ export function VisaCaseDetailPage() {
 
   const handleNextStatus = () => {
     if (!visaCase) return;
-    const currentIdx = STATUS_PIPELINE.indexOf(visaCase.currentStatus);
-    if (currentIdx < 0 || currentIdx >= STATUS_PIPELINE.length - 1) return;
-    const next = STATUS_PIPELINE[currentIdx + 1]!;
+    const next = NEXT_WORKFLOW_STATUS[visaCase.currentStatus];
+    if (!next) return;
     if (next === 'DOSSIER_INCOMPLET') {
       setIncompleteDialogOpen(true);
       return;
@@ -159,25 +152,6 @@ export function VisaCaseDetailPage() {
     onError: () => toast.error(t('visaCases:updateFailed')),
   });
 
-  const createVisaDetailsMutation = useMutation({
-    mutationFn: (data: { validFrom: string; validUntil: string; durationDays: number; entryType: EntryType; visaNumber?: string; notes?: string }) =>
-      visaDetailsService.create(id!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['visa-details', id] });
-      toast.success(t('visaCases:detailsAdded'));
-    },
-    onError: () => toast.error(t('common:error')),
-  });
-
-  const [vdForm, setVdForm] = useState({
-    validFrom: '',
-    validUntil: '',
-    durationDays: 30,
-    entryType: 'SINGLE' as EntryType,
-    visaNumber: '',
-    notes: '',
-  });
-
   if (isLoading) {
     return <DetailSkeleton />;
   }
@@ -187,7 +161,7 @@ export function VisaCaseDetailPage() {
   }
 
   const showPriceField = visaCase.currentStatus === 'RDV_OK' || (visaCase.price != null && visaCase.price > 0);
-  const showPaidToggle = visaCase.currentStatus === 'VISA_OK' || visaCase.currentStatus === 'LIVREE';
+  const showPaidToggle = visaCase.currentStatus === 'LIVREE';
 
   return (
     <div className="space-y-6">
@@ -231,8 +205,7 @@ export function VisaCaseDetailPage() {
             ))}
           </SelectContent>
         </Select>
-        {STATUS_PIPELINE.indexOf(visaCase.currentStatus) >= 0 &&
-          STATUS_PIPELINE.indexOf(visaCase.currentStatus) < STATUS_PIPELINE.length - 1 && (
+      {NEXT_WORKFLOW_STATUS[visaCase.currentStatus] && (
           <Button
             variant="outline"
             size="sm"
@@ -322,7 +295,7 @@ export function VisaCaseDetailPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>{t('visaCases:visaDetails')}</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('visaCases:dossierState')}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">{t('clients:client')}</span>
@@ -481,91 +454,6 @@ export function VisaCaseDetailPage() {
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {visaCase.currentStatus === 'VISA_OK' && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <CardTitle>{t('visaCases:visaDetails')} ({t('visaCases:approved')})</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {visaDetails ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('visaCases:validFrom')}</p>
-                  <p className="text-sm font-medium">{new Date(visaDetails.validFrom).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('visaCases:validUntil')}</p>
-                  <p className="text-sm font-medium">{new Date(visaDetails.validUntil).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('visaCases:durationDays')}</p>
-                  <p className="text-sm font-medium">{visaDetails.durationDays}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('visaCases:entryType')}</p>
-                  <p className="text-sm font-medium">{visaDetails.entryType === 'MULTIPLE' ? t('entryType:MULTIPLE') : t('entryType:SINGLE')}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('visaCases:visaNumber')}</p>
-                  <p className="text-sm font-medium">{visaDetails.visaNumber || '-'}</p>
-                </div>
-                {visaDetails.notes && (
-                  <div className="sm:col-span-3">
-                    <p className="text-xs text-muted-foreground">{t('common:notes')}</p>
-                    <p className="text-sm">{visaDetails.notes}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">{t('visaCases:addVisaDetails')}</p>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">{t('visaCases:validFrom')}</Label>
-                    <Input type="date" size={1} value={vdForm.validFrom} onChange={(e) => setVdForm({ ...vdForm, validFrom: e.target.value })} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">{t('visaCases:validUntil')}</Label>
-                    <Input type="date" value={vdForm.validUntil} onChange={(e) => setVdForm({ ...vdForm, validUntil: e.target.value })} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">{t('visaCases:durationDays')}</Label>
-                    <Input type="number" min={1} value={vdForm.durationDays} onChange={(e) => setVdForm({ ...vdForm, durationDays: Number(e.target.value) })} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">{t('visaCases:entryType')}</Label>
-                    <Select value={vdForm.entryType} onValueChange={(v: EntryType) => setVdForm({ ...vdForm, entryType: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SINGLE">{t('entryType:SINGLE')}</SelectItem>
-                        <SelectItem value="MULTIPLE">{t('entryType:MULTIPLE')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">{t('visaCases:visaNumber')}</Label>
-                    <Input value={vdForm.visaNumber} onChange={(e) => setVdForm({ ...vdForm, visaNumber: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">{t('common:notes')}</Label>
-                  <Input value={vdForm.notes} onChange={(e) => setVdForm({ ...vdForm, notes: e.target.value })} />
-                </div>
-                <Button size="sm" onClick={() => {
-                  if (!vdForm.validFrom || !vdForm.validUntil) { toast.error(t('visaCases:requiredFields')); return; }
-                  createVisaDetailsMutation.mutate(vdForm);
-                }}>
-                  {t('visaCases:saveDetails')}
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

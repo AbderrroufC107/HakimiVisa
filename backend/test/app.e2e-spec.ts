@@ -7,7 +7,7 @@ import { AppGateway } from '../src/modules/gateway/app.gateway';
 import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
 import { mockDeep, DeepMockProxy } from 'jest-mock-extended';
-import { PrismaClient, VisaStatus, AppointmentType, EntryType, NotificationType, AuditAction } from '@prisma/client';
+import { PrismaClient, VisaStatus, AppointmentType, NotificationType, AuditAction } from '@prisma/client';
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('$2a$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1Qlq5Y7H7N7H7N7H7N7H7N7H7O'),
@@ -38,7 +38,6 @@ const mockClient = {
   whatsappNumber: '+212600000001',
   email: 'john@test.com',
   passportNumber: 'AB123456',
-  nationality: 'Morocco',
   notes: 'Test client',
   createdBy: mockUserId,
   createdAt: mockToday,
@@ -69,19 +68,6 @@ const mockAppointment = {
   appointmentType: 'VFS' as AppointmentType,
   notes: 'Test appointment',
   userId: mockUserId,
-  createdAt: mockToday,
-  updatedAt: mockToday,
-};
-
-const mockVisaDetails = {
-  id: mockId,
-  visaCaseId: mockId,
-  validFrom: new Date('2026-07-01'),
-  validUntil: new Date('2027-07-01'),
-  durationDays: 90,
-  entryType: 'SINGLE' as EntryType,
-  visaNumber: 'V123456',
-  notes: 'Test visa',
   createdAt: mockToday,
   updatedAt: mockToday,
 };
@@ -218,13 +204,6 @@ function configureAppointmentMocks(mockPrisma: DeepMockProxy<PrismaClient>) {
   mockPrisma.appointment.delete.mockResolvedValue(mockAppointment);
 }
 
-function configureVisaDetailsMocks(mockPrisma: DeepMockProxy<PrismaClient>) {
-  mockPrisma.visaDetails.findUnique.mockResolvedValue(mockVisaDetails);
-  mockPrisma.visaDetails.create.mockResolvedValue(mockVisaDetails);
-  mockPrisma.visaDetails.update.mockResolvedValue(mockVisaDetails);
-  mockPrisma.visaDetails.delete.mockResolvedValue(mockVisaDetails);
-}
-
 function configureNotificationMocks(mockPrisma: DeepMockProxy<PrismaClient>) {
   mockPrisma.notification.create.mockResolvedValue(mockNotification);
   mockPrisma.notification.findMany.mockResolvedValue([mockNotification]);
@@ -261,7 +240,6 @@ describe('App (e2e)', () => {
     configureClientMocks(mockPrisma);
     configureVisaCaseMocks(mockPrisma);
     configureAppointmentMocks(mockPrisma);
-    configureVisaDetailsMocks(mockPrisma);
     configureNotificationMocks(mockPrisma);
     configureBackupMocks(mockPrisma);
     configureSearchMocks(mockPrisma);
@@ -468,7 +446,6 @@ describe('App (e2e)', () => {
           phoneNumber: '+212600000001',
           email: 'john@test.com',
           passportNumber: 'AB123456',
-          nationality: 'Morocco',
         })
         .expect(201);
       expect(res.body.data).toHaveProperty('id');
@@ -595,7 +572,6 @@ describe('App (e2e)', () => {
           ...mockCase,
           statusHistories: [],
           appointments: [],
-          visaDetails: null,
           _count: { visaCases: 1, internalNotes: 0 },
         }],
         _count: { visaCases: 1, internalNotes: 0 },
@@ -839,80 +815,6 @@ describe('App (e2e)', () => {
     it('DELETE /api/appointments/:id should remove', async () => {
       const res = await request(app.getHttpServer())
         .delete(`/api/appointments/${mockId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-    });
-  });
-
-  describe('Visa Details', () => {
-    const visaDetailsUrl = `/api/visa-cases/${mockId}/visa-details`;
-
-    it('POST should create visa details', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValueOnce({ ...mockCase, currentStatus: 'VISA_OK' as VisaStatus });
-      mockPrisma.visaDetails.findUnique.mockResolvedValueOnce(null);
-      const res = await request(app.getHttpServer())
-        .post(visaDetailsUrl)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          validFrom: '2026-07-01',
-          validUntil: '2027-07-01',
-          durationDays: 90,
-          entryType: 'SINGLE',
-          visaNumber: 'V123456',
-        })
-        .expect(201);
-      expect(res.body.data).toHaveProperty('id');
-    });
-
-    it('POST should reject when status is not VISA_OK', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValueOnce(mockCase);
-      const res = await request(app.getHttpServer())
-        .post(visaDetailsUrl)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          validFrom: '2026-07-01',
-          validUntil: '2027-07-01',
-          durationDays: 90,
-          entryType: 'SINGLE',
-        })
-        .expect(400);
-    });
-
-    it('POST should reject when details already exist', async () => {
-      mockPrisma.visaCase.findUnique.mockResolvedValueOnce({ ...mockCase, currentStatus: 'VISA_OK' as VisaStatus });
-      mockPrisma.visaDetails.findUnique.mockResolvedValueOnce(mockVisaDetails);
-      const res = await request(app.getHttpServer())
-        .post(visaDetailsUrl)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          validFrom: '2026-07-01',
-          validUntil: '2027-07-01',
-          durationDays: 90,
-          entryType: 'SINGLE',
-        })
-        .expect(400);
-    });
-
-    it('GET should find by visa case', async () => {
-      const res = await request(app.getHttpServer())
-        .get(visaDetailsUrl)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
-      expect(res.body.data).toHaveProperty('visaCaseId');
-    });
-
-    it('PATCH should update visa details', async () => {
-      const res = await request(app.getHttpServer())
-        .patch(visaDetailsUrl)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ durationDays: 180 })
-        .expect(200);
-      expect(res.body.data).toBeDefined();
-    });
-
-    it('DELETE should remove visa details', async () => {
-      const res = await request(app.getHttpServer())
-        .delete(visaDetailsUrl)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
     });

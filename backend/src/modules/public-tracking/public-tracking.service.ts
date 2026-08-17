@@ -16,12 +16,12 @@ export class PublicTrackingService {
       throw new BadRequestException('Indiquez un numéro de passeport ou un numéro de téléphone');
     }
 
-    const client = await this.prisma.client.findFirst({
-      where: trimmedPassport
-        ? { passportNumber: { equals: trimmedPassport } }
-        : { phoneNumber: { contains: trimmedPhone } },
-      select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
-    });
+    const client = trimmedPassport
+      ? await this.prisma.client.findFirst({
+          where: { passportNumber: { equals: trimmedPassport } },
+          select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
+        })
+      : await this.findClientByPhone(trimmedPhone);
 
     if (!client) {
       throw new NotFoundException('Aucun dossier trouvé avec ces informations');
@@ -93,15 +93,6 @@ export class PublicTrackingService {
             appointmentTime: true,
             appointmentCenter: true,
             appointmentType: true,
-          },
-        },
-        visaDetails: {
-          select: {
-            validFrom: true,
-            validUntil: true,
-            durationDays: true,
-            entryType: true,
-            visaNumber: true,
           },
         },
         statusHistories: {
@@ -188,12 +179,84 @@ export class PublicTrackingService {
   }
 
   private async getClientIdByPhone(phone: string) {
-    const client = await this.prisma.client.findFirst({
-      where: { phoneNumber: { contains: phone } },
-      select: { id: true },
-    });
+    const client = await this.findClientByPhone(phone);
     if (!client) return null;
     return client.id;
+  }
+
+  private async findClientByPhone(phone?: string) {
+    const candidates = this.phoneSearchCandidates(phone);
+
+    if (candidates.length === 0) return null;
+
+    const clients = await this.prisma.client.findMany({
+      where: {
+        OR: candidates.map((candidate) => ({
+          phoneNumber: { contains: candidate },
+        })),
+      },
+      take: 25,
+      select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
+    });
+
+    if (clients.length === 0) return null;
+
+    return (
+      clients.find((client) => this.samePhone(client.phoneNumber, phone)) ??
+      clients[0]
+    );
+  }
+
+  private phoneSearchCandidates(phone?: string) {
+    const raw = phone?.trim();
+    if (!raw) return [];
+
+    const digits = this.phoneDigits(raw);
+    const candidates = new Set<string>([raw]);
+
+    for (const variant of this.phoneVariants(digits)) {
+      candidates.add(variant);
+      candidates.add(`+${variant}`);
+    }
+
+    if (digits.length >= 8) {
+      candidates.add(digits.slice(-8));
+    }
+
+    return [...candidates].filter(Boolean);
+  }
+
+  private samePhone(storedPhone: string | null | undefined, queryPhone: string | null | undefined) {
+    const storedDigits = this.phoneDigits(storedPhone);
+    const queryDigits = this.phoneDigits(queryPhone);
+
+    if (!storedDigits || !queryDigits) return false;
+
+    const storedVariants = new Set(this.phoneVariants(storedDigits));
+    const queryVariants = this.phoneVariants(queryDigits);
+
+    return queryVariants.some((variant) => storedVariants.has(variant));
+  }
+
+  private phoneVariants(digits: string) {
+    const normalized = digits.startsWith('00') ? digits.slice(2) : digits;
+    const variants = new Set<string>();
+
+    if (normalized) variants.add(normalized);
+
+    if (normalized.startsWith('213') && normalized.length > 3) {
+      variants.add(`0${normalized.slice(3)}`);
+    }
+
+    if (normalized.startsWith('0') && normalized.length > 1) {
+      variants.add(`213${normalized.slice(1)}`);
+    }
+
+    return [...variants];
+  }
+
+  private phoneDigits(phone: string | null | undefined) {
+    return (phone ?? '').replace(/\D/g, '');
   }
 
   private async getVisaCaseIdsByClientId(clientId: string) {
@@ -302,8 +365,6 @@ export class PublicTrackingService {
       EN_ATTENTE: 'Dossier soumis',
       EN_TRAITEMENT: 'Dossier en cours de traitement',
       RDV_OK: 'Rendez-vous programmé',
-      VISA_OK: 'Visa accordé',
-      VISA_REFUSEE: 'Visa refusé',
     };
     return titles[status] ?? 'Mise à jour du dossier';
   }
@@ -313,8 +374,6 @@ export class PublicTrackingService {
       EN_ATTENTE: 'Votre demande de visa a été soumise et est en attente de traitement.',
       EN_TRAITEMENT: 'Votre dossier est en cours d\'examen par nos services.',
       RDV_OK: 'Un rendez-vous a été programmé pour le dépôt de votre dossier.',
-      VISA_OK: 'Félicitations, votre visa a été accordé.',
-      VISA_REFUSEE: 'Nous regrettons de vous informer que votre demande de visa a été refusée.',
     };
     return messages[status] ?? 'Le statut de votre dossier a été mis à jour.';
   }

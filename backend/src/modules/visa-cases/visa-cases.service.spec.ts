@@ -174,7 +174,7 @@ describe('VisaCasesService', () => {
       const result = await service.findAll(query);
 
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith({
-        where: {},
+        where: { archived: false },
         skip: 0,
         take: 20,
         orderBy: { createdAt: 'desc' },
@@ -200,7 +200,7 @@ describe('VisaCasesService', () => {
     });
 
     it('should filter by status', async () => {
-      const query: QueryVisaCaseDto = { status: 'VISA_OK' as any };
+      const query: QueryVisaCaseDto = { status: 'RDV_OK' as any };
       mockPrisma.visaCase.findMany.mockResolvedValue([] as any);
       mockPrisma.visaCase.count.mockResolvedValue(0);
 
@@ -208,7 +208,7 @@ describe('VisaCasesService', () => {
 
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { currentStatus: 'VISA_OK' },
+          where: { archived: false, currentStatus: 'RDV_OK' },
         }),
       );
     });
@@ -222,7 +222,7 @@ describe('VisaCasesService', () => {
 
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { clientId: 'client-1' },
+          where: { archived: false, clientId: 'client-1' },
         }),
       );
     });
@@ -237,6 +237,7 @@ describe('VisaCasesService', () => {
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
+            archived: false,
             OR: [
               { caseNumber: { contains: 'VISA' } },
               { client: { fullName: { contains: 'VISA' } } },
@@ -259,6 +260,7 @@ describe('VisaCasesService', () => {
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
+            archived: false,
             currentStatus: 'EN_ATTENTE',
             clientId: 'client-1',
             OR: [

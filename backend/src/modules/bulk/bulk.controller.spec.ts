@@ -18,7 +18,7 @@ describe('BulkController', () => {
 
   describe('statusChange', () => {
     it('should call service.statusChange with dto and userId', async () => {
-      const dto = { ids: ['case-1'], status: 'VISA_OK' as const };
+      const dto = { ids: ['case-1'], status: 'RDV_OK' as const };
       const expected = { total: 1, successful: 1, failed: 0, items: [] };
       mockService.statusChange.mockResolvedValue(expected);
 

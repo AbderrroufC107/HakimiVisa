@@ -7,10 +7,8 @@ import { Button } from '@/components/ui/button';
 import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, Loader2, IdCard, Phone, Globe2, Building2 } from 'lucide-react';
 import { templatesService } from '@/services';
 import { AppointmentPicker } from './appointment-picker';
-import { STATUS_PIPELINE } from '@/constants';
+import { NEXT_WORKFLOW_STATUS, PREVIOUS_WORKFLOW_STATUS } from '@/constants';
 import type { VisaCase, VisaStatus, ApiError } from '@/types';
-
-const COLUMN_FLOW = STATUS_PIPELINE;
 
 interface VisaCaseCardProps {
   card: VisaCase;
@@ -76,8 +74,6 @@ const statusAccent: Record<VisaStatus, string> = {
   EN_ATTENTE: 'bg-yellow-500',
   EN_TRAITEMENT: 'bg-blue-500',
   RDV_OK: 'bg-orange-500',
-  VISA_OK: 'bg-emerald-500',
-  VISA_REFUSEE: 'bg-red-500',
   LIVREE: 'bg-teal-500',
 };
 
@@ -120,11 +116,10 @@ export const VisaCaseCard = memo(function VisaCaseCard({
       }
     : undefined;
 
-  const currentIndex = COLUMN_FLOW.indexOf(card.currentStatus);
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex >= 0 && currentIndex < COLUMN_FLOW.length - 1;
-  const prevStatus = hasPrev ? COLUMN_FLOW[currentIndex - 1] : null;
-  const nextStatus = hasNext ? COLUMN_FLOW[currentIndex + 1] : null;
+  const prevStatus = PREVIOUS_WORKFLOW_STATUS[card.currentStatus] ?? null;
+  const nextStatus = NEXT_WORKFLOW_STATUS[card.currentStatus] ?? null;
+  const hasPrev = prevStatus !== null;
+  const hasNext = nextStatus !== null;
   const isLivree = card.currentStatus === 'LIVREE';
   const isRdvOk = card.currentStatus === 'RDV_OK';
   const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null);

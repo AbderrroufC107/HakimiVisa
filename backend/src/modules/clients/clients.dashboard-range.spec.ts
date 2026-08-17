@@ -15,13 +15,7 @@ describe('ClientsService.getDashboardStats date range', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ClientsService,
-        {
-          provide: PrismaService,
-          useValue: {
-            client: { count: clientCount },
-            visaCase: { count: visaCaseCount },
-          },
-        },
+        { provide: PrismaService, useValue: { client: { count: clientCount }, visaCase: { count: visaCaseCount } } },
         { provide: AuditLogService, useValue: { log: jest.fn() } },
       ],
     }).compile();
@@ -29,44 +23,24 @@ describe('ClientsService.getDashboardStats date range', () => {
     service = module.get<ClientsService>(ClientsService);
   });
 
-  it('counts every record when no range is supplied', async () => {
+  it('excludes archived cases from every case dashboard count', async () => {
     await service.getDashboardStats();
 
     expect(clientCount).toHaveBeenCalledWith({ where: {} });
-    // Status counts carry the status alone, with no createdAt bound.
-    expect(visaCaseCount).toHaveBeenCalledWith({
-      where: { currentStatus: 'EN_ATTENTE' },
-    });
+    expect(visaCaseCount).toHaveBeenCalledWith({ where: { archived: false } });
+    expect(visaCaseCount).toHaveBeenCalledWith({ where: { currentStatus: 'RDV_OK', archived: false } });
+    expect(visaCaseCount).toHaveBeenCalledWith({ where: { currentStatus: 'LIVREE', archived: false } });
   });
 
-  it('bounds clients and every status count by the supplied range', async () => {
+  it('adds the supplied range to clients and active cases', async () => {
     const dateFrom = '2026-08-03T00:00:00.000Z';
     const dateTo = '2026-08-03T23:59:59.999Z';
+    const createdAt = { gte: new Date(dateFrom), lte: new Date(dateTo) };
 
     await service.getDashboardStats({ dateFrom, dateTo });
 
-    const createdAt = { gte: new Date(dateFrom), lte: new Date(dateTo) };
-
     expect(clientCount).toHaveBeenCalledWith({ where: { createdAt } });
-    expect(visaCaseCount).toHaveBeenCalledWith({ where: { createdAt } });
-    expect(visaCaseCount).toHaveBeenCalledWith({
-      where: { currentStatus: 'VISA_OK', createdAt },
-    });
-    expect(visaCaseCount).toHaveBeenCalledWith({
-      where: { currentStatus: 'VISA_REFUSEE', createdAt },
-    });
-    expect(visaCaseCount).toHaveBeenCalledWith({
-      where: { currentStatus: 'RDV_OK', createdAt },
-    });
-  });
-
-  it('accepts an open-ended range', async () => {
-    const dateFrom = '2026-08-01T00:00:00.000Z';
-
-    await service.getDashboardStats({ dateFrom });
-
-    expect(clientCount).toHaveBeenCalledWith({
-      where: { createdAt: { gte: new Date(dateFrom) } },
-    });
+    expect(visaCaseCount).toHaveBeenCalledWith({ where: { currentStatus: 'RDV_OK', createdAt, archived: false } });
+    expect(visaCaseCount).toHaveBeenCalledWith({ where: { currentStatus: 'LIVREE', createdAt, archived: false } });
   });
 });

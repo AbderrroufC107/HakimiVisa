@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hakimi_shared/shared.dart';
-import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/theme_providers.dart';
 
@@ -168,23 +167,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Developer',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          AppCard(
-            child: ListTile(
-              leading: const Icon(Icons.developer_mode),
-              title: const Text('Developer Settings'),
-              subtitle: const Text('Server URL, connection, latency'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/developer-settings'),
             ),
           ),
           const SizedBox(height: 24),

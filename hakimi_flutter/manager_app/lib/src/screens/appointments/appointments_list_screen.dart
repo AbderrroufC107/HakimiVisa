@@ -22,20 +22,11 @@ class _AppointmentsListScreenState
 
     switch (_dateFilter) {
       case 'today':
-        return (
-          dateFrom: today,
-          dateTo: today.add(const Duration(days: 1)),
-        );
+        return (dateFrom: today, dateTo: today.add(const Duration(days: 1)));
       case 'week':
-        return (
-          dateFrom: today,
-          dateTo: today.add(const Duration(days: 7)),
-        );
+        return (dateFrom: today, dateTo: today.add(const Duration(days: 7)));
       case 'month':
-        return (
-          dateFrom: today,
-          dateTo: DateTime(now.year, now.month + 1, 0),
-        );
+        return (dateFrom: today, dateTo: DateTime(now.year, now.month + 1, 0));
       default:
         return (dateFrom: null, dateTo: null);
     }
@@ -85,6 +76,7 @@ class _AppointmentsListScreenState
     final filters = _buildFilters();
     final appointmentsAsync = ref.watch(appointmentsProvider(filters));
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
     return Stack(
       children: [
@@ -97,25 +89,25 @@ class _AppointmentsListScreenState
                 child: Row(
                   children: [
                     _DateFilterChip(
-                      label: "Aujourd'hui",
+                      label: l10n.today,
                       selected: _dateFilter == 'today',
                       onSelected: () => setState(() => _dateFilter = 'today'),
                     ),
                     const SizedBox(width: 8),
                     _DateFilterChip(
-                      label: 'Cette semaine',
+                      label: l10n.thisWeek,
                       selected: _dateFilter == 'week',
                       onSelected: () => setState(() => _dateFilter = 'week'),
                     ),
                     const SizedBox(width: 8),
                     _DateFilterChip(
-                      label: 'Ce mois',
+                      label: l10n.thisMonth,
                       selected: _dateFilter == 'month',
                       onSelected: () => setState(() => _dateFilter = 'month'),
                     ),
                     const SizedBox(width: 8),
                     _DateFilterChip(
-                      label: 'Tous',
+                      label: l10n.all,
                       selected: _dateFilter == 'all',
                       onSelected: () => setState(() => _dateFilter = 'all'),
                     ),
@@ -154,35 +146,56 @@ class _AppointmentsListScreenState
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: appt.appointmentType == AppointmentType.tls
-                                      ? const Color(0xFF3B82F6).withValues(alpha: 0.12)
-                                      : appt.appointmentType == AppointmentType.vfs
-                                          ? const Color(0xFF10B981).withValues(alpha: 0.12)
-                                          : const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                                  color:
+                                      appt.appointmentType ==
+                                          AppointmentType.tls
+                                      ? const Color(
+                                          0xFF3B82F6,
+                                        ).withValues(alpha: 0.12)
+                                      : appt.appointmentType ==
+                                            AppointmentType.vfs
+                                      ? const Color(
+                                          0xFF10B981,
+                                        ).withValues(alpha: 0.12)
+                                      : const Color(
+                                          0xFF8B5CF6,
+                                        ).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Column(
                                   children: [
                                     Text(
-                                      appt.appointmentDate.formatDate(pattern: 'dd'),
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: appt.appointmentType == AppointmentType.tls
-                                            ? const Color(0xFF3B82F6)
-                                            : appt.appointmentType == AppointmentType.vfs
+                                      appt.appointmentDate.formatDate(
+                                        pattern: 'dd',
+                                      ),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                appt.appointmentType ==
+                                                    AppointmentType.tls
+                                                ? const Color(0xFF3B82F6)
+                                                : appt.appointmentType ==
+                                                      AppointmentType.vfs
                                                 ? const Color(0xFF10B981)
                                                 : const Color(0xFF8B5CF6),
-                                      ),
+                                          ),
                                     ),
                                     Text(
-                                      appt.appointmentDate.formatDate(pattern: 'MMM'),
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: appt.appointmentType == AppointmentType.tls
-                                            ? const Color(0xFF3B82F6)
-                                            : appt.appointmentType == AppointmentType.vfs
+                                      appt.appointmentDate.formatDate(
+                                        pattern: 'MMM',
+                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color:
+                                                appt.appointmentType ==
+                                                    AppointmentType.tls
+                                                ? const Color(0xFF3B82F6)
+                                                : appt.appointmentType ==
+                                                      AppointmentType.vfs
                                                 ? const Color(0xFF10B981)
                                                 : const Color(0xFF8B5CF6),
-                                      ),
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -194,9 +207,10 @@ class _AppointmentsListScreenState
                                   children: [
                                     Text(
                                       '${appt.appointmentTime} - ${appt.appointmentCenter}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
@@ -207,9 +221,12 @@ class _AppointmentsListScreenState
                                       const SizedBox(height: 2),
                                       Text(
                                         appt.visaCase!.caseNumber,
-                                        style: theme.textTheme.labelSmall?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        ),
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
                                       ),
                                     ],
                                   ],
@@ -303,8 +320,9 @@ class _DateFilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onSelected(),
-      selectedColor:
-          Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+      selectedColor: Theme.of(
+        context,
+      ).colorScheme.primary.withValues(alpha: 0.15),
       checkmarkColor: Theme.of(context).colorScheme.primary,
     );
   }

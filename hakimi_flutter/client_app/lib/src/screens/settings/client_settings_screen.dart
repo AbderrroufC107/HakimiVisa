@@ -126,20 +126,6 @@ class ClientSettingsScreen extends ConsumerWidget {
                     );
                   },
                 ),
-                const Divider(height: 1, indent: 72),
-                ListTile(
-                  leading: const Icon(Icons.developer_mode),
-                  title: const Text('Developer Settings'),
-                  subtitle: const Text('Server URL, connection, latency'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const DevSettingsScreen(),
-                      ),
-                    );
-                  },
-                  trailing: const Icon(Icons.chevron_right),
-                ),
               ],
             ),
           ),

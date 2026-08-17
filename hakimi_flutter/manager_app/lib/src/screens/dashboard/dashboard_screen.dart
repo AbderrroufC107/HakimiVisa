@@ -228,6 +228,23 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: _SummaryCard(
+                title: context.l10n.translate('statusDossierIncomplet'),
+                value: '${stats.incomplete}',
+                icon: Icons.folder_off,
+                color: const Color(0xFFF97316),
+                onTap: () => _openBreakdown(
+                  context,
+                  range: range,
+                  title: context.l10n.translate('statusDossierIncomplet'),
+                  color: const Color(0xFFF97316),
+                  kind: _BreakdownKind.cases,
+                  status: VisaStatus.dossierIncomplet,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _SummaryCard(
                 title: context.l10n.translate('pending'),
                 value: '${stats.enAttente}',
                 icon: Icons.pending,
@@ -242,23 +259,6 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _SummaryCard(
-                title: 'Visa OK',
-                value: '${stats.visaOk}',
-                icon: Icons.check_circle,
-                color: const Color(0xFF10B981),
-                onTap: () => _openBreakdown(
-                  context,
-                  range: range,
-                  title: 'Visa OK',
-                  color: const Color(0xFF10B981),
-                  kind: _BreakdownKind.cases,
-                  status: VisaStatus.visaOk,
-                ),
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -266,17 +266,17 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: _SummaryCard(
-                title: context.l10n.translate('refused'),
-                value: '${stats.refuse}',
-                icon: Icons.cancel,
-                color: const Color(0xFFEF4444),
+                title: context.l10n.translate('statusEnTraitement'),
+                value: '${stats.enTraitement}',
+                icon: Icons.sync,
+                color: const Color(0xFF3B82F6),
                 onTap: () => _openBreakdown(
                   context,
                   range: range,
-                  title: context.l10n.translate('refused'),
-                  color: const Color(0xFFEF4444),
+                  title: context.l10n.translate('statusEnTraitement'),
+                  color: const Color(0xFF3B82F6),
                   kind: _BreakdownKind.cases,
-                  status: VisaStatus.visaRefusee,
+                  status: VisaStatus.enTraitement,
                 ),
               ),
             ),
@@ -294,6 +294,27 @@ class DashboardScreen extends ConsumerWidget {
                   color: const Color(0xFF06B6D4),
                   kind: _BreakdownKind.cases,
                   status: VisaStatus.rdvOk,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _SummaryCard(
+                title: context.l10n.translate('statusLivree'),
+                value: '${stats.livree}',
+                icon: Icons.inventory_2,
+                color: const Color(0xFF22C55E),
+                onTap: () => _openBreakdown(
+                  context,
+                  range: range,
+                  title: context.l10n.translate('statusLivree'),
+                  color: const Color(0xFF22C55E),
+                  kind: _BreakdownKind.cases,
+                  status: VisaStatus.livree,
                 ),
               ),
             ),
@@ -501,51 +522,54 @@ class _SummaryCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withValues(alpha: 0.12), color.withValues(alpha: 0.05)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Colors.white, size: 18),
-              ),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.12),
+              color.withValues(alpha: 0.05),
             ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: color,
-              fontSize: 26,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.18)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 18),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: color,
+                fontSize: 26,
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -615,6 +639,7 @@ class _PeriodSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final selected = ref.watch(dashboardPeriodProvider);
     final sameDay =
         range.from.year == range.to.year &&
@@ -628,15 +653,27 @@ class _PeriodSelector extends ConsumerWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _chip(context, ref, DashboardPeriod.today, "Aujourd'hui", selected),
+              _chip(context, ref, DashboardPeriod.today, l10n.today, selected),
               const SizedBox(width: 8),
-              _chip(context, ref, DashboardPeriod.week, '7 jours', selected),
+              _chip(
+                context,
+                ref,
+                DashboardPeriod.week,
+                l10n.thisWeek,
+                selected,
+              ),
               const SizedBox(width: 8),
-              _chip(context, ref, DashboardPeriod.month, 'Ce mois', selected),
+              _chip(
+                context,
+                ref,
+                DashboardPeriod.month,
+                l10n.thisMonth,
+                selected,
+              ),
               const SizedBox(width: 8),
               ActionChip(
                 avatar: const Icon(Icons.date_range, size: 18),
-                label: const Text('Période'),
+                label: Text(l10n.custom),
                 onPressed: () => _pickRange(context, ref),
                 backgroundColor: selected == DashboardPeriod.custom
                     ? theme.colorScheme.primary.withValues(alpha: 0.15)
@@ -751,7 +788,9 @@ class _BreakdownSheetState extends ConsumerState<_BreakdownSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -864,9 +903,7 @@ class _BreakdownSheetState extends ConsumerState<_BreakdownSheet> {
                   vc.caseNumber,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
-                subtitle: Text(
-                  '${vc.visaCountry} - ${vc.visaType}',
-                ),
+                subtitle: Text('${vc.visaCountry} - ${vc.visaType}'),
                 trailing: Text(
                   vc.currentStatus.displayName,
                   style: TextStyle(

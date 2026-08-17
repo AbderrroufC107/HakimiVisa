@@ -45,7 +45,6 @@ const mockClient = {
   phoneNumber: '+212600000001',
   email: 'john@test.com',
   passportNumber: 'AB123456',
-  nationality: 'Morocco',
   notes: 'Test client',
   createdBy: mockUserId,
   createdAt: mockToday,
@@ -254,7 +253,6 @@ describe('Security Tests', () => {
           phoneNumber: '+212600000001',
           email: 'xss@test.com',
           passportNumber: 'XS123456',
-          nationality: 'Morocco',
         })
         .expect(201);
       expect(res.body.data.fullName).toBe(xssPayload);
@@ -274,7 +272,6 @@ describe('Security Tests', () => {
           phoneNumber: '+212600000002',
           email: 'xss2@test.com',
           passportNumber: 'XS789012',
-          nationality: 'Morocco',
           notes: xssPayload,
         })
         .expect(201);

@@ -10,7 +10,8 @@ class VisaCaseDetailScreen extends ConsumerStatefulWidget {
   const VisaCaseDetailScreen({super.key, required this.caseId});
 
   @override
-  ConsumerState<VisaCaseDetailScreen> createState() => _VisaCaseDetailScreenState();
+  ConsumerState<VisaCaseDetailScreen> createState() =>
+      _VisaCaseDetailScreenState();
 }
 
 class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
@@ -30,6 +31,7 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
             ),
           );
         }
+
         return Scaffold(
           appBar: AppBar(
             title: Text(vc.caseNumber),
@@ -53,10 +55,6 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
                 if (vc.appointments != null) ...[
                   const SizedBox(height: 24),
                   _buildAppointmentsSection(vc, theme),
-                ],
-                if (vc.visaDetails != null) ...[
-                  const SizedBox(height: 24),
-                  _buildVisaDetailsSection(vc, theme),
                 ],
                 const SizedBox(height: 24),
                 _buildActionButtons(vc),
@@ -93,23 +91,28 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
           Row(
             children: [
               Expanded(
-                child: Text(vc.caseNumber,
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold)),
+                child: Text(
+                  vc.caseNumber,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               StatusBadge(status: vc.currentStatus),
             ],
           ),
           const SizedBox(height: 8),
-          Text('Client: $clientName',
-              style: theme.textTheme.bodyMedium),
+          Text('Client: $clientName', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 4),
           Text('${vc.visaCountry} - ${vc.visaType}',
               style: theme.textTheme.bodySmall),
           const SizedBox(height: 4),
-          Text('Créé le: ${vc.createdAt?.formatDate() ?? ''}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            'Cree le: ${vc.createdAt?.formatDate() ?? ''}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           if (vc.submittedByAgencyName != null) ...[
             const SizedBox(height: 6),
             Row(
@@ -118,7 +121,7 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Déposé par ${vc.submittedByAgencyName}',
+                    'Depose par ${vc.submittedByAgencyName}',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.indigo.shade700,
                       fontWeight: FontWeight.w600,
@@ -138,9 +141,12 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Statut actuel',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            'Statut actuel',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -169,17 +175,18 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
 
   Widget _buildStatusHistory(VisaCaseModel vc, ThemeData theme) {
     final history = vc.statusHistories ?? [];
-    if (history.isEmpty) {
-      return const SizedBox();
-    }
+    if (history.isEmpty) return const SizedBox();
 
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Historique des statuts',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            'Historique des statuts',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 12),
           ...history.map((h) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -199,7 +206,7 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${h.oldStatus.displayName} → ${h.newStatus.displayName}',
+                            '${h.oldStatus.displayName} -> ${h.newStatus.displayName}',
                             style: theme.textTheme.bodyMedium,
                           ),
                           Text(
@@ -220,24 +227,33 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
   }
 
   Widget _buildAppointmentsSection(VisaCaseModel vc, ThemeData theme) {
+    final appointments = vc.appointments is List ? vc.appointments as List : [];
+
     return AppCard(
       child: Column(
-        // Without this the card shrinks to fit its text when there is no
-        // appointment, and sits narrower than every card around it.
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Rendez-vous',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            'Rendez-vous',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 12),
-          if (vc.appointments is List && (vc.appointments as List).isEmpty)
-            Text('Aucun rendez-vous',
-                style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant))
+          if (appointments.isEmpty)
+            Text(
+              'Aucun rendez-vous',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            )
           else
-            ...?((vc.appointments as List?)?.map((a) {
-              final map = a as Map<String, dynamic>?;
-              if (map == null) return const SizedBox();
+            ...appointments.map((item) {
+              final map = item is Map ? item : <String, dynamic>{};
+              final date =
+                  map['appointmentDate'] ?? map['appointment_date'] ?? '';
+              final time =
+                  map['appointmentTime'] ?? map['appointment_time'] ?? '';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -246,43 +262,14 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${map['appointment_date'] ?? ''} à ${map['appointment_time'] ?? ''}',
+                        '$date a $time',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ),
                   ],
                 ),
               );
-            })),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVisaDetailsSection(VisaCaseModel vc, ThemeData theme) {
-    final vd = vc.visaDetails!;
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Détails du visa',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
-          _DetailRow(label: 'Numéro', value: vd.visaNumber ?? ''),
-          _DetailRow(
-              label: 'Valide du',
-              value: vd.validFrom.formatDate()),
-          _DetailRow(
-              label: 'Valide jusqu\'au',
-              value: vd.validUntil.formatDate()),
-          _DetailRow(
-              label: 'Durée', value: '${vd.durationDays} jours'),
-          _DetailRow(
-              label: 'Type d\'entrée',
-              value: vd.entryType.displayName),
-          if (vd.notes != null)
-            _DetailRow(label: 'Notes', value: vd.notes!),
+            }),
         ],
       ),
     );
@@ -325,35 +312,6 @@ class _VisaCaseDetailScreenState extends ConsumerState<VisaCaseDetailScreen> {
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant)),
-          ),
-          Expanded(
-            child: Text(value, style: theme.textTheme.bodyMedium),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatusChangeSheet extends ConsumerStatefulWidget {
   final VisaStatus currentStatus;
   final String caseId;
@@ -370,8 +328,6 @@ class _StatusChangeSheet extends ConsumerStatefulWidget {
 class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
   bool _isUpdating = false;
 
-  /// The API refuses "dossier incomplet" without a motif, so ask for one
-  /// before sending rather than surfacing a 400 the user cannot act on.
   Future<String?> _askIncompleteReason() async {
     final controller = TextEditingController();
     final reason = await showDialog<String>(
@@ -385,7 +341,7 @@ class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
           maxLength: 500,
           decoration: const InputDecoration(
             labelText: 'Motif',
-            hintText: 'Ex: passeport manquant, photo non conforme…',
+            hintText: 'Ex: passeport manquant, photo non conforme',
           ),
         ),
         actions: [
@@ -414,7 +370,7 @@ class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
     String? reason;
     if (newStatus == VisaStatus.dossierIncomplet) {
       reason = await _askIncompleteReason();
-      if (reason == null) return; // cancelled
+      if (reason == null) return;
     }
 
     setState(() => _isUpdating = true);
@@ -428,12 +384,12 @@ class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
       if (mounted) {
         Navigator.of(context).pop();
         ref.invalidate(visaCaseDetailProvider(widget.caseId));
-        context.showSuccess('Statut mis à jour');
+        context.showSuccess('Statut mis a jour');
       }
     } on ApiException catch (e) {
       if (mounted) context.showError(e.message);
     } catch (e) {
-      if (mounted) context.showError('Erreur de mise à jour');
+      if (mounted) context.showError('Erreur de mise a jour');
     } finally {
       if (mounted) setState(() => _isUpdating = false);
     }
@@ -449,8 +405,7 @@ class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Changer le statut',
-              style: theme.textTheme.titleLarge),
+          Text('Changer le statut', style: theme.textTheme.titleLarge),
           const SizedBox(height: 16),
           ...VisaStatus.values.map((status) {
             final isCurrent = status == widget.currentStatus;
@@ -476,8 +431,7 @@ class _StatusChangeSheetState extends ConsumerState<_StatusChangeSheet> {
               ),
             );
           }),
-          if (_isUpdating)
-            const Center(child: CircularProgressIndicator()),
+          if (_isUpdating) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

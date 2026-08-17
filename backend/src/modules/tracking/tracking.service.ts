@@ -16,7 +16,7 @@ export class TrackingService {
 
     if (!client) throw new NotFoundException('Aucun dossier trouvé avec ce numéro de téléphone');
 
-    const where: Record<string, unknown> = { clientId: client.id };
+    const where: Record<string, unknown> = { clientId: client.id, archived: false };
 
     if (reference) {
       where.caseNumber = { contains: reference };
@@ -45,7 +45,7 @@ export class TrackingService {
 
   async findOneForPublic(id: string) {
     const visaCase = await this.prisma.visaCase.findUnique({
-      where: { id },
+      where: { id, archived: false },
       select: {
         id: true,
         caseNumber: true,
@@ -65,15 +65,6 @@ export class TrackingService {
             appointmentTime: true,
             appointmentCenter: true,
             appointmentType: true,
-          },
-        },
-        visaDetails: {
-          select: {
-            validFrom: true,
-            validUntil: true,
-            durationDays: true,
-            entryType: true,
-            visaNumber: true,
           },
         },
         statusHistories: {

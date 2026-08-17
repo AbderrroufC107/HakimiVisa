@@ -1,6 +1,5 @@
 import type { VisaCase, StatusHistory } from './visa-case';
 import type { Appointment } from './appointment';
-import type { VisaDetails } from './visa-details';
 
 export interface Client {
   id: string;
@@ -34,7 +33,6 @@ export interface ClientProfile extends Client {
   visaCases: (VisaCase & {
     statusHistories: (StatusHistory & { changer: { id: string; firstName: string; lastName: string } })[];
     appointments: (Appointment & { user: { id: string; firstName: string; lastName: string } })[];
-    visaDetails: VisaDetails | null;
   })[];
 }
 
@@ -51,11 +49,8 @@ export interface ClientTimelineEvent {
 
 export interface ClientStats {
   totalApplications: number;
-  approved: number;
-  refused: number;
+  delivered: number;
   pending: number;
-  approvalRate: number;
-  refusalRate: number;
   totalCountries: number;
   countries: { country: string; count: number }[];
   avgProcessingTime: number;

@@ -12,7 +12,6 @@ export 'src/models/client_model.dart';
 export 'src/models/visa_case_model.dart';
 export 'src/models/status_history_model.dart';
 export 'src/models/appointment_model.dart';
-export 'src/models/visa_details_model.dart';
 export 'src/models/notification_model.dart';
 export 'src/models/document_model.dart';
 export 'src/models/kanban_model.dart';
@@ -87,5 +86,3 @@ export 'src/l10n/app_localizations.dart';
 
 // Environment
 export 'src/environment/environment_manager.dart';
-export 'src/environment/dev_server_setup_screen.dart';
-export 'src/environment/dev_settings_screen.dart';

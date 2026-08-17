@@ -2,6 +2,12 @@ import { api } from './api';
 import type { TrackingResult, TrackingCaseDetail } from '@/types';
 
 export const trackingService = {
+  async findByPhone(phone: string, reference?: string): Promise<TrackingResult> {
+    const params: Record<string, string> = { phone };
+    if (reference) params.reference = reference;
+    return api.get<TrackingResult>('/public/tracking', params);
+  },
+
   async findByPassport(passport: string, expiry: string, reference?: string): Promise<TrackingResult> {
     const params: Record<string, string> = { passport, expiry };
     if (reference) params.reference = reference;

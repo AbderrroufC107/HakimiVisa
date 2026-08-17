@@ -11,7 +11,6 @@ import { UsersModule } from './modules/users/users.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { VisaCasesModule } from './modules/visa-cases/visa-cases.module';
 import { KanbanModule } from './modules/kanban/kanban.module';
-import { VisaDetailsModule } from './modules/visa-details/visa-details.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
@@ -27,7 +26,6 @@ import { GatewayModule } from './modules/gateway/gateway.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { RefDataModule } from './modules/ref-data/ref-data.module';
 import { SearchModule } from './modules/search/search.module';
-import { VisaExpirationModule } from './modules/visa-expiration/visa-expiration.module';
 import { ExcelModule } from './modules/excel/excel.module';
 import { FilesModule } from './modules/files/files.module';
 import { TemplatesModule } from './modules/templates/templates.module';
@@ -56,14 +54,12 @@ import configuration from './config/configuration';
     ClientsModule,
     VisaCasesModule,
     KanbanModule,
-    VisaDetailsModule,
     AppointmentsModule,
     NotificationsModule,
     AgencySettingsModule,
     GatewayModule,
     NotesModule,
     RefDataModule,
-    VisaExpirationModule,
     ExcelModule,
     FilesModule,
     TemplatesModule,

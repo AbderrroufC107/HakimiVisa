@@ -21,7 +21,7 @@ const NAMESPACES = [
   'auditLogs', 'backup', 'systemHealth', 'systemLogs', 'pdf',
   'settings', 'validation', 'table', 'dialog', 'status',
   'statusTabs', 'label', 'templates', 'roles',
-  'appointmentType', 'entryType', 'trackingStep', 'caseTimeline',
+  'appointmentType', 'trackingStep', 'caseTimeline',
   'agencies', 'requiredDocs',
 ] as const;
 

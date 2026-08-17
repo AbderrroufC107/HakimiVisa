@@ -39,13 +39,6 @@ describe('TrackingService', () => {
         appointmentType: 'VISA',
       },
     ],
-    visaDetails: {
-      validFrom: new Date('2025-07-01'),
-      validUntil: new Date('2026-07-01'),
-      durationDays: 90,
-      entryType: 'MULTIPLE',
-      visaNumber: 'V123456',
-    },
     statusHistories: [
       { oldStatus: 'EN_ATTENTE', newStatus: 'EN_TRAITEMENT', changedAt: new Date('2025-06-15') },
     ],
@@ -84,7 +77,7 @@ describe('TrackingService', () => {
       await service.findByPhone({ phone: '+213600000000', reference: 'VC-001' });
       expect(mockPrisma.visaCase.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { clientId: 'client-1', caseNumber: { contains: 'VC-001' } },
+          where: { clientId: 'client-1', archived: false, caseNumber: { contains: 'VC-001' } },
         }),
       );
     });
@@ -105,7 +98,6 @@ describe('TrackingService', () => {
       expect(result.id).toBe('case-1');
       expect(result.client).toBeDefined();
       expect(result.appointments).toHaveLength(1);
-      expect(result.visaDetails).toBeDefined();
       expect(result.statusHistories).toHaveLength(1);
     });
 

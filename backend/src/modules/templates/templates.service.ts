@@ -120,13 +120,6 @@ export class TemplatesService {
         passportNumber?: string | null;
         passportExpiry?: Date | null;
       };
-      visaDetails?: {
-        validFrom: Date;
-        validUntil: Date;
-        durationDays: number;
-        entryType: string;
-        visaNumber: string | null;
-      } | null;
     },
     appointment?: {
       appointmentDate: Date;
@@ -141,8 +134,6 @@ export class TemplatesService {
       agencyAddress?: string | null;
     } | null,
   ): Record<string, string> {
-    const visa = visaCase.visaDetails;
-
     return {
       client_name: visaCase.client.fullName,
       passport: visaCase.client.passportNumber ?? '',
@@ -155,12 +146,6 @@ export class TemplatesService {
       appointment_time: appointment?.appointmentTime ?? '',
       appointment_center: appointment?.appointmentCenter ?? '',
       appointment_type: appointment?.appointmentType ?? '',
-      // Granted-visa details: only filled once the decision is recorded.
-      visa_valid_from: this.formatDate(visa?.validFrom),
-      visa_valid_until: this.formatDate(visa?.validUntil),
-      visa_duration: visa ? String(visa.durationDays) : '',
-      visa_number: visa?.visaNumber ?? '',
-      entry_type: visa?.entryType ?? '',
       agency_name: agency?.agencyName ?? '',
       agency_phone: agency?.agencyPhone ?? '',
       agency_email: agency?.agencyEmail ?? '',
@@ -178,7 +163,7 @@ export class TemplatesService {
   async render(dto: RenderTemplateDto) {
     const visaCase = await this.prisma.visaCase.findUnique({
       where: { id: dto.visaCaseId },
-      include: { client: true, visaDetails: true },
+      include: { client: true },
     });
     if (!visaCase) throw new NotFoundException('Visa case not found');
 
@@ -239,15 +224,6 @@ export class TemplatesService {
     if (!appointment && /\{\{\s*appointment_(date|time|center)\s*\}\}/.test(source)) {
       throw new BadRequestException(
         "Ce modèle contient les détails du rendez-vous, mais aucun rendez-vous n'est enregistré pour ce dossier. Ajoutez le rendez-vous avant d'envoyer.",
-      );
-    }
-
-    if (
-      !visaCase.visaDetails &&
-      /\{\{\s*(visa_valid_from|visa_valid_until|visa_duration|visa_number|entry_type)\s*\}\}/.test(source)
-    ) {
-      throw new BadRequestException(
-        "Ce modèle cite les dates du visa, mais aucun visa n'est encore enregistré pour ce dossier. Saisissez les détails du visa avant d'envoyer.",
       );
     }
 

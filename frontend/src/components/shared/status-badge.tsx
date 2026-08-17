@@ -23,14 +23,6 @@ const statusConfig: Record<VisaStatus, { className: string; dot: string }> = {
     className: 'bg-purple-50 text-purple-800 ring-purple-600/20 dark:bg-purple-500/10 dark:text-purple-300 dark:ring-purple-400/25',
     dot: 'bg-purple-500',
   },
-  VISA_OK: {
-    className: 'bg-emerald-50 text-emerald-800 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/25',
-    dot: 'bg-emerald-500',
-  },
-  VISA_REFUSEE: {
-    className: 'bg-red-50 text-red-800 ring-red-600/20 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/25',
-    dot: 'bg-red-500',
-  },
   LIVREE: {
     className: 'bg-teal-50 text-teal-800 ring-teal-600/20 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/25',
     dot: 'bg-teal-500',

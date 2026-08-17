@@ -6,7 +6,6 @@ export { kanbanService } from './kanban';
 export { appointmentsService } from './appointments';
 export { pdfService } from './pdf';
 export { trackingService } from './tracking';
-export { visaDetailsService } from './visa-details';
 export { notificationsService } from './notifications';
 export { searchService } from './search';
 export { bulkService } from './bulk';

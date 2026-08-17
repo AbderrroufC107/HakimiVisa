@@ -19,13 +19,11 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
     EN_ATTENTE: t('trackingStep:EN_ATTENTE'),
     EN_TRAITEMENT: t('trackingStep:EN_TRAITEMENT'),
     RDV_OK: t('status:RDV_OK'),
-    VISA_OK: t('trackingStep:VISA_OK'),
-    VISA_REFUSEE: t('trackingStep:VISA_REFUSEE'),
+    LIVREE: t('status:LIVREE'),
   };
 
-  const steps: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK'];
+  const steps: VisaStatus[] = ['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'];
   const currentStatus = statusHistories ? statusHistories[statusHistories.length - 1]?.newStatus : 'EN_ATTENTE';
-  const isRefused = currentStatus === 'VISA_REFUSEE';
   const isIncomplete = currentStatus === 'DOSSIER_INCOMPLET';
 
   return (
@@ -34,7 +32,7 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
         const historyEntry = statusHistories.find((h) => h.newStatus === step);
         const isActive = step === currentStatus;
         const currentIdx = steps.indexOf(currentStatus as VisaStatus);
-        const isPast = currentIdx >= idx || (isRefused && idx <= currentIdx) || (isIncomplete && idx === 0);
+        const isPast = currentIdx >= idx || (isIncomplete && idx === 0);
         const isLast = idx === steps.length - 1;
 
         return (
@@ -73,36 +71,23 @@ function StatusTimeline({ statusHistories }: { statusHistories: { oldStatus: Vis
           </div>
         </div>
       )}
-      {isRefused && (() => {
-        const refusedHistory = statusHistories.find((h) => h.newStatus === 'VISA_REFUSEE');
-        return (
-          <div className="flex items-start gap-3">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold">✕</div>
-            <div>
-              <p className="text-sm font-medium text-red-600">{t('trackingStep:VISA_REFUSEE')}</p>
-              {refusedHistory && (
-                <p className="text-xs text-muted-foreground">
-                  {new Date(refusedHistory.changedAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }
 
 export function TrackingPage() {
   const { t, i18n } = useTranslation();
+  const [phone, setPhone] = useState('');
   const [passport, setPassport] = useState('');
   const [expiry, setExpiry] = useState('');
-  const [searched, setSearched] = useState<{ passport: string; expiry: string } | null>(null);
+  const [searched, setSearched] = useState<{ phone?: string; passport?: string; expiry?: string } | null>(null);
   const [selectedCase, setSelectedCase] = useState<TrackingCase | null>(null);
 
   const { data: searchResult, isLoading, isError, error } = useQuery({
-    queryKey: ['tracking', searched?.passport, searched?.expiry],
-    queryFn: () => trackingService.findByPassport(searched!.passport, searched!.expiry),
+    queryKey: ['tracking', searched?.phone, searched?.passport, searched?.expiry],
+    queryFn: () => searched!.phone
+      ? trackingService.findByPhone(searched!.phone)
+      : trackingService.findByPassport(searched!.passport!, searched!.expiry!),
     enabled: !!searched,
     retry: false,
   });
@@ -113,11 +98,11 @@ export function TrackingPage() {
     enabled: !!selectedCase,
   });
 
-  const canSearch = passport.trim().length >= 5 && expiry.length === 10;
+  const canSearch = phone.trim().length >= 5 || (passport.trim().length >= 5 && expiry.length === 10);
 
   const handleSearch = () => {
     if (!canSearch) return;
-    setSearched({ passport: passport.trim(), expiry });
+    setSearched(phone.trim().length >= 5 ? { phone: phone.trim() } : { passport: passport.trim(), expiry });
     setSelectedCase(null);
   };
 
@@ -142,11 +127,24 @@ export function TrackingPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="tracking-heading">
             {t('tracking:title')}
           </h1>
-          <p className="text-sm text-muted-foreground">{t('tracking:descriptionPassport')}</p>
+          <p className="text-sm text-muted-foreground">{t('tracking:description')}</p>
         </div>
 
         <Card>
           <CardContent className="pt-6 space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="tracking-phone" className="text-xs">{t('tracking:enterNumber')}</Label>
+              <Input
+                id="tracking-phone"
+                data-testid="tracking-phone-input"
+                type="tel"
+                placeholder={t('tracking:enterNumber')}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <p className="text-center text-xs text-muted-foreground">{t('tracking:descriptionPassport')}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="tracking-passport" className="text-xs">{t('tracking:passportNumber')}</Label>
@@ -308,24 +306,6 @@ export function TrackingPage() {
                   </Card>
                 )}
 
-                {caseDetail.visaDetails && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">{t('visaCases:visaDetails')}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div><span className="text-muted-foreground">{t('visaCases:validFrom')}:</span> {new Date(caseDetail.visaDetails.validFrom).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</div>
-                        <div><span className="text-muted-foreground">{t('visaCases:validUntil')}:</span> {new Date(caseDetail.visaDetails.validUntil).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</div>
-                        <div><span className="text-muted-foreground">{t('visaCases:duration')}:</span> {caseDetail.visaDetails.durationDays} {t('tracking:days')}</div>
-                        <div><span className="text-muted-foreground">{t('visaCases:entry')}:</span> {caseDetail.visaDetails.entryType === 'MULTIPLE' ? t('entryType:MULTIPLE') : t('entryType:SINGLE')}</div>
-                        {caseDetail.visaDetails.visaNumber && (
-                          <div className="col-span-2"><span className="text-muted-foreground">{t('visaCases:visaNumber')}:</span> {caseDetail.visaDetails.visaNumber}</div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </>
             ) : null}
           </div>

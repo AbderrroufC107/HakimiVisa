@@ -4,15 +4,13 @@ export interface DashboardStats {
   enAttente: number;
   enTraitement: number;
   rdvOk: number;
-  visaOk: number;
-  refuse: number;
+  incomplete: number;
+  livree: number;
 }
 
 export interface MonthlyApplications {
   month: string;
   applications: number;
-  approved: number;
-  refused: number;
 }
 
 export interface CountryStat {
@@ -29,5 +27,4 @@ export interface DashboardAnalytics {
   applicationsPerMonth: MonthlyApplications[];
   topCountries: CountryStat[];
   statusDistribution: StatusDistribution[];
-  approvalRate: number;
 }

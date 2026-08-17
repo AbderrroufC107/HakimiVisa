@@ -35,12 +35,14 @@ export function Navbar() {
   const { data: unreadCountData } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: notificationsService.getUnreadCount,
+    enabled: !!user,
     refetchInterval: 30000,
   });
 
   const { data: recentData } = useQuery({
     queryKey: ['notifications', 'recent'],
     queryFn: () => notificationsService.findAll(1, 5),
+    enabled: !!user,
   });
 
   useEffect(() => {

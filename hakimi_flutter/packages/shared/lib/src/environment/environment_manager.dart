@@ -61,8 +61,8 @@ class EnvironmentManager {
     lastError.value = null;
     _prefs = await SharedPreferences.getInstance();
 
-    // In release: try production first, then cached, then disconnected
-    // In debug: try cached, then emulator, then disconnected
+    // Release builds must always use the public domain. Debug builds may use
+    // a cached local URL to make emulator testing practical.
     final String primaryUrl;
     if (isRelease) {
       primaryUrl = _productionUrl;
@@ -94,21 +94,6 @@ class EnvironmentManager {
       return;
     }
     debugPrint('[EnvironmentManager] Primary URL failed: $primaryUrl');
-
-    // In release, also try cached dev server as fallback
-    if (isRelease) {
-      final cached = _prefs!.getString(_cachedUrlKey);
-      if (cached != null && cached.isNotEmpty && cached != primaryUrl) {
-        debugPrint('[EnvironmentManager] Release fallback trying cached: $cached');
-        final ok = await _healthCheck(cached);
-        if (ok) {
-          debugPrint('[EnvironmentManager] Cached fallback works: $cached');
-          _applyUrl(cached);
-          return;
-        }
-        debugPrint('[EnvironmentManager] Cached fallback failed: $cached');
-      }
-    }
 
     lastError.value = 'Could not reach $primaryUrl';
     connectionState.value = EnvConnectionState.disconnected;

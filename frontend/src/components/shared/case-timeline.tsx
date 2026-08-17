@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { enUS, fr, ar } from 'date-fns/locale';
-import { Clock, ArrowRight, User, FileText, Calendar, Shield } from 'lucide-react';
+import { Clock, ArrowRight, User, FileText, Calendar } from 'lucide-react';
 
 export interface TimelineEvent {
   id: string;
-  type: 'created' | 'status_change' | 'appointment' | 'visa_details' | 'note' | 'document' | 'system';
+  type: 'created' | 'status_change' | 'appointment' | 'note' | 'document' | 'system';
   title: string;
   description?: string;
   timestamp: string;
@@ -23,7 +23,6 @@ const typeConfig: Record<TimelineEvent['type'], { icon: typeof FileText; color: 
   created: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-100', labelKey: 'caseTimeline:createdStatus' },
   status_change: { icon: ArrowRight, color: 'text-indigo-500', bg: 'bg-indigo-100', labelKey: 'caseTimeline:status' },
   appointment: { icon: Calendar, color: 'text-purple-500', bg: 'bg-purple-100', labelKey: 'caseTimeline:appointment' },
-  visa_details: { icon: Shield, color: 'text-green-500', bg: 'bg-green-100', labelKey: 'caseTimeline:visaDetails' },
   note: { icon: FileText, color: 'text-orange-500', bg: 'bg-orange-100', labelKey: 'caseTimeline:note' },
   document: { icon: FileText, color: 'text-cyan-500', bg: 'bg-cyan-100', labelKey: 'caseTimeline:document' },
   system: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', labelKey: 'caseTimeline:system' },

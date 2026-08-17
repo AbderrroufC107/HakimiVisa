@@ -96,9 +96,9 @@ async function main() {
 
   // ====== STEP 1: Clear storage ======
   console.log('\n=== STEP 1: Clear storage & verify no token ===');
-  await page.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: 15000 });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await clearStorage();
-  await page.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: 15000 });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
   const noToken = await verifyNoToken();
   if (!noToken) {
@@ -118,7 +118,7 @@ async function main() {
     const consoleErrorsBefore = consoleErrors.length;
 
     try {
-      await page.goto(BASE_URL + route, { waitUntil: 'networkidle0', timeout: 15000 });
+      await page.goto(BASE_URL + route, { waitUntil: 'domcontentloaded', timeout: 30000 });
       // Extra settle time
       await new Promise(r => setTimeout(r, 800));
     } catch (e) {
@@ -168,7 +168,7 @@ async function main() {
   for (const { path, label } of PUBLIC_ROUTES) {
     await clearStorage();
     try {
-      await page.goto(BASE_URL + path, { waitUntil: 'networkidle0', timeout: 15000 });
+      await page.goto(BASE_URL + path, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await new Promise(r => setTimeout(r, 800));
     } catch (e) {}
 

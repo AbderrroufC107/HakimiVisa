@@ -53,8 +53,8 @@ describe('ClientsController', () => {
         enAttente: 50,
         enTraitement: 40,
         rdvOk: 30,
-        visaOk: 60,
-        refuse: 20,
+        incomplete: 20,
+        livree: 60,
       };
       mockClientsService.getDashboardStats.mockResolvedValue(row(stats));
 
@@ -71,7 +71,6 @@ describe('ClientsController', () => {
         applicationsPerMonth: [],
         topCountries: [],
         statusDistribution: [],
-        approvalRate: 75,
       };
       mockClientsService.getAnalytics.mockResolvedValue(analytics);
 
@@ -191,11 +190,8 @@ describe('ClientsController', () => {
     it('should return stats', async () => {
       const stats = {
         totalApplications: 5,
-        approved: 3,
-        refused: 1,
-        pending: 1,
-        approvalRate: 75,
-        refusalRate: 25,
+        delivered: 3,
+        pending: 2,
         totalCountries: 2,
         countries: [],
         avgProcessingTime: 30,

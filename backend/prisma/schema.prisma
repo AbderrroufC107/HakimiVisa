@@ -22,8 +22,6 @@ enum VisaStatus {
   DOSSIER_INCOMPLET
   EN_TRAITEMENT
   RDV_OK
-  VISA_OK
-  VISA_REFUSEE
   LIVREE
 }
 
@@ -39,11 +37,6 @@ enum AppointmentType {
   BIOMETRICS
   INTERVIEW
   OTHER
-}
-
-enum EntryType {
-  SINGLE
-  MULTIPLE
 }
 
 enum NotificationType {
@@ -177,7 +170,6 @@ model VisaCase {
   appointments    Appointment[]
   documents       Document[]
   files           ClientFile[]
-  visaDetails     VisaDetails?
 
   @@index([clientId])
   @@index([createdBy])
@@ -270,22 +262,6 @@ model Appointment {
   @@index([userId])
   @@index([appointmentDate])
   @@map("appointments")
-}
-
-model VisaDetails {
-  id           String    @id @default(cuid())
-  visaCaseId   String    @unique
-  visaCase     VisaCase  @relation(fields: [visaCaseId], references: [id], onDelete: Cascade)
-  validFrom    DateTime
-  validUntil   DateTime
-  durationDays Int
-  entryType    EntryType
-  visaNumber   String?
-  notes        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@map("visa_details")
 }
 
 model DeviceToken {

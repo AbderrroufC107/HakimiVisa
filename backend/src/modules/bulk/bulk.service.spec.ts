@@ -57,7 +57,7 @@ describe('BulkService', () => {
       mockPrisma.$transaction.mockResolvedValue([{ id: 'case-1' }, { id: 'case-1-history' }]);
 
       const result = await service.statusChange(
-        { ids: ['case-1', 'case-2'], status: 'VISA_OK' },
+        { ids: ['case-1', 'case-2'], status: 'RDV_OK' },
         'user-1',
       );
 
@@ -69,18 +69,18 @@ describe('BulkService', () => {
       expect(mockNotifications.create).toHaveBeenCalledTimes(2);
       expect(mockGateway.broadcast).toHaveBeenCalledWith('bulk:statusChangeComplete', {
         count: 2,
-        status: 'VISA_OK',
+        status: 'RDV_OK',
       });
     });
 
     it('should skip cases already in the target status', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue([
-        row({ id: 'case-1', caseNumber: 'VC-001', currentStatus: 'VISA_OK', clientId: 'client-1' }),
+        row({ id: 'case-1', caseNumber: 'VC-001', currentStatus: 'RDV_OK', clientId: 'client-1' }),
       ]);
       mockPrisma.client.findMany.mockResolvedValue(row(mockClients));
 
       const result = await service.statusChange(
-        { ids: ['case-1'], status: 'VISA_OK' },
+        { ids: ['case-1'], status: 'RDV_OK' },
         'user-1',
       );
 
@@ -98,7 +98,7 @@ describe('BulkService', () => {
         .mockRejectedValueOnce(new Error('DB error'));
 
       const result = await service.statusChange(
-        { ids: ['case-1', 'case-2'], status: 'VISA_OK' },
+        { ids: ['case-1', 'case-2'], status: 'RDV_OK' },
         'user-1',
       );
 
@@ -110,7 +110,7 @@ describe('BulkService', () => {
 
     it('should throw BadRequestException when no cases found', async () => {
       mockPrisma.visaCase.findMany.mockResolvedValue([]);
-      await expect(service.statusChange({ ids: ['invalid'], status: 'VISA_OK' }, 'user-1'))
+      await expect(service.statusChange({ ids: ['invalid'], status: 'RDV_OK' }, 'user-1'))
         .rejects.toThrow(BadRequestException);
     });
 
@@ -130,7 +130,7 @@ describe('BulkService', () => {
       mockPrisma.$transaction.mockResolvedValue([{ id: 'updated' }, { id: 'history' }]);
 
       const result = await service.statusChange(
-        { ids: manyCases.map((c) => c.id), status: 'VISA_OK' },
+        { ids: manyCases.map((c) => c.id), status: 'RDV_OK' },
         'user-1',
       );
 

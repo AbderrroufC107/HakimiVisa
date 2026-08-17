@@ -463,8 +463,8 @@ describe('ClientsService', () => {
       const result = await service.getStats('client-1');
 
       expect(result).toHaveProperty('totalApplications');
-      expect(result).toHaveProperty('approvalRate');
-      expect(result).toHaveProperty('refusalRate');
+      expect(result).toHaveProperty('delivered');
+      expect(result).toHaveProperty('pending');
       expect(result).toHaveProperty('avgProcessingTime');
       expect(result).toHaveProperty('upcomingAppointments');
       expect(result).toHaveProperty('pastAppointments');
@@ -477,13 +477,12 @@ describe('ClientsService', () => {
       await expect(service.getStats('non-existent')).rejects.toThrow(NotFoundException);
     });
 
-    it('should calculate approval and refusal rates correctly', async () => {
+    it('should calculate delivered and pending cases correctly', async () => {
       mockPrisma.client.findUnique.mockResolvedValue({ id: 'client-1' } as any);
       mockPrisma.visaCase.count
         .mockResolvedValueOnce(10)  // totalApplications
-        .mockResolvedValueOnce(6)   // approved
-        .mockResolvedValueOnce(2)   // refused
-        .mockResolvedValueOnce(2);  // pending
+        .mockResolvedValueOnce(6)   // delivered
+        .mockResolvedValueOnce(4);  // pending
       mockPrisma.appointment.findMany.mockResolvedValue([] as any);
       mockPrisma.visaCase.findMany.mockResolvedValue([
         { id: 'vc-1', openingDate: new Date('2025-01-01'), createdAt: new Date('2025-01-01') },
@@ -498,16 +497,13 @@ describe('ClientsService', () => {
       const result = await service.getStats('client-1');
 
       expect(result.totalApplications).toBe(10);
-      expect(result.approved).toBe(6);
-      expect(result.refused).toBe(2);
-      expect(result.approvalRate).toBe(75);
-      expect(result.refusalRate).toBe(25);
+      expect(result.delivered).toBe(6);
+      expect(result.pending).toBe(4);
     });
 
-    it('should return zero rates when no completed cases', async () => {
+    it('should return zero delivery values when there are no cases', async () => {
       mockPrisma.client.findUnique.mockResolvedValue({ id: 'client-1' } as any);
       mockPrisma.visaCase.count
-        .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0);
@@ -518,8 +514,8 @@ describe('ClientsService', () => {
 
       const result = await service.getStats('client-1');
 
-      expect(result.approvalRate).toBe(0);
-      expect(result.refusalRate).toBe(0);
+      expect(result.delivered).toBe(0);
+      expect(result.pending).toBe(0);
       expect(result.avgProcessingTime).toBe(0);
     });
   });
@@ -575,9 +571,7 @@ describe('ClientsService', () => {
         .mockResolvedValueOnce(40)   // enTraitement
         .mockResolvedValueOnce(30)   // rdvOk
         .mockResolvedValueOnce(25)   // incomplete
-        .mockResolvedValueOnce(15)   // livree
-        .mockResolvedValueOnce(60)   // visaOk
-        .mockResolvedValueOnce(20);  // refuse
+        .mockResolvedValueOnce(15);  // livree
 
       const result = await service.getDashboardStats();
 
@@ -590,14 +584,14 @@ describe('ClientsService', () => {
         rdvOk: 30,
         incomplete: 25,
         livree: 15,
-        visaOk: 60,
-        refuse: 20,
       });
     });
 
     it('should return zero counts when no data', async () => {
       mockPrisma.client.count.mockResolvedValue(0);
       mockPrisma.visaCase.count
+        .mockResolvedValueOnce(0)
+        .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
@@ -624,13 +618,12 @@ describe('ClientsService', () => {
       expect(result).toHaveProperty('applicationsPerMonth');
       expect(result).toHaveProperty('topCountries');
       expect(result).toHaveProperty('statusDistribution');
-      expect(result).toHaveProperty('approvalRate');
     });
 
     it('should aggregate applications by month for last 6 months', async () => {
       const mockCases = [
-        { createdAt: new Date(), visaCountry: 'US', currentStatus: 'VISA_OK' },
-        { createdAt: new Date(), visaCountry: 'UK', currentStatus: 'VISA_REFUSEE' },
+        { createdAt: new Date(), visaCountry: 'US', currentStatus: 'RDV_OK' },
+        { createdAt: new Date(), visaCountry: 'UK', currentStatus: 'LIVREE' },
       ];
       mockPrisma.visaCase.findMany.mockResolvedValue(mockCases as any);
       mockPrisma.visaCase.groupBy
@@ -640,7 +633,6 @@ describe('ClientsService', () => {
       const result = await service.getAnalytics();
 
       expect(result.applicationsPerMonth.length).toBe(6);
-      expect(result.approvalRate).toBe(0);
     });
 
     it('should calculate status distribution with defaults for missing statuses', async () => {
@@ -648,32 +640,18 @@ describe('ClientsService', () => {
       mockPrisma.visaCase.groupBy
         .mockResolvedValueOnce([] as any)
         .mockResolvedValueOnce([
-          { currentStatus: 'VISA_OK', _count: { id: 10 } },
+          { currentStatus: 'RDV_OK', _count: { id: 10 } },
         ] as any);
 
       const result = await service.getAnalytics();
 
       expect(result.statusDistribution).toEqual([
+        { status: 'DOSSIER_INCOMPLET', count: 0 },
         { status: 'EN_ATTENTE', count: 0 },
         { status: 'EN_TRAITEMENT', count: 0 },
-        { status: 'RDV_OK', count: 0 },
-        { status: 'VISA_OK', count: 10 },
-        { status: 'VISA_REFUSEE', count: 0 },
+        { status: 'RDV_OK', count: 10 },
+        { status: 'LIVREE', count: 0 },
       ]);
-    });
-
-    it('should calculate approval rate from status distribution', async () => {
-      mockPrisma.visaCase.findMany.mockResolvedValue([] as any);
-      mockPrisma.visaCase.groupBy
-        .mockResolvedValueOnce([] as any)
-        .mockResolvedValueOnce([
-          { currentStatus: 'VISA_OK', _count: { id: 30 } },
-          { currentStatus: 'VISA_REFUSEE', _count: { id: 10 } },
-        ] as any);
-
-      const result = await service.getAnalytics();
-
-      expect(result.approvalRate).toBe(75);
     });
   });
 });

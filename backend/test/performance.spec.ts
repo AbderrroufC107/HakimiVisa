@@ -221,7 +221,6 @@ describe('Performance Tests', () => {
           phoneNumber: '+212600000000',
           email: 'client@test.com',
           passportNumber: 'AB123456',
-          nationality: 'Morocco',
           notes: null,
           createdBy: mockUserId,
           createdAt: mockToday,

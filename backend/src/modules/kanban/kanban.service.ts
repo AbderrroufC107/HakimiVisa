@@ -11,7 +11,7 @@ export class KanbanService {
   async getBoard(query: QueryKanbanDto, agencyId?: string | null) {
     const { search, country, type, dateFrom, dateTo } = query;
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { archived: false };
 
     if (country) {
       where.visaCountry = { contains: country };

@@ -54,11 +54,15 @@ export interface LabelSize {
  * width (see `scaleFor`), so every preset prints on exactly one page.
  */
 export const DEFAULT_LABEL_SIZE: LabelSize = {
-  id: '100x50',
+  id: 'a4',
   name: '100 × 50 mm',
-  width: 100,
-  height: 50,
+  width: 210,
+  height: 297,
 };
+
+// The default is an A4 sheet so office printers do not scale the label down
+// to the old 100 x 50 mm thermal-label size.
+DEFAULT_LABEL_SIZE.name = 'A4 - 210 x 297 mm';
 
 export const LABEL_SIZES: LabelSize[] = [
   DEFAULT_LABEL_SIZE,
@@ -66,11 +70,15 @@ export const LABEL_SIZES: LabelSize[] = [
   { id: 'a6', name: 'A6 · 105 × 148 mm', width: 105, height: 148 },
   { id: 'a5', name: 'A5 · 148 × 210 mm', width: 148, height: 210 },
   { id: 'a4', name: 'A4 · 210 × 297 mm', width: 210, height: 297 },
-];
+].filter((option, index, options) =>
+  options.findIndex((candidate) => candidate.id === option.id) === index,
+);
 
 /** Font/'spacing multiplier: the 100 mm-wide roll label is the 1× baseline. */
 function scaleFor(size: LabelSize): number {
-  return size.width / 100;
+  // Scale from both dimensions so portrait sheets and small roll labels use
+  // the available page area without producing microscopic text.
+  return Math.max(1, Math.min(size.width / 100, size.height / 50));
 }
 
 export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABEL_SIZE) {
@@ -120,7 +128,7 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
   }
   .lbl-box {
     width: ${size.width}mm; height: ${size.height}mm;
-    padding: ${(3 * s).toFixed(2)}mm ${(4 * s).toFixed(2)}mm;
+    padding: ${(5 * s).toFixed(2)}mm ${(6 * s).toFixed(2)}mm;
     display: flex; flex-direction: column;
     border: ${(0.3 * s).toFixed(2)}mm solid #1a1a2e; background: #ffffff;
     overflow: hidden;
@@ -131,10 +139,10 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
     padding-bottom: ${(1.5 * s).toFixed(2)}mm; margin-bottom: ${(1.5 * s).toFixed(2)}mm;
   }
   .lbl-name {
-    font-size: ${(13 * s).toFixed(1)}pt; font-weight: 800; color: #1a1a2e;
+    font-size: ${(16 * s).toFixed(1)}pt; font-weight: 800; color: #1a1a2e;
     text-transform: uppercase; line-height: 1.1; overflow-wrap: anywhere;
   }
-  .lbl-brand { font-size: ${(7 * s).toFixed(1)}pt; font-weight: 700; color: #1a73e8; letter-spacing: 0.5px; white-space: nowrap; }
+  .lbl-brand { font-size: ${(8 * s).toFixed(1)}pt; font-weight: 700; color: #1a73e8; letter-spacing: 0.5px; white-space: nowrap; }
   .lbl-rows {
     flex: 1; min-height: 0;
     display: flex; flex-direction: column;
@@ -142,18 +150,18 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
   }
   .lbl-row {
     display: flex; justify-content: space-between; align-items: baseline; gap: ${(3 * s).toFixed(2)}mm;
-    padding: ${(0.6 * s).toFixed(2)}mm 0;
+    padding: ${(1.2 * s).toFixed(2)}mm 0;
     ${isTall ? `border-bottom: ${(0.15 * s).toFixed(2)}mm dashed #e5e7eb;` : ''}
   }
   .lbl-row:last-child { border-bottom: none; }
-  .lbl-key { color: #6b7280; font-size: ${(6.5 * s).toFixed(1)}pt; font-weight: 600; white-space: nowrap; }
-  .lbl-val { color: #111827; font-size: ${(8.5 * s).toFixed(1)}pt; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+  .lbl-key { color: #374151; font-size: ${(8.5 * s).toFixed(1)}pt; font-weight: 700; white-space: nowrap; }
+  .lbl-val { color: #111827; font-size: ${(11.5 * s).toFixed(1)}pt; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
   .lbl-foot {
     margin-top: ${(1 * s).toFixed(2)}mm; padding-top: ${(1 * s).toFixed(2)}mm;
     border-top: ${(0.2 * s).toFixed(2)}mm dashed #d1d5db;
     display: flex; justify-content: space-between;
   }
-  .lbl-foot span { font-size: ${(6 * s).toFixed(1)}pt; color: #9ca3af; }
+  .lbl-foot span { font-size: ${(7.5 * s).toFixed(1)}pt; color: #6b7280; }
   @media print {
     body { background: none; }
     .lbl-box { border-color: #1a1a2e; }

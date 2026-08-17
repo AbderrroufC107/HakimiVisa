@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
-import { clientsService, appointmentsService, visaCasesService } from '@/services';
+import { clientsService, appointmentsService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/shared/badge';
@@ -12,10 +12,8 @@ import {
 } from 'recharts';
 import type { PieLabelRenderProps } from 'recharts';
 import {
-  FileText, Clock, CheckCircle2, XCircle,
-  CalendarCheck, Calendar, AlertTriangle, FilePlus2, FileWarning, PackageCheck, Loader2,
+  FileText, Clock, CalendarCheck, Calendar, FilePlus2, FileWarning, PackageCheck, Loader2,
 } from 'lucide-react';
-import { VISA_STATUS_COLORS, type VisaStatus, type VisaCase } from '@/types';
 import { format, addDays } from 'date-fns';
 import { fr, enUS, ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -25,8 +23,7 @@ const STATUS_PIE_COLORS: Record<string, string> = {
   EN_ATTENTE: '#EAB308',
   EN_TRAITEMENT: '#3B82F6',
   RDV_OK: '#A855F7',
-  VISA_OK: '#22C55E',
-  VISA_REFUSEE: '#EF4444',
+  LIVREE: '#14B8A6',
 };
 
 function ChartSkeleton() {
@@ -108,18 +105,6 @@ export function DashboardPage() {
     }),
   });
 
-  const { data: recentApproved } = useQuery({
-    queryKey: ['dashboard', 'recent-approved'],
-    queryFn: () => visaCasesService.findAll({ status: 'VISA_OK' as VisaStatus, limit: 5 }),
-  });
-
-  const { data: recentRefused } = useQuery({
-    queryKey: ['dashboard', 'recent-refused'],
-    queryFn: () => visaCasesService.findAll({ status: 'VISA_REFUSEE' as VisaStatus, limit: 5 }),
-  });
-
-  const approvedCases: VisaCase[] = recentApproved?.data ?? [];
-  const refusedCases: VisaCase[] = recentRefused?.data ?? [];
   const stats = statsData;
   const analytics = analyticsData;
 
@@ -146,9 +131,7 @@ export function DashboardPage() {
     { title: t('dashboard:rdvOk'), value: stats?.rdvOk ?? 0, icon: CalendarCheck, href: ROUTES.KANBAN, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-500/15' },
     { title: t('dashboard:incomplete'), value: stats?.incomplete ?? 0, icon: FileWarning, href: ROUTES.KANBAN, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-500/15' },
     { title: t('dashboard:livree'), value: stats?.livree ?? 0, icon: PackageCheck, href: ROUTES.VISA_CASES, color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-500/15' },
-    { title: t('dashboard:visaOk'), value: stats?.visaOk ?? 0, icon: CheckCircle2, href: ROUTES.VISA_CASES, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-500/15' },
-    { title: t('dashboard:visaRefused'), value: stats?.refuse ?? 0, icon: XCircle, href: ROUTES.VISA_CASES, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-500/15' },
-  ], [t, stats?.totalCases, stats?.newCases, stats?.enAttente, stats?.enTraitement, stats?.rdvOk, stats?.incomplete, stats?.livree, stats?.visaOk, stats?.refuse]);
+  ], [t, stats?.totalCases, stats?.newCases, stats?.enAttente, stats?.enTraitement, stats?.rdvOk, stats?.incomplete, stats?.livree]);
 
   const totalCount = useMemo(
     () => statusDistribution.reduce((sum, d) => sum + d.count, 0),
@@ -241,8 +224,6 @@ export function DashboardPage() {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Bar dataKey="applications" name={t('dashboard:chartTotal')} fill="#3B82F6" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                    <Bar dataKey="approved" name={t('dashboard:chartApproved')} fill="#22C55E" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                    <Bar dataKey="refused" name={t('dashboard:chartRefused')} fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -299,29 +280,6 @@ export function DashboardPage() {
 
           {/* Approval Rate + Top Countries */}
           <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">{t('dashboard:approvalRate')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analyticsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-4 gap-3">
-                    <div className="skeleton-shimmer h-12 w-20 rounded" />
-                    <div className="skeleton-shimmer h-4 w-36 rounded" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-4">
-                    <div className="text-5xl font-bold text-green-600">
-                      {analytics?.approvalRate ?? 0}%
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t('dashboard:approvedCases')}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">{t('dashboard:topCountries')}</CardTitle>
@@ -407,57 +365,6 @@ export function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <CardTitle className="text-sm">{t('dashboard:recentApproved')}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {approvedCases.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('dashboard:noApproved')}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {approvedCases.map((vc) => (
-                      <div key={vc.id} className="flex cursor-pointer items-center justify-between rounded-lg border p-2 text-sm hover:bg-muted/50" onClick={() => navigate(ROUTES.VISA_CASES_DETAIL(vc.id))}>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-mono text-xs font-medium">{vc.caseNumber}</p>
-                          <p className="truncate text-xs text-muted-foreground">{vc.client?.fullName} - {vc.visaCountry}</p>
-                        </div>
-                        <Badge className={VISA_STATUS_COLORS[vc.currentStatus]}>{t('status:' + vc.currentStatus)}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <CardTitle className="text-sm">{t('dashboard:recentRefused')}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {refusedCases.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('dashboard:noRefused')}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {refusedCases.map((vc) => (
-                      <div key={vc.id} className="flex cursor-pointer items-center justify-between rounded-lg border p-2 text-sm hover:bg-muted/50" onClick={() => navigate(ROUTES.VISA_CASES_DETAIL(vc.id))}>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-mono text-xs font-medium">{vc.caseNumber}</p>
-                          <p className="truncate text-xs text-muted-foreground">{vc.client?.fullName} - {vc.visaCountry}</p>
-                        </div>
-                        <Badge className={VISA_STATUS_COLORS[vc.currentStatus]}>{t('status:' + vc.currentStatus)}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
     </div>
   );

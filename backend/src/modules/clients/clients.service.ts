@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../audit-logs/audit-logs.service';
-import { VisaStatus } from '@prisma/client';
 import {
   CreateClientDto,
   UpdateClientDto,
@@ -223,7 +222,6 @@ export class ClientsService {
               orderBy: { appointmentDate: 'asc' },
               include: { user: { select: { id: true, firstName: true, lastName: true } } },
             },
-            visaDetails: true,
           },
         },
         _count: { select: { visaCases: true, internalNotes: true } },
@@ -344,35 +342,30 @@ export class ClientsService {
     const client = await this.prisma.client.findUnique({ where: { id }, select: { id: true } });
     if (!client) throw new NotFoundException('Client not found');
 
-    const [totalApplications, approved, refused, pending, appointments, completedCases] = await Promise.all([
-      this.prisma.visaCase.count({ where: { clientId: id } }),
-      this.prisma.visaCase.count({ where: { clientId: id, currentStatus: 'VISA_OK' } }),
-      this.prisma.visaCase.count({ where: { clientId: id, currentStatus: 'VISA_REFUSEE' } }),
-      this.prisma.visaCase.count({ where: { clientId: id, currentStatus: { in: ['EN_ATTENTE', 'EN_TRAITEMENT'] } } }),
+    const [totalApplications, delivered, pending, appointments, completedCases] = await Promise.all([
+      this.prisma.visaCase.count({ where: { clientId: id, archived: false } }),
+      this.prisma.visaCase.count({ where: { clientId: id, archived: false, currentStatus: 'LIVREE' } }),
+      this.prisma.visaCase.count({ where: { clientId: id, archived: false, currentStatus: { in: ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRAITEMENT', 'RDV_OK'] } } }),
       this.prisma.appointment.findMany({
         where: { visaCase: { clientId: id } },
         orderBy: { appointmentDate: 'asc' },
         select: { appointmentDate: true, appointmentTime: true, appointmentCenter: true, appointmentType: true, id: true, visaCase: { select: { caseNumber: true } } },
       }),
       this.prisma.visaCase.findMany({
-        where: { clientId: id, currentStatus: { in: ['VISA_OK', 'VISA_REFUSEE'] } },
+        where: { clientId: id, archived: false, currentStatus: 'LIVREE' },
         select: { id: true, openingDate: true, createdAt: true },
       }),
     ]);
 
-    const totalCompleted = approved + refused;
-    const approvalRate = totalCompleted > 0 ? Math.round((approved / totalCompleted) * 100) : 0;
-    const refusalRate = totalCompleted > 0 ? Math.round((refused / totalCompleted) * 100) : 0;
-
     const countries = await this.prisma.visaCase.groupBy({
       by: ['visaCountry'],
-      where: { clientId: id },
+      where: { clientId: id, archived: false },
       _count: { id: true },
     });
 
     const caseIds = completedCases.map((vc: { id: string }) => vc.id);
     const statusHistories = await this.prisma.statusHistory.findMany({
-      where: { visaCaseId: { in: caseIds }, newStatus: { in: ['VISA_OK', 'VISA_REFUSEE'] } },
+      where: { visaCaseId: { in: caseIds }, newStatus: 'LIVREE' },
       orderBy: { changedAt: 'desc' },
       select: { visaCaseId: true, changedAt: true },
     });
@@ -406,11 +399,8 @@ export class ClientsService {
 
     return {
       totalApplications,
-      approved,
-      refused,
+      delivered,
       pending,
-      approvalRate,
-      refusalRate,
       totalCountries: countries.length,
       countries: countries.map((c: { visaCountry: string; _count: { id: number } }) => ({ country: c.visaCountry, count: c._count.id })),
       avgProcessingTime,
@@ -447,9 +437,10 @@ export class ClientsService {
 
     // No range supplied keeps the historic all-time behaviour, so existing
     // callers (the web dashboard) are unaffected.
-    const inRange = hasRange ? { createdAt } : {};
-    const statusInRange = (currentStatus: VisaStatus) =>
-      hasRange ? { currentStatus, createdAt } : { currentStatus };
+    const clientsInRange = hasRange ? { createdAt } : {};
+    const casesInRange = hasRange ? { createdAt, archived: false } : { archived: false };
+    const statusInRange = (currentStatus: 'EN_ATTENTE' | 'DOSSIER_INCOMPLET' | 'EN_TRAITEMENT' | 'RDV_OK' | 'LIVREE') =>
+      hasRange ? { currentStatus, createdAt, archived: false } : { currentStatus, archived: false };
 
     const [
       totalClients,
@@ -460,19 +451,15 @@ export class ClientsService {
       rdvOk,
       incomplete,
       livree,
-      visaOk,
-      refuse,
     ] = await Promise.all([
-      this.prisma.client.count({ where: inRange }),
-      this.prisma.visaCase.count({ where: inRange }),
-      this.prisma.visaCase.count({ where: { createdAt: { gte: monthStart } } }),
+      this.prisma.client.count({ where: clientsInRange }),
+      this.prisma.visaCase.count({ where: casesInRange }),
+      this.prisma.visaCase.count({ where: { createdAt: { gte: monthStart }, archived: false } }),
       this.prisma.visaCase.count({ where: statusInRange('EN_ATTENTE') }),
       this.prisma.visaCase.count({ where: statusInRange('EN_TRAITEMENT') }),
       this.prisma.visaCase.count({ where: statusInRange('RDV_OK') }),
       this.prisma.visaCase.count({ where: statusInRange('DOSSIER_INCOMPLET') }),
       this.prisma.visaCase.count({ where: statusInRange('LIVREE') }),
-      this.prisma.visaCase.count({ where: statusInRange('VISA_OK') }),
-      this.prisma.visaCase.count({ where: statusInRange('VISA_REFUSEE') }),
     ]);
 
     return {
@@ -484,8 +471,6 @@ export class ClientsService {
       rdvOk,
       incomplete,
       livree,
-      visaOk,
-      refuse,
     };
   }
 
@@ -494,7 +479,7 @@ export class ClientsService {
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
     const cases = await this.prisma.visaCase.findMany({
-      where: { createdAt: { gte: sixMonthsAgo } },
+      where: { createdAt: { gte: sixMonthsAgo }, archived: false },
       select: {
         createdAt: true,
         visaCountry: true,
@@ -503,15 +488,11 @@ export class ClientsService {
     });
 
     const months: Record<string, number> = {};
-    const approvalsByMonth: Record<string, number> = {};
-    const refusalsByMonth: Record<string, number> = {};
 
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       months[key] = 0;
-      approvalsByMonth[key] = 0;
-      refusalsByMonth[key] = 0;
     }
 
     for (const c of cases) {
@@ -519,20 +500,17 @@ export class ClientsService {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       if (months[key] !== undefined) {
         months[key]++;
-        if (c.currentStatus === 'VISA_OK') approvalsByMonth[key]++;
-        if (c.currentStatus === 'VISA_REFUSEE') refusalsByMonth[key]++;
       }
     }
 
     const applicationsPerMonth = Object.entries(months).map(([month, count]) => ({
       month,
       applications: count,
-      approved: approvalsByMonth[month] ?? 0,
-      refused: refusalsByMonth[month] ?? 0,
     }));
 
     const countries = await this.prisma.visaCase.groupBy({
       by: ['visaCountry'],
+      where: { archived: false },
       _count: { id: true },
       orderBy: { _count: { id: 'desc' } },
       take: 10,
@@ -540,21 +518,13 @@ export class ClientsService {
 
     const statusGroup = await this.prisma.visaCase.groupBy({
       by: ['currentStatus'],
+      where: { archived: false },
       _count: { id: true },
     });
     const statusCountMap = new Map<string, number>(statusGroup.map((s: { currentStatus: string; _count: { id: number } }) => [s.currentStatus, s._count.id]));
-    const statusDistribution = (['EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'VISA_OK', 'VISA_REFUSEE'] as const).map(
+    const statusDistribution = (['DOSSIER_INCOMPLET', 'EN_ATTENTE', 'EN_TRAITEMENT', 'RDV_OK', 'LIVREE'] as const).map(
       (status) => ({ status, count: statusCountMap.get(status) ?? 0 }),
     );
-
-    const totalProcessed =
-      statusDistribution.find((s) => s.status === 'VISA_OK')?.count ?? 0;
-    const totalRefused =
-      statusDistribution.find((s) => s.status === 'VISA_REFUSEE')?.count ?? 0;
-    const totalCompleted = totalProcessed + totalRefused;
-    const approvalRate = totalCompleted > 0
-      ? Math.round((totalProcessed / totalCompleted) * 100)
-      : 0;
 
     return {
       applicationsPerMonth,
@@ -563,7 +533,6 @@ export class ClientsService {
         count: c._count.id,
       })),
       statusDistribution,
-      approvalRate,
     };
   }
 }

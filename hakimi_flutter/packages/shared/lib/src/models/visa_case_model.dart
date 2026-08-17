@@ -1,6 +1,5 @@
 import 'package:hakimi_shared/src/enums/visa_status.dart';
 import 'package:hakimi_shared/src/models/status_history_model.dart';
-import 'package:hakimi_shared/src/models/visa_details_model.dart';
 
 class VisaCaseModel {
   final String? id;
@@ -17,7 +16,6 @@ class VisaCaseModel {
   final DateTime? createdAt;
   final List<StatusHistoryModel>? statusHistories;
   final dynamic appointments;
-  final VisaDetailsModel? visaDetails;
   final double? price;
   final bool isPaid;
 
@@ -39,7 +37,6 @@ class VisaCaseModel {
     this.createdAt,
     this.statusHistories,
     this.appointments,
-    this.visaDetails,
     this.submittedByAgencyName,
     this.price,
     this.isPaid = false,
@@ -67,10 +64,6 @@ class VisaCaseModel {
           ?.map((e) => StatusHistoryModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       appointments: json['appointments'],
-      visaDetails: json['visaDetails'] != null
-          ? VisaDetailsModel.fromJson(
-              json['visaDetails'] as Map<String, dynamic>)
-          : null,
       price: json['price'] != null
           ? (json['price'] as num).toDouble()
           : null,
@@ -96,7 +89,6 @@ class VisaCaseModel {
       'createdAt': createdAt?.toIso8601String(),
       'statusHistories': statusHistories?.map((e) => e.toJson()).toList(),
       'appointments': appointments?.map((e) => e.toJson()).toList(),
-      'visaDetails': visaDetails?.toJson(),
       'price': price,
       'isPaid': isPaid,
       'submittedByAgency':
