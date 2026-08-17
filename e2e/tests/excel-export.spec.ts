@@ -13,7 +13,8 @@ test.describe('Excel Export', () => {
     await logout(page);
   });
 
-  for (const endpoint of ['clients', 'visa-cases', 'appointments', 'approvals', 'refusals']) {
+  // The approvals and refusals exports went with the decision statuses.
+  for (const endpoint of ['clients', 'visa-cases', 'appointments']) {
     test(`exports ${endpoint} as XLSX`, async ({ page }) => {
       const response = await page.request.get(`${API_URL}/excel/${endpoint}`, {
         headers: authHeaders(auth),
