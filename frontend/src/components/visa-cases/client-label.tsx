@@ -51,18 +51,15 @@ export interface LabelSize {
 
 /**
  * Page presets offered in the print dialog. Typography scales with the page
- * width (see `scaleFor`), so every preset prints on exactly one page.
+ * size (see `scaleFor`), so every preset prints on exactly one page.
  */
+/** The agency prints on 100 x 150 mm roll stock, so that is the default. */
 export const DEFAULT_LABEL_SIZE: LabelSize = {
-  id: 'a4',
-  name: '100 × 50 mm',
-  width: 210,
-  height: 297,
+  id: '100x150',
+  name: '100 × 150 mm',
+  width: 100,
+  height: 150,
 };
-
-// The default is an A4 sheet so office printers do not scale the label down
-// to the old 100 x 50 mm thermal-label size.
-DEFAULT_LABEL_SIZE.name = 'A4 - 210 x 297 mm';
 
 export const LABEL_SIZES: LabelSize[] = [
   DEFAULT_LABEL_SIZE,
@@ -70,15 +67,16 @@ export const LABEL_SIZES: LabelSize[] = [
   { id: 'a6', name: 'A6 · 105 × 148 mm', width: 105, height: 148 },
   { id: 'a5', name: 'A5 · 148 × 210 mm', width: 148, height: 210 },
   { id: 'a4', name: 'A4 · 210 × 297 mm', width: 210, height: 297 },
-].filter((option, index, options) =>
-  options.findIndex((candidate) => candidate.id === option.id) === index,
-);
+];
 
-/** Font/'spacing multiplier: the 100 mm-wide roll label is the 1× baseline. */
+/**
+ * Font/spacing multiplier. The rows are laid out across the page, so width
+ * drives the size; height only caps it so a short, wide label cannot overflow.
+ * A 100 x 150 mm roll label reads about 1.2x rather than the 1x it used to
+ * get, which was sized for a label less than half its height.
+ */
 function scaleFor(size: LabelSize): number {
-  // Scale from both dimensions so portrait sheets and small roll labels use
-  // the available page area without producing microscopic text.
-  return Math.max(1, Math.min(size.width / 100, size.height / 50));
+  return Math.max(1, Math.min(size.width / 78, size.height / 128));
 }
 
 export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABEL_SIZE) {
@@ -94,9 +92,30 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
   if (!win) return;
 
   const s = scaleFor(size);
+  // The print window is about:blank, so a relative path would not resolve.
+  const logoUrl = `${window.location.origin}/print-logo.png`;
   // Portrait sheets have vertical slack: spread the rows and separate them
   // instead of leaving a large blank band above and below.
   const isTall = size.height > size.width;
+  // A portrait label gives each field its own line, so a long phone number or
+  // visa type is not squeezed against its own caption.
+  const rowLayout = isTall
+    ? 'flex-direction: column; align-items: stretch;'
+    : 'justify-content: space-between; align-items: baseline;';
+  const rowGap = (isTall ? 0.5 : 3) * s;
+  const rowRule = isTall ? `border-bottom: ${(0.15 * s).toFixed(2)}mm dashed #e5e7eb;` : '';
+  const valAlign = isTall ? 'left' : 'right';
+  // A short label has no room to stack the mark above the name, so there they
+  // share a line (row-reverse keeps the name on the left, where it reads first).
+  const headLayout = isTall
+    ? 'flex-direction: column; align-items: flex-start;'
+    : 'flex-direction: row-reverse; align-items: center; justify-content: space-between;';
+  const logoHeight = (isTall ? 14 : 9) * s;
+  // A short label has to fit the same five fields in half the height, so the
+  // name and the row spacing give way rather than run over the footer.
+  const nameSize = (isTall ? 16 : 11) * s;
+  const rowPad = (isTall ? 1.2 : 0.45) * s;
+  const rowsJustify = isTall ? 'space-evenly' : 'center';
   const rows = [
     ['PASSEPORT', escapeHtml(data.passportNumber || '—')],
     ['EXP. PASSEPORT', escapeHtml(formatExpiry(data.passportExpiry))],
@@ -134,28 +153,31 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
     overflow: hidden;
   }
   .lbl-head {
-    display: flex; align-items: center; justify-content: space-between; gap: ${(2 * s).toFixed(2)}mm;
+    display: flex; gap: ${(1.5 * s).toFixed(2)}mm;
+    ${headLayout}
     border-bottom: ${(0.4 * s).toFixed(2)}mm solid #1a73e8;
     padding-bottom: ${(1.5 * s).toFixed(2)}mm; margin-bottom: ${(1.5 * s).toFixed(2)}mm;
   }
+  .lbl-logo { height: ${logoHeight.toFixed(2)}mm; width: auto; max-width: 100%; object-fit: contain; }
   .lbl-name {
-    font-size: ${(16 * s).toFixed(1)}pt; font-weight: 800; color: #1a1a2e;
+    font-size: ${nameSize.toFixed(1)}pt; font-weight: 800; color: #1a1a2e;
     text-transform: uppercase; line-height: 1.1; overflow-wrap: anywhere;
   }
   .lbl-brand { font-size: ${(8 * s).toFixed(1)}pt; font-weight: 700; color: #1a73e8; letter-spacing: 0.5px; white-space: nowrap; }
   .lbl-rows {
     flex: 1; min-height: 0;
     display: flex; flex-direction: column;
-    justify-content: ${isTall ? 'space-evenly' : 'center'};
+    justify-content: ${rowsJustify};
   }
   .lbl-row {
-    display: flex; justify-content: space-between; align-items: baseline; gap: ${(3 * s).toFixed(2)}mm;
-    padding: ${(1.2 * s).toFixed(2)}mm 0;
-    ${isTall ? `border-bottom: ${(0.15 * s).toFixed(2)}mm dashed #e5e7eb;` : ''}
+    display: flex; gap: ${rowGap.toFixed(2)}mm;
+    ${rowLayout}
+    padding: ${rowPad.toFixed(2)}mm 0;
+    ${rowRule}
   }
   .lbl-row:last-child { border-bottom: none; }
   .lbl-key { color: #374151; font-size: ${(8.5 * s).toFixed(1)}pt; font-weight: 700; white-space: nowrap; }
-  .lbl-val { color: #111827; font-size: ${(11.5 * s).toFixed(1)}pt; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+  .lbl-val { color: #111827; font-size: ${(11.5 * s).toFixed(1)}pt; font-weight: 800; text-align: ${valAlign}; overflow-wrap: anywhere; }
   .lbl-foot {
     margin-top: ${(1 * s).toFixed(2)}mm; padding-top: ${(1 * s).toFixed(2)}mm;
     border-top: ${(0.2 * s).toFixed(2)}mm dashed #d1d5db;
@@ -171,8 +193,8 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
 <body>
   <div class="lbl-box">
     <div class="lbl-head">
+      <img class="lbl-logo" src="${logoUrl}" alt="" />
       <span class="lbl-name">${escapeHtml(data.fullName)}</span>
-      <span class="lbl-brand">HakimiVisa</span>
     </div>
     <div class="lbl-rows">${rows}</div>
     <div class="lbl-foot">
@@ -240,9 +262,9 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
           className="mx-auto w-full space-y-1 rounded-lg border-2 border-slate-800 bg-white p-3"
           style={{ aspectRatio: `${size.width} / ${size.height}`, maxHeight: '46vh' }}
         >
-          <div className="flex items-center justify-between border-b-2 border-blue-600 pb-1.5 mb-1.5">
-            <span className="text-sm font-extrabold uppercase text-slate-900">{data.fullName}</span>
-            <span className="text-[10px] font-bold text-blue-600">HakimiVisa</span>
+          <div className="mb-1.5 space-y-1 border-b-2 border-blue-600 pb-1.5">
+            <img src="/print-logo.png" alt="" className="h-6 w-auto" />
+            <span className="block text-sm font-extrabold uppercase text-slate-900">{data.fullName}</span>
           </div>
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:passport')}</span><span className="font-bold">{data.passportNumber || '—'}</span></div>
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:passportExpiry')}</span><span className="font-bold">{formatExpiry(data.passportExpiry)}</span></div>
