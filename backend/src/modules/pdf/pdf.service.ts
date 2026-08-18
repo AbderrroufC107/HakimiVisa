@@ -37,7 +37,7 @@ export class PdfService {
     try {
       const logoPath = join(process.cwd(), 'src', 'common', 'assets', 'logo.png');
       this.logoBuffer = readFileSync(logoPath);
-      this.logoAspect = this.readPngAspect(this.logoBuffer) ?? 1;
+      this.logoAspect = this.readImageAspect(this.logoBuffer) ?? 1;
       this.logger.log(`Logo cached in memory (aspect ${this.logoAspect.toFixed(2)})`);
     } catch {
       this.logger.warn('Logo not found, using text fallback');
@@ -45,17 +45,46 @@ export class PdfService {
   }
 
   /**
-   * Width/height from the PNG header. A square wordmark and a wide one need
-   * very different amounts of the header band, and reserving a fixed box for
-   * either leaves the other floating in dead space.
+   * Width/height of the logo. A square wordmark and a wide one need very
+   * different amounts of the header band, and reserving a fixed box for either
+   * leaves the other floating in dead space.
+   *
+   * Both formats PDFKit accepts are read, because the file is whatever the
+   * agency dropped in and the extension is not evidence — the mark shipped
+   * here arrived as a JPEG named .png, and reading only PNG meant falling back
+   * to "square" and printing a wide logo at half its size.
    */
-  private readPngAspect(png: Buffer): number | null {
-    // 8-byte signature, then the IHDR chunk: length, type, width, height.
-    if (png.length < 24 || png.readUInt32BE(12) !== 0x49484452) return null;
-    const width = png.readUInt32BE(16);
-    const height = png.readUInt32BE(20);
-    if (!width || !height) return null;
-    return width / height;
+  private readImageAspect(image: Buffer): number | null {
+    if (image.length < 4) return null;
+
+    // PNG: 8-byte signature, then IHDR carrying width and height.
+    if (image.readUInt32BE(0) === 0x89504e47) {
+      if (image.length < 24 || image.readUInt32BE(12) !== 0x49484452) return null;
+      return this.ratio(image.readUInt32BE(16), image.readUInt32BE(20));
+    }
+
+    // JPEG: walk the marker segments to the start-of-frame, which holds the size.
+    if (image.readUInt16BE(0) === 0xffd8) {
+      let offset = 2;
+      while (offset + 9 < image.length) {
+        if (image[offset] !== 0xff) {
+          offset += 1;
+          continue;
+        }
+        const marker = image[offset + 1];
+        // SOF0..SOF15, excluding the non-frame markers that share the range.
+        if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+          return this.ratio(image.readUInt16BE(offset + 7), image.readUInt16BE(offset + 5));
+        }
+        offset += 2 + image.readUInt16BE(offset + 2);
+      }
+    }
+
+    return null;
+  }
+
+  private ratio(width: number, height: number): number | null {
+    return width && height ? width / height : null;
   }
 
   async generateBordereau(visaCaseId: string, res: Response) {
