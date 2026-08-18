@@ -103,7 +103,7 @@ export class PdfService {
         const doc = new PDFDocument({
           size: [PAGE.width, PAGE.height],
           margins: { top: 0, bottom: 0, left: 0, right: 0 },
-          info: { Title: `Bordereau - ${visaCase.caseNumber}`, Author: 'HakimiVisa' },
+          info: { Title: `Bordereau - ${visaCase.caseNumber}`, Author: 'HAKIMI SOLUTIONS' },
           bufferPages: false,
           autoFirstPage: false,
         });
@@ -286,7 +286,7 @@ export class PdfService {
 
     doc.moveTo(MARGIN, y - 5).lineTo(CONTENT_RIGHT, y - 5).lineWidth(0.5).strokeColor('#ddd').stroke();
     doc.fontSize(FONT.footer).fillColor('#999').font('Helvetica').text(
-      `Généré le ${dateStr} par HakimiVisa — document automatique, sans signature`,
+      `Généré le ${dateStr} par HAKIMI SOLUTIONS — document automatique, sans signature`,
       MARGIN,
       y,
       { align: 'center', width: PAGE.width - MARGIN * 2, lineBreak: false },
