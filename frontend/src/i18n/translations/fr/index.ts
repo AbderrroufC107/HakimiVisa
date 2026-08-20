@@ -707,6 +707,9 @@ export const fr = {
     print: 'Imprimer',
   },
   templates: {
+    chooseTemplate: 'Choisir un modèle',
+    noTemplateForChannel: 'Aucun modèle pour ce canal. Créez-en un dans Modèles.',
+    send: 'Envoyer',
     clientNoEmail: "Ce client n'a pas d'adresse email. Ajoutez-la sur sa fiche.",
     group_client: 'Client',
     group_case: 'Dossier',

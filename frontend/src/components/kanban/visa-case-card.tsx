@@ -1,14 +1,13 @@
 import { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDraggable } from '@dnd-kit/core';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { SendMessageDialog } from './send-message-dialog';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, Loader2, IdCard, Phone, Globe2, Building2 } from 'lucide-react';
-import { templatesService } from '@/services';
+import { GripVertical, Eye, ChevronLeft, ChevronRight, CheckCircle2, CircleDollarSign, AlertTriangle, MessageCircle, Mail, IdCard, Phone, Globe2, Building2 } from 'lucide-react';
 import { AppointmentPicker } from './appointment-picker';
 import { NEXT_WORKFLOW_STATUS, PREVIOUS_WORKFLOW_STATUS } from '@/constants';
-import type { VisaCase, VisaStatus, ApiError } from '@/types';
+import type { VisaCase, VisaStatus, TemplateChannel } from '@/types';
 
 interface VisaCaseCardProps {
   card: VisaCase;
@@ -122,43 +121,7 @@ export const VisaCaseCard = memo(function VisaCaseCard({
   const hasNext = nextStatus !== null;
   const isLivree = card.currentStatus === 'LIVREE';
   const isRdvOk = card.currentStatus === 'RDV_OK';
-  const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null);
-
-  const handleSendWhatsApp = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!card.id) return;
-    setSending('whatsapp');
-    try {
-      const res = await templatesService.whatsappLink({ visaCaseId: card.id, channel: 'WHATSAPP' });
-      window.open(res.url, '_blank');
-      toast.success(t('common:success'));
-    } catch (error) {
-      // The API explains what is missing (no email, no template...); showing
-      // a generic word instead would hide the one thing the agent needs.
-      toast.error((error as ApiError)?.message || t('common:error'));
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const handleSendEmail = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!card.id) return;
-    setSending('email');
-    try {
-      const client = card.client as { id: string; fullName: string; phoneNumber: string; email?: string | null; passportNumber?: string | null; passportExpiry?: string | null } | undefined;
-      const to = client?.email;
-      if (!to) { toast.error(t('templates:clientNoEmail')); setSending(null); return; }
-      await templatesService.sendEmail({ visaCaseId: card.id, channel: 'EMAIL', to });
-      toast.success(t('common:success'));
-    } catch (error) {
-      // The API explains what is missing (no email, no template...); showing
-      // a generic word instead would hide the one thing the agent needs.
-      toast.error((error as ApiError)?.message || t('common:error'));
-    } finally {
-      setSending(null);
-    }
-  };
+  const [messageChannel, setMessageChannel] = useState<TemplateChannel | null>(null);
 
   return (
     <div
@@ -303,47 +266,40 @@ export const VisaCaseCard = memo(function VisaCaseCard({
           </div>
         )}
 
-        {/* ─── Passport + appointment + messaging (RDV OK) ─────── */}
+        {/* ─── Appointment (RDV OK) ─────────────────────────────── */}
         {isRdvOk && (
-          <div className="mt-2.5 space-y-2">
+          <div className="mt-2.5">
             <AppointmentPicker
               visaCaseId={card.id}
               appointment={card.appointments?.[0]}
               variant="card"
             />
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-full px-2 text-xs font-medium"
-                onClick={handleSendWhatsApp}
-                disabled={sending !== null}
-              >
-                {sending === 'whatsapp' ? (
-                  <Loader2 className="me-1 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <MessageCircle className="me-1 h-3.5 w-3.5 text-emerald-600" />
-                )}
-                WhatsApp
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 w-full px-2 text-xs font-medium"
-                onClick={handleSendEmail}
-                disabled={sending !== null}
-              >
-                {sending === 'email' ? (
-                  <Loader2 className="me-1 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Mail className="me-1 h-3.5 w-3.5 text-blue-600" />
-                )}
-                Email
-              </Button>
-            </div>
           </div>
         )}
+
+        {/* ─── Messaging ────────────────────────────────────────────
+            A client is told what is happening at every step, not only
+            once the appointment is set, so these are never gated. */}
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-full px-2 text-xs font-medium"
+            onClick={(e) => { e.stopPropagation(); setMessageChannel('WHATSAPP'); }}
+          >
+            <MessageCircle className="me-1 h-3.5 w-3.5 text-emerald-600" />
+            WhatsApp
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-full px-2 text-xs font-medium"
+            onClick={(e) => { e.stopPropagation(); setMessageChannel('EMAIL'); }}
+          >
+            <Mail className="me-1 h-3.5 w-3.5 text-blue-600" />
+            Email
+          </Button>
+        </div>
 
         {/* ─── Payment toggle (Livrée) ─────────────────────────── */}
         {isLivree && (
@@ -416,6 +372,15 @@ export const VisaCaseCard = memo(function VisaCaseCard({
           )}
         </div>
       </div>
+      {messageChannel && (
+        <SendMessageDialog
+          open
+          onOpenChange={(next) => { if (!next) setMessageChannel(null); }}
+          visaCaseId={card.id}
+          channel={messageChannel}
+          clientEmail={(card.client as { email?: string | null } | undefined)?.email}
+        />
+      )}
     </div>
   );
 });

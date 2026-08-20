@@ -703,6 +703,9 @@ export const ar = {
     print: 'طباعة',
   },
   templates: {
+    chooseTemplate: 'اختر قالبًا',
+    noTemplateForChannel: 'لا يوجد قالب لهذه القناة. أنشئ واحدًا من صفحة القوالب.',
+    send: 'إرسال',
     clientNoEmail: 'هذا العميل بلا بريد إلكتروني. أضفه في بطاقته.',
     group_client: 'العميل',
     group_case: 'الملف',

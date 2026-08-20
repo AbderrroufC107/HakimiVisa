@@ -705,6 +705,9 @@ export const en = {
     print: 'Print',
   },
   templates: {
+    chooseTemplate: 'Choose a template',
+    noTemplateForChannel: 'No template for this channel. Create one under Templates.',
+    send: 'Send',
     clientNoEmail: 'This client has no email address. Add one on their file.',
     group_client: 'Client',
     group_case: 'Case',

@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { visaCasesService, templatesService } from '@/services';
+import { visaCasesService } from '@/services';
+import { SendMessageDialog } from './send-message-dialog';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/shared/badge';
-import { X, ExternalLink, Clock, User, FileText, Phone, Mail, MessageCircle, Loader2, IdCard } from 'lucide-react';
+import { X, ExternalLink, Clock, User, FileText, Phone, Mail, MessageCircle, IdCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppointmentPicker } from './appointment-picker';
-import type { VisaCase, VisaStatus, Client, ApiError } from '@/types';
+import type { VisaCase, VisaStatus, Client, TemplateChannel } from '@/types';
 
 interface CardDetailsDrawerProps {
   card: VisaCase | null;
@@ -47,41 +47,7 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
     enabled: !!card,
   });
 
-  const [sending, setSending] = useState<'whatsapp' | 'email' | null>(null);
-
-  const handleSendWhatsApp = async () => {
-    if (!card?.id) return;
-    setSending('whatsapp');
-    try {
-      const res = await templatesService.whatsappLink({ visaCaseId: card.id, channel: 'WHATSAPP' });
-      window.open(res.url, '_blank');
-      toast.success(t('common:success'));
-    } catch (error) {
-      // The API explains what is missing (no email, no template...); showing
-      // a generic word instead would hide the one thing the agent needs.
-      toast.error((error as ApiError)?.message || t('common:error'));
-    } finally {
-      setSending(null);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!card?.id) return;
-    setSending('email');
-    try {
-      const client = fullData?.client as Client | undefined;
-      const to = client?.email;
-      if (!to) { toast.error(t('templates:clientNoEmail')); setSending(null); return; }
-      const res = await templatesService.sendEmail({ visaCaseId: card.id, channel: 'EMAIL', to });
-      if (res.sent) toast.success(t('common:success'));
-    } catch (error) {
-      // The API explains what is missing (no email, no template...); showing
-      // a generic word instead would hide the one thing the agent needs.
-      toast.error((error as ApiError)?.message || t('common:error'));
-    } finally {
-      setSending(null);
-    }
-  };
+  const [messageChannel, setMessageChannel] = useState<TemplateChannel | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -215,8 +181,7 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
                 </div>
               </section>
 
-              {card.currentStatus === 'RDV_OK' && (
-                <section>
+              <section>
                   <h4 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     <MessageCircle className="h-3.5 w-3.5" />
                     {t('kanban:sendNotification')}
@@ -243,36 +208,35 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
                         )}
                       </div>
                     )}
-                    <AppointmentPicker
-                      visaCaseId={card.id}
-                      appointment={fullData?.appointments?.[0]}
-                      variant="full"
-                    />
+                    {card.currentStatus === 'RDV_OK' && (
+                      <AppointmentPicker
+                        visaCaseId={card.id}
+                        appointment={fullData?.appointments?.[0]}
+                        variant="full"
+                      />
+                    )}
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={handleSendWhatsApp}
-                        disabled={sending !== null}
+                        onClick={() => setMessageChannel('WHATSAPP')}
                       >
-                        {sending === 'whatsapp' ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <MessageCircle className="h-3.5 w-3.5 mr-1" />}
+                        <MessageCircle className="h-3.5 w-3.5 mr-1" />
                         WhatsApp
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={handleSendEmail}
-                        disabled={sending !== null}
+                        onClick={() => setMessageChannel('EMAIL')}
                       >
-                        {sending === 'email' ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Mail className="h-3.5 w-3.5 mr-1" />}
+                        <Mail className="h-3.5 w-3.5 mr-1" />
                         Email
                       </Button>
                     </div>
                   </div>
                 </section>
-              )}
 
               {card.notes && (
                 <section>
@@ -346,6 +310,15 @@ export function CardDetailsDrawer({ card, onClose }: CardDetailsDrawerProps) {
           </>
         )}
       </div>
+      {messageChannel && card && (
+        <SendMessageDialog
+          open
+          onOpenChange={(next) => { if (!next) setMessageChannel(null); }}
+          visaCaseId={card.id}
+          channel={messageChannel}
+          clientEmail={client?.email}
+        />
+      )}
     </>
   );
 }
