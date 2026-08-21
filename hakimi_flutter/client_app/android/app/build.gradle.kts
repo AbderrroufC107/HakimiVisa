@@ -1,3 +1,13 @@
+import java.util.Properties
+
+// Signing material lives outside the repository. The previous key and its
+// password were committed here in clear text, so both are public and the key
+// has been abandoned rather than reused.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("../../android-keystore/key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -27,22 +37,28 @@ android {
         versionCode = 1
         versionName = "1.0.0"
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
         }
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("../../../android-keystore/release.keystore")
-            storePassword = "HakimiVisa2024"
-            keyAlias = "hakimivisa"
-            keyPassword = "HakimiVisa2024"
+            val store = keystoreProperties.getProperty("storeFile")
+            if (store != null) {
+                storeFile = rootProject.file("../../android-keystore/$store")
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Without the properties file a release build would silently fall
+            // back to the debug key, which the Play Store rejects.
+            signingConfig = if (keystoreProperties.isEmpty) null
+                            else signingConfigs.getByName("release")
         }
     }
 }

@@ -45,3 +45,8 @@ docker/mysql-data/
 
 # Temp files
 *.tmp
+
+# Android signing material — never commit a key or its password
+hakimi_flutter/android-keystore/*.keystore
+hakimi_flutter/android-keystore/*.jks
+hakimi_flutter/android-keystore/key.properties
