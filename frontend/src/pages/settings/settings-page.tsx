@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import type { ApiError } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,23 +43,26 @@ import {
 import { RefDataSettings } from './ref-data-settings';
 import type { CreateManagerRequest, UpdateProfileRequest } from '@/types';
 
+/**
+ * These names are the API's, not ours. The previous shape used address/phone/
+ * email/website, which matched nothing the server sends or accepts — so the
+ * form loaded blank and every save was rejected as unknown fields.
+ */
 interface AgencySettings {
   agencyName: string;
-  address: string;
-  phone: string;
-  email: string;
-  website: string;
-  logoUrl: string | null;
+  agencyAddress: string;
+  agencyPhone: string;
+  agencyEmail: string;
+  agencyWebsite: string;
 }
 
 function normalizeAgencySettings(settings?: Partial<AgencySettings>): AgencySettings {
   return {
     agencyName: settings?.agencyName ?? '',
-    address: settings?.address ?? '',
-    phone: settings?.phone ?? '',
-    email: settings?.email ?? '',
-    website: settings?.website ?? '',
-    logoUrl: settings?.logoUrl ?? null,
+    agencyAddress: settings?.agencyAddress ?? '',
+    agencyPhone: settings?.agencyPhone ?? '',
+    agencyEmail: settings?.agencyEmail ?? '',
+    agencyWebsite: settings?.agencyWebsite ?? '',
   };
 }
 
@@ -121,8 +125,10 @@ export function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['agency-settings'] });
       toast.success(t('settings:saved'));
     },
-    onError: () => {
-      toast.error(t('settings:saveError'));
+    onError: (e) => {
+      // The API names the field it refused. Replacing that with a fixed
+      // sentence is what made this look like a mystery for so long.
+      toast.error((e as unknown as ApiError)?.message || t('settings:saveError'));
     },
   });
 
@@ -476,8 +482,8 @@ export function SettingsPage() {
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      value={form.address}
-                      onChange={(e) => setForm({ ...form, address: e.target.value })}
+                      value={form.agencyAddress}
+                      onChange={(e) => setForm({ ...form, agencyAddress: e.target.value })}
                       className="pl-9"
                       placeholder={t('settings:addressPlaceholder')}
                     />
@@ -491,8 +497,8 @@ export function SettingsPage() {
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      value={form.agencyPhone}
+                      onChange={(e) => setForm({ ...form, agencyPhone: e.target.value })}
                       className="pl-9"
                       placeholder={t('settings:phonePlaceholder')}
                     />
@@ -506,8 +512,8 @@ export function SettingsPage() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      value={form.agencyEmail}
+                      onChange={(e) => setForm({ ...form, agencyEmail: e.target.value })}
                       className="pl-9"
                       placeholder={t('settings:emailPlaceholder')}
                     />
@@ -521,8 +527,8 @@ export function SettingsPage() {
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      value={form.website}
-                      onChange={(e) => setForm({ ...form, website: e.target.value })}
+                      value={form.agencyWebsite}
+                      onChange={(e) => setForm({ ...form, agencyWebsite: e.target.value })}
                       className="pl-9"
                       placeholder={t('settings:websitePlaceholder')}
                     />
