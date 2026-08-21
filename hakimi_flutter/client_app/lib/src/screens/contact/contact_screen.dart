@@ -136,9 +136,11 @@ class ContactScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _HoursRow(day: 'Lundi - Jeudi', hours: '09:00 - 17:00'),
-                  _HoursRow(day: 'Vendredi', hours: '09:00 - 12:00'),
-                  _HoursRow(day: 'Samedi - Dimanche', hours: 'Fermé'),
+                  // The agency opens every day but Friday. The previous rows
+                  // described a European week: they closed on Sunday, which is
+                  // a working day here, and opened on Friday, which is not.
+                  _HoursRow(day: 'Samedi - Jeudi', hours: '09:00 - 17:00'),
+                  _HoursRow(day: 'Vendredi', hours: 'Fermé'),
                 ],
               ),
             ),
