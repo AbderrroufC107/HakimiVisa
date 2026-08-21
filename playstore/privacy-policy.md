@@ -2,15 +2,14 @@
 
 **Dernière mise à jour : 21 août 2026**
 
-> À COMPLÉTER avant publication : les champs entre crochets doivent être
-> remplis avec les informations réelles de l'agence. Ce texte décrit ce que
-> l'application fait réellement ; ne le modifiez pas pour promettre davantage.
+> Les coordonnées ci-dessous sont celles de l'agence. Restent à fixer : les
+> durées de conservation et le délai de réponse, marqués entre crochets.
 
 ## Qui sommes-nous
 
-L'application HakimiVisa Client est éditée par [RAISON SOCIALE DE L'AGENCE],
-dont le siège est situé [ADRESSE COMPLÈTE], Algérie.
-Contact : [EMAIL DE CONTACT] — [TÉLÉPHONE].
+L'application HakimiVisa Client est éditée par Hakimi Solutions,
+dont le siège est situé Rue En Nasr, commune d'El Eulma, wilaya de Sétif, Algérie.
+Contact : hinfo19@gmail.com — +213 550 80 61 16.
 
 ## Quelles données l'application traite
 
@@ -61,7 +60,7 @@ obligations de l'agence.
 ## Vos droits
 
 Vous pouvez demander à consulter, corriger ou supprimer les données vous
-concernant en écrivant à [EMAIL DE CONTACT]. Nous répondons sous [DÉLAI].
+concernant en écrivant à hinfo19@gmail.com. Nous répondons sous [DÉLAI].
 
 ## Enfants
 
@@ -79,12 +78,12 @@ nouvelle date de mise à jour.
 
 **آخر تحديث: 21 أوت 2026**
 
-> يجب استكمال الحقول بين قوسين ببيانات الوكالة الحقيقية قبل النشر.
+> بيانات الوكالة مستكمَلة. يبقى تحديد مدة الحفظ ومهلة الردّ، وهما بين قوسين.
 
 ## من نحن
 
-تطبيق HakimiVisa للزبائن تصدره [الاسم القانوني للوكالة]، ومقرّها
-[العنوان الكامل]، الجزائر. للتواصل: [البريد الإلكتروني] — [الهاتف].
+تطبيق HakimiVisa للزبائن تصدره Hakimi Solutions، ومقرّها
+شارع النصر، حي بلدية العلمة، ولاية سطيف، الجزائر. للتواصل: hinfo19@gmail.com — +213 550 80 61 16.
 
 ## ما البيانات التي يعالجها التطبيق
 

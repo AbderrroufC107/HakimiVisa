@@ -112,8 +112,10 @@ Arabic store variant:
 
 ## Contact details required by Play
 
-- Support email: the agency's real address (see the open point below)
-- Website: the agency's real site
+- Support email: hinfo19@gmail.com
+- Support phone: +213 550 80 61 16 (0550806116)
+- Address: Rue En Nasr, commune d'El Eulma, wilaya de Sétif, Algérie
+- Website: none — leave blank unless the agency has a public site
 - Privacy policy: a public URL — **mandatory**, see privacy-policy.md
 
 ---
