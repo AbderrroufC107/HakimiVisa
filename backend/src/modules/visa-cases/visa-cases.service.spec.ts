@@ -413,13 +413,18 @@ describe('VisaCasesService', () => {
         metadata: { caseNumber: 'VISA-2026-0001', from: 'EN_ATTENTE', to: 'EN_TRAITEMENT' },
       });
       // A status change concerns the whole desk, so it broadcasts rather than
-      // notifying only the user who made the move.
-      expect(mockNotifications.broadcast).toHaveBeenCalledWith({
-        type: 'STATUS_CHANGE',
-        title: 'Statut du dossier mis à jour',
-        message: expect.stringContaining('de EN_ATTENTE à EN_TRAITEMENT'),
-        link: '/visa-cases/vc-1',
-      });
+      // notifying only the user who made the move. The second argument is the
+      // agency that filed the case — the only partner told, since the message
+      // names the client.
+      expect(mockNotifications.broadcast).toHaveBeenCalledWith(
+        {
+          type: 'STATUS_CHANGE',
+          title: 'Statut du dossier mis à jour',
+          message: expect.stringContaining('de EN_ATTENTE à EN_TRAITEMENT'),
+          link: '/visa-cases/vc-1',
+        },
+        null,
+      );
       expect(mockGateway.broadcast).toHaveBeenCalledWith('visaCase:statusChange', {
         id: 'vc-1',
         caseNumber: 'VISA-2026-0001',

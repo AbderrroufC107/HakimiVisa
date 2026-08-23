@@ -74,6 +74,8 @@ export function SettingsPage() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const isAdmin = user?.role === 'ADMIN';
+  // Partner agencies sign in here too; they are not desk staff.
+  const isDeskAdmin = isAdmin && user?.role !== 'AGENCY';
   const [activeSection, setActiveSection] = useState<'general' | 'agency' | 'refData' | 'appearance' | 'notifications' | 'security'>('general');
   const [preferences, setPreferences] = useState<SettingsPreferences>(() => loadSettingsPreferences());
 
@@ -210,8 +212,16 @@ export function SettingsPage() {
           <div className="flex flex-wrap gap-2 rounded-lg border bg-card p-2">
             {[
               { key: 'general', icon: SlidersHorizontal, label: t('settings:general') },
-              { key: 'agency', icon: Building, label: t('settings:agency') },
-              { key: 'refData', icon: Globe, label: t('settings:refData') },
+              // The desk's own identity and its reference data are not a
+              // partner's to see, let alone edit — the API refuses the writes,
+              // but offering the forms reads as though the partner runs the
+              // desk.
+              ...(isDeskAdmin
+                ? [
+                    { key: 'agency', icon: Building, label: t('settings:agency') },
+                    { key: 'refData', icon: Globe, label: t('settings:refData') },
+                  ]
+                : []),
               { key: 'appearance', icon: Monitor, label: t('settings:appearance') },
               { key: 'notifications', icon: Bell, label: t('settings:notifications') },
               { key: 'security', icon: ShieldCheck, label: t('settings:security') },
@@ -453,7 +463,7 @@ export function SettingsPage() {
             </>
           )}
 
-          {activeSection === 'agency' && (
+          {activeSection === 'agency' && isDeskAdmin && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -538,7 +548,7 @@ export function SettingsPage() {
             </Card>
           )}
 
-          {activeSection === 'refData' && <RefDataSettings />}
+          {activeSection === 'refData' && isDeskAdmin && <RefDataSettings />}
 
           {activeSection === 'appearance' && (
             <Card>

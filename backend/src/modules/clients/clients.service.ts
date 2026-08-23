@@ -425,8 +425,12 @@ export class ClientsService {
     return documents;
   }
 
-  async getDashboardStats(query: QueryDashboardDto = {}) {
+  async getDashboardStats(query: QueryDashboardDto = {}, agencyId?: string | null) {
     const now = new Date();
+    // A partner sees the volume it submitted, never the desk's book of
+    // business. Without this the counts were the whole agency's.
+    const clientScope = agencyId ? { creator: { agencyId } } : {};
+    const caseScope = agencyId ? { submittedByAgencyId: agencyId } : {};
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const { dateFrom, dateTo } = query;
@@ -437,10 +441,14 @@ export class ClientsService {
 
     // No range supplied keeps the historic all-time behaviour, so existing
     // callers (the web dashboard) are unaffected.
-    const clientsInRange = hasRange ? { createdAt } : {};
-    const casesInRange = hasRange ? { createdAt, archived: false } : { archived: false };
+    const clientsInRange = hasRange ? { ...clientScope, createdAt } : { ...clientScope };
+    const casesInRange = hasRange
+      ? { ...caseScope, createdAt, archived: false }
+      : { ...caseScope, archived: false };
     const statusInRange = (currentStatus: 'EN_ATTENTE' | 'DOSSIER_INCOMPLET' | 'EN_TRAITEMENT' | 'RDV_OK' | 'LIVREE') =>
-      hasRange ? { currentStatus, createdAt, archived: false } : { currentStatus, archived: false };
+      hasRange
+        ? { ...caseScope, currentStatus, createdAt, archived: false }
+        : { ...caseScope, currentStatus, archived: false };
 
     const [
       totalClients,
@@ -454,7 +462,7 @@ export class ClientsService {
     ] = await Promise.all([
       this.prisma.client.count({ where: clientsInRange }),
       this.prisma.visaCase.count({ where: casesInRange }),
-      this.prisma.visaCase.count({ where: { createdAt: { gte: monthStart }, archived: false } }),
+      this.prisma.visaCase.count({ where: { ...caseScope, createdAt: { gte: monthStart }, archived: false } }),
       this.prisma.visaCase.count({ where: statusInRange('EN_ATTENTE') }),
       this.prisma.visaCase.count({ where: statusInRange('EN_TRAITEMENT') }),
       this.prisma.visaCase.count({ where: statusInRange('RDV_OK') }),
@@ -474,12 +482,16 @@ export class ClientsService {
     };
   }
 
-  async getAnalytics() {
+  async getAnalytics(agencyId?: string | null) {
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
     const cases = await this.prisma.visaCase.findMany({
-      where: { createdAt: { gte: sixMonthsAgo }, archived: false },
+      where: {
+        ...(agencyId ? { submittedByAgencyId: agencyId } : {}),
+        createdAt: { gte: sixMonthsAgo },
+        archived: false,
+      },
       select: {
         createdAt: true,
         visaCountry: true,

@@ -297,6 +297,9 @@ export class VisaCasesService {
       where: { id },
       include: { client: { select: { fullName: true } } },
     });
+    // The partner that filed this case is told about it; every other partner
+    // is not, since the message names the client.
+    const owningAgencyId = visaCaseWithClient?.submittedByAgencyId ?? null;
 
     const changer = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -310,7 +313,7 @@ export class VisaCasesService {
       title: 'Statut du dossier mis à jour',
       message: notificationMsg,
       link: `/visa-cases/${id}`,
-    });
+    }, owningAgencyId);
 
     // Send FCM push notification to the client
     const clientFull = await this.prisma.visaCase.findUnique({

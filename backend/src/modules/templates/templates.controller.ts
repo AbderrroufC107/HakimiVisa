@@ -16,7 +16,10 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { DeskOnlyGuard } from '../../common/guards/desk-only.guard';
 
 @Controller('templates')
-@UseGuards(JwtAuthGuard)
+// Every route here is desk-only. The wording the desk sends its clients is
+// its own; a partner agency has no reason to read it, and the write routes
+// were already refused.
+@UseGuards(JwtAuthGuard, DeskOnlyGuard)
 export class TemplatesController {
   constructor(
     private templatesService: TemplatesService,

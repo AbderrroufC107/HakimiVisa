@@ -58,10 +58,11 @@ describe('ClientsController', () => {
       };
       mockClientsService.getDashboardStats.mockResolvedValue(row(stats));
 
-      const result = await controller.getDashboardStats({});
+      const result = await controller.getDashboardStats({}, null);
 
       expect(result).toBe(stats);
-      expect(mockClientsService.getDashboardStats).toHaveBeenCalled();
+      // Desk staff carry no agency, so the service is asked for everything.
+      expect(mockClientsService.getDashboardStats).toHaveBeenCalledWith({}, null);
     });
   });
 
@@ -74,10 +75,10 @@ describe('ClientsController', () => {
       };
       mockClientsService.getAnalytics.mockResolvedValue(analytics);
 
-      const result = await controller.getAnalytics();
+      const result = await controller.getAnalytics(null);
 
       expect(result).toBe(analytics);
-      expect(mockClientsService.getAnalytics).toHaveBeenCalled();
+      expect(mockClientsService.getAnalytics).toHaveBeenCalledWith(null);
     });
   });
 

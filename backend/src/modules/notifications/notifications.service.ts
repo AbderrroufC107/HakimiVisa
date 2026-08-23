@@ -34,8 +34,21 @@ export class NotificationsService {
     return notification;
   }
 
-  async broadcast(dto: BroadcastNotificationDto) {
+  /**
+   * Desk-wide announcement. Partner agencies are deliberately excluded: these
+   * messages name the client and quote the case, and a partner has no business
+   * reading about files it did not submit. Pass `agencyId` to also reach the
+   * partner that submitted the case in question — and only that partner.
+   */
+  async broadcast(dto: BroadcastNotificationDto, agencyId?: string | null) {
     const users = await this.prisma.user.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { role: { in: [UserRole.ADMIN, UserRole.MANAGER, UserRole.AGENT] } },
+          ...(agencyId ? [{ agencyId }] : []),
+        ],
+      },
       select: { id: true },
     });
 

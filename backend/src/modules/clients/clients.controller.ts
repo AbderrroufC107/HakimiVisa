@@ -27,13 +27,16 @@ export class ClientsController {
   constructor(private clientsService: ClientsService) {}
 
   @Get('dashboard')
-  getDashboardStats(@Query() query: QueryDashboardDto) {
-    return this.clientsService.getDashboardStats(query);
+  getDashboardStats(
+    @Query() query: QueryDashboardDto,
+    @CurrentUser('agencyId') agencyId: string | null,
+  ) {
+    return this.clientsService.getDashboardStats(query, agencyId);
   }
 
   @Get('analytics')
-  getAnalytics() {
-    return this.clientsService.getAnalytics();
+  getAnalytics(@CurrentUser('agencyId') agencyId: string | null) {
+    return this.clientsService.getAnalytics(agencyId);
   }
 
   @Post()
