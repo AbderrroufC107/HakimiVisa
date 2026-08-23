@@ -7,7 +7,8 @@ import { CaseFilesPanel } from '@/components/visa-cases/case-files-panel';
 import { RequiredDocumentsChecklist } from '@/components/visa-cases/required-documents-checklist';
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
-import { visaCasesService, pdfService, appointmentsService, templatesService } from '@/services';
+import { visaCasesService, appointmentsService, templatesService } from '@/services';
+import { LabelDialog, type LabelData } from '@/components/visa-cases/client-label';
 import { NEXT_WORKFLOW_STATUS, ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,20 +39,12 @@ export function VisaCaseDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<string>('');
-  const [printing, setPrinting] = useState(false);
+  // Printing from here opens the same label, with the same size choices, as
+  // the one offered right after a case is created — it is the same document.
+  const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [price, setPrice] = useState<string>('');
 
-  const handlePrint = useCallback(async () => {
-    if (!id || printing) return;
-    setPrinting(true);
-    try {
-      await pdfService.printBordereau(id);
-    } catch (error) {
-      toast.error((error as ApiError)?.message || t('common:error'));
-    } finally {
-      setPrinting(false);
-    }
-  }, [id, printing, t]);
+  const handlePrint = useCallback(() => setShowLabelDialog(true), []);
 
   const { data, isLoading } = useQuery({
     queryKey: ['visa-case', id],
@@ -183,8 +176,8 @@ export function VisaCaseDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button data-testid="bordereau-print" variant="default" size="sm" disabled={printing} onClick={handlePrint}>
-            {printing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Printer className="h-4 w-4 mr-1" />}
+          <Button data-testid="bordereau-print" variant="default" size="sm" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-1" />
             {t('common:print')}
           </Button>
         </div>
@@ -539,6 +532,23 @@ export function VisaCaseDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <LabelDialog
+        open={showLabelDialog}
+        onOpenChange={setShowLabelDialog}
+        data={
+          visaCase?.client
+            ? ({
+                fullName: visaCase.client.fullName,
+                phoneNumber: visaCase.client.phoneNumber,
+                passportNumber: visaCase.client.passportNumber,
+                passportExpiry: visaCase.client.passportExpiry,
+                visaCountry: visaCase.visaCountry,
+                visaType: visaCase.visaType,
+              } satisfies LabelData)
+            : null
+        }
+      />
     </div>
   );
 }
