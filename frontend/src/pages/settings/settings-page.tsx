@@ -193,14 +193,18 @@ export function SettingsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">{t('settings:subtitle')}</p>
         </div>
-        <Button onClick={handleSave} disabled={settingsMutation.isPending}>
-          {settingsMutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          {t('settings:save')}
-        </Button>
+        {/* This button saves the desk's own details. A partner has nothing
+            here to save, and offering it only earns them a refusal. */}
+        {isDeskAdmin && (
+          <Button onClick={handleSave} disabled={settingsMutation.isPending}>
+            {settingsMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {t('settings:save')}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
