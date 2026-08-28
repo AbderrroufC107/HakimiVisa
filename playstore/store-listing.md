@@ -59,10 +59,6 @@ Arabic store variant:
     NOTIFICATIONS
     Recevez une alerte dès que l'état de votre dossier évolue.
 
-    TROIS LANGUES
-    L'application est disponible en français, en arabe et en anglais. Changez
-    de langue à tout moment depuis les paramètres.
-
     AIDE ET CONTACT
     Une foire aux questions répond aux demandes les plus fréquentes, et les
     coordonnées de l'agence sont accessibles en un geste.
@@ -92,10 +88,6 @@ Arabic store variant:
 
     الإشعارات
     يصلك تنبيه فور تغيّر حالة ملفك.
-
-    ثلاث لغات
-    التطبيق متوفّر بالعربية والفرنسية والإنجليزية، ويمكنك تغيير اللغة متى شئت
-    من الإعدادات.
 
     المساعدة والتواصل
     قسم للأسئلة الشائعة يجيب عن أكثر الاستفسارات تكرارًا، وبيانات الوكالة
@@ -150,3 +142,13 @@ device.
 | VIBRATE | Notification vibration |
 
 None of these needs a special declaration form.
+
+---
+
+## Known limitation, deliberately not claimed
+
+The app opens with a language chooser and part of the first screen follows it,
+but the tracking, appointment, document, help and contact screens are written
+in French in the source — roughly 140 strings. Until those are translated the
+listing must not promise a multilingual interface, so no such claim appears
+above. Revisit this copy once the translation lands.
