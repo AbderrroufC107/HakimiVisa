@@ -34,8 +34,10 @@ android {
         applicationId = "com.hakimi.visa.client"
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
-        versionCode = 1
-        versionName = "1.0.0"
+        // Play refuses an upload whose versionCode it has seen before, so this
+        // rises with every release whether or not the visible name changes.
+        versionCode = 2
+        versionName = "1.0.1"
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
         }
