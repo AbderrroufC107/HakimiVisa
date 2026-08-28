@@ -259,6 +259,7 @@ export const ar = {
     tipOrganized: 'الملفات منظمة حسب العميل',
     fileUploaded: 'تم رفع الملف',
     uploadSuccess: 'تم رفع الوثيقة',
+    phoneAlreadyUsed: 'هذا الرقم مستعمل من طرف: {names}. يمكنك المتابعة إن كان شخصًا آخر على نفس الخط.',
     uploadFailed: 'فشل رفع الملف',
     fileDeleted: 'تم حذف الملف',
   },

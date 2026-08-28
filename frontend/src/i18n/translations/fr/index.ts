@@ -225,6 +225,7 @@ export const fr = {
     tipOrganized: 'Fichiers organisés par client',
     fileUploaded: 'Fichier téléversé',
     uploadSuccess: 'Fichier envoyé',
+    phoneAlreadyUsed: "Ce numéro est déjà utilisé par : {names}. Vous pouvez continuer s'il s'agit d'une autre personne du même foyer.",
     uploadFailed: 'Échec du téléversement',
     fileDeleted: 'Fichier supprimé',
     pastAppointmentsDesc: 'Rendez-vous terminés',

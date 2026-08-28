@@ -204,6 +204,7 @@ export const en = {
     tipOrganized: 'Files organized by client',
     fileUploaded: 'File uploaded',
     uploadSuccess: 'File uploaded',
+    phoneAlreadyUsed: 'This number is already used by: {names}. Carry on if this is someone else on the same line.',
     uploadFailed: 'Failed to upload file',
     fileDeleted: 'File deleted',
     pastAppointmentsDesc: 'Completed appointments',

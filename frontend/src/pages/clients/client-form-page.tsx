@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { clientsService } from '@/services';
 import { ROUTES } from '@/constants';
 import { Button } from '@/components/ui/button';
@@ -49,9 +49,30 @@ export function ClientFormPage() {
     handleSubmit,
     reset,
     formState: { errors },
+    watch,
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
   });
+
+  // A shared line is allowed — a family often files together — but entering the
+  // same person twice is not what anyone wants, so say who already has this
+  // number and let the desk decide.
+  const phoneEntered = watch('phoneNumber')?.trim() ?? '';
+  const [debouncedPhone, setDebouncedPhone] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedPhone(phoneEntered), 400);
+    return () => clearTimeout(timer);
+  }, [phoneEntered]);
+
+  const { data: sharing } = useQuery({
+    queryKey: ['clients', 'sharing-phone', debouncedPhone],
+    queryFn: () => clientsService.findAll({ search: debouncedPhone, limit: 5 }),
+    enabled: debouncedPhone.length >= 6,
+  });
+
+  const alsoOnThisNumber = (sharing?.data ?? []).filter(
+    (c) => c.phoneNumber?.trim() === debouncedPhone && c.id !== id,
+  );
 
   useEffect(() => {
     if (existing) {
@@ -128,6 +149,19 @@ export function ClientFormPage() {
                 <Input id="phoneNumber" {...register('phoneNumber')} />
                 {errors.phoneNumber && (
                   <p className="text-xs text-destructive">{errors.phoneNumber.message}</p>
+                )}
+                {alsoOnThisNumber.length > 0 && (
+                  <div
+                    data-testid="phone-already-used"
+                    className="flex gap-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900"
+                  >
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <p>
+                      {t('clients:phoneAlreadyUsed', {
+                        names: alsoOnThisNumber.map((c) => c.fullName).join(', '),
+                      })}
+                    </p>
+                  </div>
                 )}
               </div>
               <div className="space-y-2">
