@@ -393,6 +393,16 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
         >
           <div className="mb-1.5 space-y-1 border-b-2 border-blue-600 pb-1.5">
             <img src="/print-logo.png" alt="" className="h-6 w-auto" />
+            {/* The sheets are headed by the desk's name and lines, so the
+                preview has to show them or it misrepresents the print. */}
+            {agency && (
+              <>
+                <span className="block text-xs font-extrabold text-slate-900">{agency.name}</span>
+                {agency.phones.length > 0 && (
+                  <span className="block text-[10px] text-slate-600">{agency.phones.join(' · ')}</span>
+                )}
+              </>
+            )}
             <span className="block text-sm font-extrabold uppercase text-slate-900">{data.fullName}</span>
           </div>
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:passport')}</span><span className="font-bold">{data.passportNumber || '—'}</span></div>
@@ -401,6 +411,15 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:country')}</span><span className="font-bold">{data.visaCountry}</span></div>
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:visaType')}</span><span className="font-bold">{data.visaType}</span></div>
         </div>
+
+        {agency && (
+          <p
+            className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900"
+            data-testid="receipt-note"
+          >
+            {t('label:receiptNote')}
+          </p>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

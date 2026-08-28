@@ -701,6 +701,7 @@ export const fr = {
     LIVREE: 'Livrée',
   },
   label: {
+    receiptNote: "Une seconde page s'imprime pour le client : son reçu d'inscription, avec vos coordonnées et un QR code vers le suivi et l'application.",
     printTitle: 'Imprimer le label ?',
     size: 'Format du papier',
     passport: 'Passeport',

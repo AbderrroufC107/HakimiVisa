@@ -699,6 +699,7 @@ export const en = {
     LIVREE: 'Delivered',
   },
   label: {
+    receiptNote: 'A second page prints for the client: their registration receipt, with your contact details and a QR code for tracking and the app.',
     printTitle: 'Print label?',
     size: 'Paper size',
     passport: 'Passport',
