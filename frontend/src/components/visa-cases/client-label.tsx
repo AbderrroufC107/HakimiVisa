@@ -128,7 +128,7 @@ export function printClientLabel(
   const headLayout = isTall
     ? 'flex-direction: column; align-items: flex-start;'
     : 'flex-direction: row-reverse; align-items: center; justify-content: space-between;';
-  const logoHeight = (isTall ? 14 : 9) * s;
+  const logoHeight = (isTall ? 20 : 12) * s;
   // A short label has to fit the same five fields in half the height, so the
   // name and the row spacing give way rather than run over the footer.
   const nameSize = (isTall ? 16 : 11) * s;
@@ -221,7 +221,10 @@ export function printClientLabel(
     border-bottom: ${(0.4 * s).toFixed(2)}mm solid #1a73e8;
     padding-bottom: ${(1.5 * s).toFixed(2)}mm; margin-bottom: ${(1.5 * s).toFixed(2)}mm;
   }
-  .lbl-logo { height: ${logoHeight.toFixed(2)}mm; width: auto; max-width: 100%; object-fit: contain; }
+  .lbl-logo {
+    height: ${logoHeight.toFixed(2)}mm; width: auto; max-width: 100%; object-fit: contain;
+    align-self: center; margin-inline: auto;
+  }
   .lbl-name {
     font-size: ${nameSize.toFixed(1)}pt; font-weight: 800; color: #1a1a2e;
     text-transform: uppercase; line-height: 1.1; overflow-wrap: anywhere;
@@ -263,18 +266,24 @@ export function printClientLabel(
   /* The label's type is sized for a small card; at full-sheet scale the same
      figures push the QR codes onto a third page. The receipt sets its own,
      tighter, so it stays one sheet. */
-  .rcpt .lbl-row { padding: ${(0.7 * s).toFixed(2)}mm 0; gap: ${(0.2 * s).toFixed(2)}mm; }
+  .rcpt .lbl-row { padding: ${(0.55 * s).toFixed(2)}mm 0; gap: ${(0.2 * s).toFixed(2)}mm; }
   .rcpt .lbl-key { font-size: ${(6.5 * s).toFixed(1)}pt; }
   .rcpt .lbl-val { font-size: ${(8 * s).toFixed(1)}pt; }
-  .rcpt .rcpt-title { font-size: ${(10 * s).toFixed(1)}pt; margin: ${(1.2 * s).toFixed(2)}mm 0; }
-  .rcpt .lbl-logo { height: ${(7 * s).toFixed(2)}mm; }
+  .rcpt .rcpt-title { font-size: ${(10 * s).toFixed(1)}pt; margin: ${(0.8 * s).toFixed(2)}mm 0; }
+  .rcpt .lbl-logo { height: ${(14 * s).toFixed(2)}mm; }
   .rcpt .qr img { width: ${(15 * s).toFixed(2)}mm; height: ${(15 * s).toFixed(2)}mm; }
   .rcpt-title {
     text-align: center; font-size: ${(13 * s).toFixed(1)}pt; font-weight: 800;
     color: #1a1a2e; margin: ${(2 * s).toFixed(2)}mm 0 ${(1.5 * s).toFixed(2)}mm;
     letter-spacing: .5px;
   }
-  .qr-wrap { display: flex; gap: ${(4 * s).toFixed(2)}mm; justify-content: space-around; margin-top: ${(2.5 * s).toFixed(2)}mm; }
+  .qr-wrap {
+    display: flex; justify-content: center;
+    gap: ${(14 * s).toFixed(2)}mm;
+    /* Enough to separate the codes from the rows, but not so much that
+       the footer is pushed onto a page of its own. */
+    margin-top: ${(3.5 * s).toFixed(2)}mm;
+  }
   .qr { text-align: center; }
   .qr img { width: ${(20 * s).toFixed(2)}mm; height: ${(20 * s).toFixed(2)}mm; display: block; }
   .qr b { display: block; font-size: ${(7 * s).toFixed(1)}pt; margin-top: ${(0.8 * s).toFixed(2)}mm; }
