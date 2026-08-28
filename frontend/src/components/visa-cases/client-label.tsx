@@ -150,24 +150,28 @@ export function printClientLabel(
   // The desk's name and lines head both sheets; a client keeps the second one
   // and needs to know who to call without hunting for the first.
   const phones = (agency?.phones ?? []).map((p) => p.trim()).filter(Boolean);
-  const agencyHeader = agency
-    ? `<span class="lbl-agency">${escapeHtml(agency.name)}</span>` +
-      (phones.length
-        ? `<span class="lbl-lines">${phones.map(escapeHtml).join(' · ')}</span>`
-        : '')
-    : '';
+  // Fall back rather than drop the heading: the sheet is still the desk's.
+  const agencyName = agency?.name?.trim() || 'HakimiVisa';
+  const agencyHeader =
+    `<span class="lbl-agency">${escapeHtml(agencyName)}</span>` +
+    (phones.length
+      ? `<span class="lbl-lines">${phones.map(escapeHtml).join(' · ')}</span>`
+      : '');
 
   const qrBlock = (src: string | null | undefined, label: string, url: string) =>
     src
       ? `<div class="qr"><img src="${src}" alt="" /><b>${escapeHtml(label)}</b><span>${escapeHtml(url)}</span></div>`
       : '';
 
-  // The receipt the client takes away: who to call, and how to follow the file.
-  const receiptSheet = agency
-    ? `<div class="lbl-box rcpt">
+  // The client's copy always prints. Making it conditional on the settings
+  // request meant any hiccup there silently produced a single sheet, with
+  // nothing to say why.
+  const siteUrl = agency?.website || window.location.origin;
+  const appUrl = agency?.appUrl || `${window.location.origin}/download`;
+  const receiptSheet = `<div class="lbl-box rcpt">
     <div class="lbl-head">
       <img class="lbl-logo" src="${logoUrl}" alt="" />
-      <span class="lbl-agency">${escapeHtml(agency.name)}</span>
+      <span class="lbl-agency">${escapeHtml(agencyName)}</span>
       ${phones.length ? `<span class="lbl-lines">${phones.map(escapeHtml).join(' · ')}</span>` : ''}
     </div>
     <div class="rcpt-title">VOTRE REÇU D'INSCRIPTION</div>
@@ -176,15 +180,14 @@ export function printClientLabel(
       ${rows}
     </div>
     <div class="qr-wrap">
-      ${qrBlock(agency.siteQr, 'Suivi en ligne', agency.website || 'hakimivisa.cloud')}
-      ${qrBlock(agency.appQr, 'Application', agency.appUrl)}
+      ${qrBlock(agency?.siteQr, 'Suivi en ligne', siteUrl)}
+      ${qrBlock(agency?.appQr, 'Application', appUrl)}
     </div>
     <div class="lbl-foot">
       <span>${new Date().toLocaleDateString('fr-FR')}</span>
-      <span>${escapeHtml(agency.name)}</span>
+      <span>${escapeHtml(agencyName)}</span>
     </div>
-  </div>`
-    : '';
+  </div>`;
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -292,7 +295,7 @@ export function printClientLabel(
     <div class="lbl-rows">${rows}</div>
     <div class="lbl-foot">
       <span>${new Date().toLocaleDateString('fr-FR')}</span>
-      <span>${escapeHtml(agency?.website || 'hakimivisa.cloud')}</span>
+      <span>${escapeHtml(siteUrl)}</span>
     </div>
   </div>
 ${receiptSheet}
@@ -412,14 +415,12 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
           <div className="flex justify-between text-xs"><span className="text-muted-foreground">{t('label:visaType')}</span><span className="font-bold">{data.visaType}</span></div>
         </div>
 
-        {agency && (
-          <p
-            className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900"
-            data-testid="receipt-note"
-          >
-            {t('label:receiptNote')}
-          </p>
-        )}
+        <p
+          className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900"
+          data-testid="receipt-note"
+        >
+          {t('label:receiptNote')}
+        </p>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
