@@ -16,13 +16,19 @@ export class PublicTrackingService {
       throw new BadRequestException('Indiquez un numéro de passeport ou un numéro de téléphone');
     }
 
-    const client = trimmedPassport
-      ? await this.prisma.client.findFirst({
-          where: { passportNumber: { equals: trimmedPassport } },
-          select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
-        })
-      : await this.findClientByPhone(trimmedPhone);
+    // A passport belongs to one person. A phone number can be shared by a
+    // whole family, so a lookup by phone answers for everyone on that line —
+    // otherwise only the first person registered would ever see a file.
+    const matches = trimmedPassport
+      ? [
+          await this.prisma.client.findFirst({
+            where: { passportNumber: { equals: trimmedPassport } },
+            select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
+          }),
+        ].filter((c): c is NonNullable<typeof c> => c !== null)
+      : await this.findClientsByPhone(trimmedPhone);
 
+    const client = matches[0];
     if (!client) {
       throw new NotFoundException('Aucun dossier trouvé avec ces informations');
     }
@@ -41,7 +47,7 @@ export class PublicTrackingService {
     }
 
     const where: Record<string, unknown> = {
-      clientId: client.id,
+      clientId: { in: matches.map((c) => c.id) },
       archived: false,
     };
 
@@ -61,6 +67,8 @@ export class PublicTrackingService {
         incompleteReason: true,
         openingDate: true,
         updatedAt: true,
+        // Named per case, so a shared line shows whose file each one is.
+        client: { select: { fullName: true } },
       },
     });
 
@@ -178,16 +186,16 @@ export class PublicTrackingService {
     });
   }
 
-  private async getClientIdByPhone(phone: string) {
-    const client = await this.findClientByPhone(phone);
-    if (!client) return null;
-    return client.id;
+  /** Every client on this line, since a phone number is not one person. */
+  private async getClientIdsByPhone(phone: string) {
+    const clients = await this.findClientsByPhone(phone);
+    return clients.map((client) => client.id);
   }
 
-  private async findClientByPhone(phone?: string) {
+  private async findClientsByPhone(phone?: string) {
     const candidates = this.phoneSearchCandidates(phone);
 
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) return [];
 
     const clients = await this.prisma.client.findMany({
       where: {
@@ -199,12 +207,13 @@ export class PublicTrackingService {
       select: { id: true, fullName: true, phoneNumber: true, passportNumber: true, passportExpiry: true },
     });
 
-    if (clients.length === 0) return null;
+    if (clients.length === 0) return [];
 
-    return (
-      clients.find((client) => this.samePhone(client.phoneNumber, phone)) ??
-      clients[0]
-    );
+    // `contains` can catch numbers that merely share a run of digits, so
+    // prefer the ones that really are this line; fall back to the loose set
+    // rather than answering nothing.
+    const exact = clients.filter((client) => this.samePhone(client.phoneNumber, phone));
+    return exact.length > 0 ? exact : clients;
   }
 
   private phoneSearchCandidates(phone?: string) {
@@ -259,19 +268,19 @@ export class PublicTrackingService {
     return (phone ?? '').replace(/\D/g, '');
   }
 
-  private async getVisaCaseIdsByClientId(clientId: string) {
+  private async getVisaCaseIdsByClientIds(clientIds: string[]) {
     const cases = await this.prisma.visaCase.findMany({
-      where: { clientId, archived: false },
+      where: { clientId: { in: clientIds }, archived: false },
       select: { id: true },
     });
     return cases.map((vc: { id: string }) => vc.id);
   }
 
   async findAppointmentsByPhone(phone: string) {
-    const clientId = await this.getClientIdByPhone(phone);
-    if (!clientId) return [];
+    const clientIds = await this.getClientIdsByPhone(phone);
+    if (clientIds.length === 0) return [];
 
-    const caseIds = await this.getVisaCaseIdsByClientId(clientId);
+    const caseIds = await this.getVisaCaseIdsByClientIds(clientIds);
     if (caseIds.length === 0) return [];
 
     return this.prisma.appointment.findMany({
@@ -287,10 +296,10 @@ export class PublicTrackingService {
   }
 
   async findDocumentsByPhone(phone: string) {
-    const clientId = await this.getClientIdByPhone(phone);
-    if (!clientId) return [];
+    const clientIds = await this.getClientIdsByPhone(phone);
+    if (clientIds.length === 0) return [];
 
-    const caseIds = await this.getVisaCaseIdsByClientId(clientId);
+    const caseIds = await this.getVisaCaseIdsByClientIds(clientIds);
     if (caseIds.length === 0) return [];
 
     return this.prisma.document.findMany({
@@ -306,10 +315,10 @@ export class PublicTrackingService {
   }
 
   async findNotificationsByPhone(phone: string) {
-    const clientId = await this.getClientIdByPhone(phone);
-    if (!clientId) return [];
+    const clientIds = await this.getClientIdsByPhone(phone);
+    if (clientIds.length === 0) return [];
 
-    const caseIds = await this.getVisaCaseIdsByClientId(clientId);
+    const caseIds = await this.getVisaCaseIdsByClientIds(clientIds);
     if (caseIds.length === 0) return [];
 
     const histories = await this.prisma.statusHistory.findMany({

@@ -211,7 +211,14 @@ export function TrackingPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="font-mono text-sm font-semibold">{searchResult.passport}</span>
+                        {/* Several people can share one phone, so each file
+                            says whose it is rather than repeating one passport. */}
+                        <span className="truncate text-sm font-semibold">
+                          {c.client?.fullName ?? searchResult.clientName}
+                        </span>
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                          {c.caseNumber}
+                        </span>
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">{c.visaCountry} - {c.visaType}</p>
                       <p className="text-xs text-muted-foreground">{t('tracking:lastUpdate')}: {new Date(c.updatedAt).toLocaleDateString(i18n.language?.replace('_', '-') ?? 'en-US')}</p>

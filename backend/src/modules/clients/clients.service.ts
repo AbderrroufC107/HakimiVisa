@@ -23,7 +23,9 @@ export class ClientsService {
   ) {}
 
   async create(dto: CreateClientDto, userId: string) {
-    // Prevent duplicate clients (same passport or same phone)
+    // A passport identifies one person, so it stays unique. A phone number
+    // does not: a family, a household or an employer routinely files several
+    // applications on one line, and refusing them was wrong.
     if (dto.passportNumber) {
       const existingByPassport = await this.prisma.client.findUnique({
         where: { passportNumber: dto.passportNumber },
@@ -34,16 +36,6 @@ export class ClientsService {
           `Un client existe déjà avec ce passeport: ${existingByPassport.fullName}`,
         );
       }
-    }
-
-    const existingByPhone = await this.prisma.client.findFirst({
-      where: { phoneNumber: dto.phoneNumber },
-      select: { id: true, fullName: true },
-    });
-    if (existingByPhone) {
-      throw new ConflictException(
-        `Un client existe déjà avec ce numéro de téléphone: ${existingByPhone.fullName}`,
-      );
     }
 
     const client = await this.prisma.client.create({

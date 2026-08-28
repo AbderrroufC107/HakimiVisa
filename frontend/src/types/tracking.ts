@@ -9,6 +9,8 @@ export interface TrackingCase {
   incompleteReason?: string | null;
   openingDate: string;
   updatedAt: string;
+  /** Whose file this is. A phone number can be shared by a whole family. */
+  client?: { fullName: string } | null;
 }
 
 export interface TrackingResult {
