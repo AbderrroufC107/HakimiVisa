@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تطبيق HakimiVisa — تابع ملف تأشيرتك</title>
+<meta name="description" content="حمّل تطبيق HakimiVisa وتابع حالة ملف تأشيرتك ومواعيدك مباشرة من هاتفك." />
+<meta property="og:title" content="تطبيق HakimiVisa — تابع ملف تأشيرتك" />
+<meta property="og:description" content="تابع حالة ملفك، موعدك ووثائقك من هاتفك. بدون حساب وبدون كلمة مرور." />
+<meta property="og:image" content="https://hakimivisa.cloud/print-logo.png" />
+<meta name="theme-color" content="#1e2a78" />
+<link rel="icon" href="/favicon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#101426; --muted:#5a6377; --line:#e3e7f0;
+    --brand:#1e2a78; --brand-2:#3a4bb5; --accent:#e02424;
+    --bg:#f5f7fb; --card:#ffffff; --ok:#0f9d58;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Cairo',system-ui,-apple-system,'Segoe UI',sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  header{
+    background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);
+    color:#fff; padding:44px 0 76px; position:relative; overflow:hidden;
+  }
+  header::after{
+    content:''; position:absolute; inset:auto -10% -60px -10%; height:120px;
+    background:var(--bg); border-radius:50% 50% 0 0;
+  }
+  .brand{display:flex; align-items:center; gap:14px; margin-bottom:38px}
+  .brand img{height:52px;width:auto;background:#fff;border-radius:12px;padding:7px 10px}
+  .hero{display:grid; grid-template-columns:1.15fr .85fr; gap:36px; align-items:center; position:relative; z-index:1}
+  h1{font-size:2.5rem; font-weight:800; line-height:1.25; letter-spacing:-.5px}
+  .lead{margin-top:14px; font-size:1.12rem; opacity:.94; max-width:34em}
+  .fr{display:block; margin-top:8px; font-size:.98rem; opacity:.8; direction:ltr; text-align:right}
+
+  .cta{margin-top:28px; display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    background:#fff; color:var(--brand); font-weight:800; font-size:1.06rem;
+    padding:15px 30px; border-radius:14px; text-decoration:none;
+    box-shadow:0 10px 26px rgba(0,0,0,.22); transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 14px 32px rgba(0,0,0,.28)}
+  .btn svg{width:22px;height:22px}
+  .meta{font-size:.86rem; opacity:.85}
+
+  .phone{
+    justify-self:center; width:232px; aspect-ratio:9/19; background:#0d1330;
+    border-radius:30px; padding:9px; box-shadow:0 22px 50px rgba(0,0,0,.35);
+  }
+  .screen{
+    width:100%;height:100%;border-radius:23px;background:#fff;overflow:hidden;
+    display:flex;flex-direction:column
+  }
+  .screen .top{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;padding:20px 14px;text-align:center}
+  .screen .top strong{display:block;font-size:.95rem}
+  .screen .top span{font-size:.62rem;opacity:.85}
+  .screen .body{padding:12px;display:flex;flex-direction:column;gap:8px;color:var(--ink)}
+  .row{border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+  .row b{display:block;font-size:.62rem;color:var(--muted);font-weight:600}
+  /* The mock sits inside the white-on-brand header, so these must state
+     their own colour or they inherit white onto a white card. */
+  .row span{font-size:.72rem;font-weight:700;color:var(--ink)}
+  .pill{align-self:flex-start;background:#e8f5ee;color:var(--ok);font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:99px}
+
+  section{padding:56px 0}
+  h2{font-size:1.6rem;font-weight:800;margin-bottom:8px}
+  .sub{color:var(--muted);margin-bottom:30px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .card .ico{
+    width:42px;height:42px;border-radius:11px;display:grid;place-items:center;
+    background:#eef1fb;color:var(--brand);margin-bottom:12px
+  }
+  .card .ico svg{width:21px;height:21px}
+  .card h3{font-size:1.03rem;font-weight:800;margin-bottom:4px}
+  .card p{color:var(--muted);font-size:.92rem}
+
+  .steps{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .step{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed var(--line)}
+  .step:last-child{border-bottom:0}
+  .num{
+    flex:0 0 32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:.9rem
+  }
+  .step p{color:var(--muted);font-size:.93rem}
+  .step b{color:var(--ink);display:block}
+
+  .note{
+    margin-top:18px;background:#fff8e6;border:1px solid #f2d692;border-radius:12px;
+    padding:14px 16px;font-size:.9rem;color:#6b4e07
+  }
+
+  .final{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;text-align:center;border-radius:20px;padding:44px 24px;margin-bottom:56px}
+  .final h2{margin-bottom:6px}
+  .final p{opacity:.9;margin-bottom:22px}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--muted);font-size:.88rem}
+  .foot{display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between;align-items:center}
+  footer a{color:var(--brand);text-decoration:none}
+
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr;gap:30px}
+    h1{font-size:1.95rem}
+    .phone{width:206px}
+    header{padding-bottom:64px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <img src="/print-logo.png" alt="Hakimi Solutions" />
+    </div>
+
+    <div class="hero">
+      <div>
+        <h1>تابع ملف تأشيرتك<br />من هاتفك مباشرة</h1>
+        <p class="lead">
+          لا داعي للاتصال بالوكالة للسؤال عن ملفك. أدخل رقم هاتفك أو رقم جواز سفرك،
+          فتظهر لك حالة الملف وموعدك ووثائقك في الحال.
+          <span class="fr">Suivez votre demande de visa depuis votre téléphone : statut, rendez-vous et documents, en temps réel.</span>
+        </p>
+
+        <div class="cta">
+          <a class="btn" href="/download/HakimiVisa-Client.apk" id="dl">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            تحميل التطبيق
+          </a>
+          <span class="meta">Android · 53 ميغا · مجاني</span>
+        </div>
+      </div>
+
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="top">
+            <strong>Hakimi Visa</strong>
+            <span>تابع ملفك</span>
+          </div>
+          <div class="body">
+            <span class="pill">قيد المعالجة</span>
+            <div class="row"><b>رقم الملف</b><span>VISA-2026-0184</span></div>
+            <div class="row"><b>الوجهة</b><span>France — Schengen</span></div>
+            <div class="row"><b>الموعد</b><span>15/09 — 10:30</span></div>
+            <div class="row"><b>المركز</b><span>TLScontact</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="wrap">
+  <h2>ما الذي يقدّمه التطبيق</h2>
+  <p class="sub">Ce que l'application vous apporte</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+      <h3>بحث بسيط</h3>
+      <p>رقم هاتفك أو رقم جواز سفرك يكفي. بدون إنشاء حساب وبدون كلمة مرور تحفظها.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><circle cx="12" cy="7" r="2.5"/><circle cx="12" cy="17" r="2.5"/></svg></div>
+      <h3>متابعة خطوة بخطوة</h3>
+      <p>من استلام الملف إلى تسليمه: كل تغيّر في الحالة مؤرّخ، فتعرف أين وصل طلبك بالضبط.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+      <h3>موعدك</h3>
+      <p>تاريخ الموعد وساعته ومركز الإيداع ونوعه، أمامك في أي وقت.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+      <h3>وثائقك</h3>
+      <p>قائمة الوثائق المرتبطة بملفك، لتعرف ما سلّمته وما ينقصك.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+      <h3>إشعارات فورية</h3>
+      <p>يصلك تنبيه على هاتفك فور تغيّر حالة ملفك، دون أن تسأل.</p>
+    </div>
+    <div class="card">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg></div>
+      <h3>ثلاث لغات</h3>
+      <p>العربية والفرنسية والإنجليزية، تغيّرها متى شئت من الإعدادات.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>كيف تثبّت التطبيق</h2>
+  <p class="sub">Installation en trois étapes</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">١</div>
+      <p><b>حمّل الملف</b>اضغط زر «تحميل التطبيق» في أعلى الصفحة وانتظر انتهاء التنزيل.</p>
+    </div>
+    <div class="step">
+      <div class="num">٢</div>
+      <p><b>اسمح بالتثبيت</b>قد يظهر تنبيه «تثبيت من مصدر غير معروف» — اضغط «الإعدادات» ثم فعّل «السماح من هذا المصدر». هذا طبيعي لأي تطبيق يُحمَّل خارج متجر Google.</p>
+    </div>
+    <div class="step">
+      <div class="num">٣</div>
+      <p><b>افتح وابحث</b>اختر لغتك، ثم أدخل رقم هاتفك أو رقم جواز سفرك ليظهر ملفك.</p>
+    </div>
+  </div>
+
+  <p class="note">
+    <strong>ملاحظة:</strong> يظهر ملفك في التطبيق برقم الهاتف الذي سجّلته لدى الوكالة.
+    إن لم يظهر، تأكّد من الرقم أو تواصل معنا.
+  </p>
+</section>
+
+<section class="wrap">
+  <div class="final">
+    <h2>جاهز؟</h2>
+    <p>حمّل التطبيق الآن وتابع ملفك بنفسك</p>
+    <a class="btn" href="/download/HakimiVisa-Client.apk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      تحميل التطبيق
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>Hakimi Solutions — شارع النصر، العلمة، ولاية سطيف</span>
+    <span>
+      <a href="tel:+213550806116">0550 80 61 16</a> ·
+      <a href="mailto:hinfo19@gmail.com">hinfo19@gmail.com</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
