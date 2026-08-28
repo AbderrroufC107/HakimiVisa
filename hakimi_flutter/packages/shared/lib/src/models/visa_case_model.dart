@@ -73,6 +73,15 @@ class VisaCaseModel {
     );
   }
 
+  /// The client's name when the API sent one alongside the case. A phone
+  /// number can be shared by a family, so a file has to say whose it is
+  /// rather than borrowing the name at the top of the list.
+  String? get clientName {
+    final raw = client;
+    if (raw is Map && raw['fullName'] is String) return raw['fullName'] as String;
+    return null;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

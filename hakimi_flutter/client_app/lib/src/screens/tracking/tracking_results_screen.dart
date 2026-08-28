@@ -57,7 +57,10 @@ class TrackingResultsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Client: ${result.clientName}',
+                              // One number can belong to a household, and the
+                              // name at the top would then be only one of
+                              // them — say so rather than mislabel the rest.
+                              _headline(result),
                               style: context.textTheme.titleLarge,
                             ),
                             const SizedBox(height: 4),
@@ -86,6 +89,17 @@ class TrackingResultsScreen extends ConsumerWidget {
   }
 }
 
+/// Names the holder when the files belong to one person, and says how many
+/// people share the line when they do not.
+String _headline(TrackingQueryResult result) {
+  final names = result.cases
+      .map((c) => c['client'] is Map ? c['client']['fullName'] as String? : null)
+      .whereType<String>()
+      .toSet();
+  if (names.length > 1) return '${names.length} personnes sur ce numéro';
+  return 'Client: ${names.isNotEmpty ? names.first : result.clientName}';
+}
+
 class _VisaCaseCard extends StatelessWidget {
   final VisaCaseModel caseModel;
 
@@ -105,11 +119,25 @@ class _VisaCaseCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    caseModel.caseNumber,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        caseModel.caseNumber,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      // A shared line returns the whole household's files, so
+                      // each one says who it belongs to.
+                      if (caseModel.clientName != null)
+                        Text(
+                          caseModel.clientName!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: context.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 StatusBadge(status: caseModel.currentStatus),
