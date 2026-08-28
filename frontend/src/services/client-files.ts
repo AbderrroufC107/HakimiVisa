@@ -11,6 +11,8 @@ export interface ClientFile {
   createdAt: string;
   /** Null for documents held against the client rather than one application. */
   visaCaseId?: string | null;
+  /** The requirement this upload answers, when it was filed against a slot. */
+  requiredDocumentId?: string | null;
 }
 
 export interface StorageUsage {
@@ -55,9 +57,18 @@ export const visaCaseFilesService = {
     return api.get(`/visa-cases/${visaCaseId}/files`);
   },
 
-  async uploadFile(visaCaseId: string, file: File): Promise<ClientFile> {
+  /**
+   * `requiredDocumentId` names the requirement this upload answers, so a
+   * partner's slot is filled by record rather than by guessing at file names.
+   */
+  async uploadFile(
+    visaCaseId: string,
+    file: File,
+    requiredDocumentId?: string,
+  ): Promise<ClientFile> {
     const formData = new FormData();
     formData.append('file', file);
+    if (requiredDocumentId) formData.append('requiredDocumentId', requiredDocumentId);
     const token = getAccessToken();
     const response = await fetch(`${API_URL}/visa-cases/${visaCaseId}/files`, {
       method: 'POST',

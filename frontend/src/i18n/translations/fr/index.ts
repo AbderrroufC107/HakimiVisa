@@ -224,6 +224,7 @@ export const fr = {
     tipMaxSize: '10 Mo maximum par fichier',
     tipOrganized: 'Fichiers organisés par client',
     fileUploaded: 'Fichier téléversé',
+    uploadSuccess: 'Fichier envoyé',
     uploadFailed: 'Échec du téléversement',
     fileDeleted: 'Fichier supprimé',
     pastAppointmentsDesc: 'Rendez-vous terminés',
@@ -789,6 +790,10 @@ export const fr = {
     confirmDelete: 'Supprimer cette agence ?',
   },
   requiredDocs: {
+    uploadTitle: 'Documents à fournir',
+    slotEmpty: 'Aucun fichier envoyé',
+    replace: 'Remplacer',
+    noneForCase: "Aucun document n'est exigé pour ce pays et ce type de visa. Contactez l'agence.",
     title: 'Documents requis',
     subtitle: 'Ce que chaque dossier doit contenir',
     newItem: 'Nouveau document',

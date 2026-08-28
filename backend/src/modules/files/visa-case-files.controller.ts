@@ -6,6 +6,7 @@ import {
   Param,
   UseInterceptors,
   UploadedFile,
+  Body,
   Res,
   BadRequestException,
 } from '@nestjs/common';
@@ -49,9 +50,12 @@ export class VisaCaseFilesController {
     @Param('visaCaseId') visaCaseId: string,
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser('agencyId') agencyId: string | null,
+    // Sent when the upload answers a named requirement, which is how a
+    // partner's slots are filled.
+    @Body('requiredDocumentId') requiredDocumentId?: string,
   ) {
     if (!file) throw new BadRequestException('No file provided');
-    return this.filesService.uploadToVisaCase(visaCaseId, file, agencyId);
+    return this.filesService.uploadToVisaCase(visaCaseId, file, agencyId, requiredDocumentId);
   }
 
   @Get()

@@ -258,6 +258,7 @@ export const ar = {
     tipMaxSize: '10 ميجا كحد أقصى لكل ملف',
     tipOrganized: 'الملفات منظمة حسب العميل',
     fileUploaded: 'تم رفع الملف',
+    uploadSuccess: 'تم رفع الوثيقة',
     uploadFailed: 'فشل رفع الملف',
     fileDeleted: 'تم حذف الملف',
   },
@@ -785,6 +786,10 @@ export const ar = {
     confirmDelete: 'حذف هذه الوكالة؟',
   },
   requiredDocs: {
+    uploadTitle: 'الوثائق المطلوبة',
+    slotEmpty: 'لم تُرفع أي وثيقة',
+    replace: 'استبدال',
+    noneForCase: 'لا توجد وثائق مطلوبة لهذا البلد ونوع التأشيرة. تواصل مع الوكالة.',
     title: 'الوثائق المطلوبة',
     subtitle: 'ما يجب أن يحتويه كل ملف',
     newItem: 'وثيقة جديدة',

@@ -136,10 +136,15 @@ model ClientFile {
   mimeType     String
   size         Int
   path         String
+  // Which required document this upload answers. Null for anything the desk
+  // adds off its own bat, which is most of what the desk uploads.
+  requiredDocumentId String?
+  requiredDocument   RequiredDocument? @relation(fields: [requiredDocumentId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
 
   @@index([clientId])
   @@index([visaCaseId])
+  @@index([requiredDocumentId])
   @@map("client_files")
 }
 
@@ -207,6 +212,7 @@ model RequiredDocument {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  files     ClientFile[]
 
   @@index([country])
   @@index([visaType])

@@ -203,6 +203,7 @@ export const en = {
     tipMaxSize: '10 MB max per file',
     tipOrganized: 'Files organized by client',
     fileUploaded: 'File uploaded',
+    uploadSuccess: 'File uploaded',
     uploadFailed: 'Failed to upload file',
     fileDeleted: 'File deleted',
     pastAppointmentsDesc: 'Completed appointments',
@@ -787,6 +788,10 @@ export const en = {
     confirmDelete: 'Delete this agency?',
   },
   requiredDocs: {
+    uploadTitle: 'Documents to provide',
+    slotEmpty: 'No file uploaded',
+    replace: 'Replace',
+    noneForCase: 'No document is required for this country and visa type. Contact the desk.',
     title: 'Required documents',
     subtitle: 'What every case must contain',
     newItem: 'New document',

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Clock, Printer, Loader2, ChevronRight, MessageCircle, Mail, IdCard, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { CaseFilesPanel } from '@/components/visa-cases/case-files-panel';
 import { RequiredDocumentsChecklist } from '@/components/visa-cases/required-documents-checklist';
+import { RequiredDocumentsUpload } from '@/components/visa-cases/required-documents-upload';
 import { DetailSkeleton } from '@/components/shared';
 import { AppointmentPicker } from '@/components/kanban/appointment-picker';
 import { visaCasesService, appointmentsService, templatesService } from '@/services';
@@ -32,6 +33,8 @@ const STATUS_OPTIONS: VisaStatus[] = ['EN_ATTENTE', 'DOSSIER_INCOMPLET', 'EN_TRA
 export function VisaCaseDetailPage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  // Partner agencies file against named slots; desk staff upload freely.
+  const isAgency = user?.role === 'AGENCY';
   // An agency deposits and follows; the pipeline belongs to the desk, so the
   // controls that would only earn a 403 are not shown at all.
   const canDecide = user?.role !== 'AGENCY';
@@ -216,12 +219,25 @@ export function VisaCaseDetailPage() {
           looking at what has actually been supplied. */}
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-6">
-          <CaseFilesPanel visaCaseId={id!} />
-          <RequiredDocumentsChecklist
-            visaCaseId={id!}
-            country={visaCase.visaCountry}
-            visaType={visaCase.visaType}
-          />
+          {/* A partner files against the desk's named slots, so nothing is
+              missed. The desk uploads freely — it knows what it is doing, and
+              still sees the checklist to judge completeness. */}
+          {isAgency ? (
+            <RequiredDocumentsUpload
+              visaCaseId={id!}
+              country={visaCase.visaCountry}
+              visaType={visaCase.visaType}
+            />
+          ) : (
+            <>
+              <CaseFilesPanel visaCaseId={id!} />
+              <RequiredDocumentsChecklist
+                visaCaseId={id!}
+                country={visaCase.visaCountry}
+                visaType={visaCase.visaType}
+              />
+            </>
+          )}
         </div>
 
         <Card>

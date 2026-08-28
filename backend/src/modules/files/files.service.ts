@@ -46,7 +46,12 @@ export class FilesService {
     }
   }
 
-  async uploadFile(clientId: string, file: Express.Multer.File, visaCaseId?: string) {
+  async uploadFile(
+    clientId: string,
+    file: Express.Multer.File,
+    visaCaseId?: string,
+    requiredDocumentId?: string | null,
+  ) {
     const existing = await this.prisma.client.findUnique({ where: { id: clientId } });
     if (!existing) throw new NotFoundException('Client not found');
 
@@ -78,6 +83,7 @@ export class FilesService {
         mimeType: file.mimetype,
         size: savedSize,
         path: filePath,
+        requiredDocumentId: requiredDocumentId || null,
       },
     });
   }
@@ -118,6 +124,9 @@ export class FilesService {
         size: true,
         createdAt: true,
         visaCaseId: true,
+        // The partner's upload slots key off this; without it every slot reads
+        // as empty however many files were sent.
+        requiredDocumentId: true,
       },
     });
   }
@@ -126,6 +135,7 @@ export class FilesService {
     visaCaseId: string,
     file: Express.Multer.File,
     agencyId?: string | null,
+    requiredDocumentId?: string | null,
   ) {
     const visaCase = await this.prisma.visaCase.findFirst({
       where: { id: visaCaseId, ...(agencyId ? { submittedByAgencyId: agencyId } : {}) },
@@ -133,7 +143,7 @@ export class FilesService {
     });
     if (!visaCase) throw new NotFoundException('Visa case not found');
 
-    return this.uploadFile(visaCase.clientId, file, visaCaseId);
+    return this.uploadFile(visaCase.clientId, file, visaCaseId, requiredDocumentId);
   }
 
   async getFile(fileId: string) {
