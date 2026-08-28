@@ -52,6 +52,8 @@ interface AgencySettings {
   agencyName: string;
   agencyAddress: string;
   agencyPhone: string;
+  agencyPhone2: string;
+  agencyPhone3: string;
   agencyEmail: string;
   agencyWebsite: string;
 }
@@ -61,6 +63,8 @@ function normalizeAgencySettings(settings?: Partial<AgencySettings>): AgencySett
     agencyName: settings?.agencyName ?? '',
     agencyAddress: settings?.agencyAddress ?? '',
     agencyPhone: settings?.agencyPhone ?? '',
+    agencyPhone2: settings?.agencyPhone2 ?? '',
+    agencyPhone3: settings?.agencyPhone3 ?? '',
     agencyEmail: settings?.agencyEmail ?? '',
     agencyWebsite: settings?.agencyWebsite ?? '',
   };
@@ -513,6 +517,32 @@ export function SettingsPage() {
                     <Input
                       value={form.agencyPhone}
                       onChange={(e) => setForm({ ...form, agencyPhone: e.target.value })}
+                      className="pl-9"
+                      placeholder={t('settings:phonePlaceholder')}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('settings:phone2')}</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={form.agencyPhone2}
+                      onChange={(e) => setForm({ ...form, agencyPhone2: e.target.value })}
+                      className="pl-9"
+                      placeholder={t('settings:phonePlaceholder')}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t('settings:phone3')}</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={form.agencyPhone3}
+                      onChange={(e) => setForm({ ...form, agencyPhone3: e.target.value })}
                       className="pl-9"
                       placeholder={t('settings:phonePlaceholder')}
                     />

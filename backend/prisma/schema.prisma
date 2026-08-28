@@ -334,6 +334,9 @@ model AgencySettings {
   agencyName        String
   agencyAddress     String?
   agencyPhone       String?
+  // The desk publishes up to three lines; the first is the main one.
+  agencyPhone2      String?
+  agencyPhone3      String?
   agencyEmail       String?
   agencyWebsite     String?
   logoUrl           String?

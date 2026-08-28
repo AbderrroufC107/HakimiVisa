@@ -590,6 +590,8 @@ export const en = {
     address: 'Address',
     addressPlaceholder: 'Address',
     phone: 'Phone',
+    phone2: 'Phone 2',
+    phone3: 'Phone 3',
     phonePlaceholder: 'Phone',
     email: 'Email',
     emailPlaceholder: 'Email',

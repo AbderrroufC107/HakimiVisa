@@ -591,6 +591,8 @@ export const fr = {
     address: 'Adresse',
     addressPlaceholder: 'Adresse',
     phone: 'Téléphone',
+    phone2: 'Téléphone 2',
+    phone3: 'Téléphone 3',
     phonePlaceholder: 'Téléphone',
     email: 'Email',
     emailPlaceholder: 'Email',

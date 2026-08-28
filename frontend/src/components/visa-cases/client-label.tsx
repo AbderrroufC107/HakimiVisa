@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import QRCode from 'qrcode';
+import { api } from '@/services/api';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import {
@@ -36,6 +39,17 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+/** The desk's own details, printed at the top of both sheets. */
+export interface AgencyInfo {
+  name: string;
+  phones: string[];
+  website?: string | null;
+  /** Where a client downloads the app; both get a QR on the receipt. */
+  appUrl: string;
+  siteQr?: string | null;
+  appQr?: string | null;
 }
 
 export interface LabelSize {
@@ -79,7 +93,11 @@ function scaleFor(size: LabelSize): number {
   return Math.max(1, Math.min(size.width / 78, size.height / 128));
 }
 
-export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABEL_SIZE) {
+export function printClientLabel(
+  data: LabelData,
+  size: LabelSize = DEFAULT_LABEL_SIZE,
+  agency?: AgencyInfo,
+) {
   const winWidth = 560;
   const winHeight = 480;
   const left = Math.max(0, Math.round((window.screen.width - winWidth) / 2));
@@ -129,6 +147,45 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
     )
     .join('');
 
+  // The desk's name and lines head both sheets; a client keeps the second one
+  // and needs to know who to call without hunting for the first.
+  const phones = (agency?.phones ?? []).map((p) => p.trim()).filter(Boolean);
+  const agencyHeader = agency
+    ? `<span class="lbl-agency">${escapeHtml(agency.name)}</span>` +
+      (phones.length
+        ? `<span class="lbl-lines">${phones.map(escapeHtml).join(' · ')}</span>`
+        : '')
+    : '';
+
+  const qrBlock = (src: string | null | undefined, label: string, url: string) =>
+    src
+      ? `<div class="qr"><img src="${src}" alt="" /><b>${escapeHtml(label)}</b><span>${escapeHtml(url)}</span></div>`
+      : '';
+
+  // The receipt the client takes away: who to call, and how to follow the file.
+  const receiptSheet = agency
+    ? `<div class="lbl-box rcpt">
+    <div class="lbl-head">
+      <img class="lbl-logo" src="${logoUrl}" alt="" />
+      <span class="lbl-agency">${escapeHtml(agency.name)}</span>
+      ${phones.length ? `<span class="lbl-lines">${phones.map(escapeHtml).join(' · ')}</span>` : ''}
+    </div>
+    <div class="rcpt-title">VOTRE REÇU D'INSCRIPTION</div>
+    <div class="lbl-rows">
+      <div class="lbl-row"><span class="lbl-key">CLIENT</span><span class="lbl-val">${escapeHtml(data.fullName)}</span></div>
+      ${rows}
+    </div>
+    <div class="qr-wrap">
+      ${qrBlock(agency.siteQr, 'Suivi en ligne', agency.website || 'hakimivisa.cloud')}
+      ${qrBlock(agency.appQr, 'Application', agency.appUrl)}
+    </div>
+    <div class="lbl-foot">
+      <span>${new Date().toLocaleDateString('fr-FR')}</span>
+      <span>${escapeHtml(agency.name)}</span>
+    </div>
+  </div>`
+    : '';
+
   win.document.write(`<!DOCTYPE html>
 <html>
 <head>
@@ -138,8 +195,11 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
   @page { size: ${size.width}mm ${size.height}mm; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
-    width: ${size.width}mm; height: ${size.height}mm;
-    overflow: hidden;
+    width: ${size.width}mm;
+    /* Locking the body to one page height clips anything after it, which
+       silently dropped the client's receipt. Only fix the height when there
+       is a single sheet to print. */
+    ${receiptSheet ? '' : `height: ${size.height}mm; overflow: hidden;`}
   }
   body {
     font-family: Arial, Helvetica, sans-serif;
@@ -184,6 +244,38 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
     display: flex; justify-content: space-between;
   }
   .lbl-foot span { font-size: ${(7.5 * s).toFixed(1)}pt; color: #6b7280; }
+
+  /* The desk's name and lines, at the head of every sheet. */
+  .lbl-agency { font-size: ${(9 * s).toFixed(1)}pt; font-weight: 800; color: #1a1a2e; letter-spacing: .2px; }
+  .lbl-lines { font-size: ${(7.5 * s).toFixed(1)}pt; color: #374151; margin-top: ${(0.5 * s).toFixed(2)}mm; }
+
+  /* Second sheet: the client's receipt. It carries more than the label — a
+     title and two QR codes — so it grows to its content instead of being
+     locked to one label height, which made the codes sit on top of the rows. */
+  .rcpt {
+    page-break-before: always; break-before: page;
+    height: auto; min-height: ${size.height}mm; overflow: visible;
+  }
+  .rcpt .lbl-rows { flex: none; justify-content: flex-start; }
+  /* The label's type is sized for a small card; at full-sheet scale the same
+     figures push the QR codes onto a third page. The receipt sets its own,
+     tighter, so it stays one sheet. */
+  .rcpt .lbl-row { padding: ${(0.7 * s).toFixed(2)}mm 0; gap: ${(0.2 * s).toFixed(2)}mm; }
+  .rcpt .lbl-key { font-size: ${(6.5 * s).toFixed(1)}pt; }
+  .rcpt .lbl-val { font-size: ${(8 * s).toFixed(1)}pt; }
+  .rcpt .rcpt-title { font-size: ${(10 * s).toFixed(1)}pt; margin: ${(1.2 * s).toFixed(2)}mm 0; }
+  .rcpt .lbl-logo { height: ${(7 * s).toFixed(2)}mm; }
+  .rcpt .qr img { width: ${(15 * s).toFixed(2)}mm; height: ${(15 * s).toFixed(2)}mm; }
+  .rcpt-title {
+    text-align: center; font-size: ${(13 * s).toFixed(1)}pt; font-weight: 800;
+    color: #1a1a2e; margin: ${(2 * s).toFixed(2)}mm 0 ${(1.5 * s).toFixed(2)}mm;
+    letter-spacing: .5px;
+  }
+  .qr-wrap { display: flex; gap: ${(4 * s).toFixed(2)}mm; justify-content: space-around; margin-top: ${(2.5 * s).toFixed(2)}mm; }
+  .qr { text-align: center; }
+  .qr img { width: ${(20 * s).toFixed(2)}mm; height: ${(20 * s).toFixed(2)}mm; display: block; }
+  .qr b { display: block; font-size: ${(7 * s).toFixed(1)}pt; margin-top: ${(0.8 * s).toFixed(2)}mm; }
+  .qr span { display: block; font-size: ${(6.2 * s).toFixed(1)}pt; color: #6b7280; word-break: break-all; }
   @media print {
     body { background: none; }
     .lbl-box { border-color: #1a1a2e; }
@@ -194,14 +286,16 @@ export function printClientLabel(data: LabelData, size: LabelSize = DEFAULT_LABE
   <div class="lbl-box">
     <div class="lbl-head">
       <img class="lbl-logo" src="${logoUrl}" alt="" />
+      ${agencyHeader}
       <span class="lbl-name">${escapeHtml(data.fullName)}</span>
     </div>
     <div class="lbl-rows">${rows}</div>
     <div class="lbl-foot">
       <span>${new Date().toLocaleDateString('fr-FR')}</span>
-      <span>hakimivisa.cloud</span>
+      <span>${escapeHtml(agency?.website || 'hakimivisa.cloud')}</span>
     </div>
   </div>
+${receiptSheet}
   <script>window.onload = function () { window.print(); window.onafterprint = function () { window.close(); }; };</script>
 </body>
 </html>`);
@@ -218,6 +312,41 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
   const { t } = useTranslation();
   const [sizeId, setSizeId] = useState(DEFAULT_LABEL_SIZE.id);
   const size = LABEL_SIZES.find((s) => s.id === sizeId) ?? DEFAULT_LABEL_SIZE;
+
+  // Both sheets carry the desk's name and lines, and the receipt carries a QR
+  // for each link. Built here so the print window receives plain data URIs —
+  // it has no scripts of its own and cannot fetch anything.
+  const { data: agency } = useQuery({
+    queryKey: ['agency-settings', 'for-label'],
+    queryFn: async (): Promise<AgencyInfo> => {
+      const s = await api.get<{
+        agencyName?: string;
+        agencyPhone?: string | null;
+        agencyPhone2?: string | null;
+        agencyPhone3?: string | null;
+        agencyWebsite?: string | null;
+      }>('/agency-settings');
+      const appUrl = `${window.location.origin}/download`;
+      const website = s.agencyWebsite?.trim() || window.location.origin;
+      const [siteQr, appQr] = await Promise.all([
+        QRCode.toDataURL(website, { margin: 0, width: 320 }).catch(() => null),
+        QRCode.toDataURL(appUrl, { margin: 0, width: 320 }).catch(() => null),
+      ]);
+      return {
+        name: s.agencyName?.trim() || 'HakimiVisa',
+        phones: [s.agencyPhone, s.agencyPhone2, s.agencyPhone3].filter(
+          (p): p is string => !!p && p.trim().length > 0,
+        ),
+        website,
+        appUrl,
+        siteQr,
+        appQr,
+      };
+    },
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (!data) return null;
 
   return (
@@ -277,7 +406,7 @@ export function LabelDialog({ open, onOpenChange, data }: LabelDialogProps) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common:cancel')}
           </Button>
-          <Button onClick={() => printClientLabel(data, size)}>
+          <Button onClick={() => printClientLabel(data, size, agency)}>
             <Printer className="h-4 w-4 mr-2" />
             {t('label:print')}
           </Button>

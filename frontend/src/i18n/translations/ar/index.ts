@@ -591,6 +591,8 @@ export const ar = {
     address: 'العنوان',
     addressPlaceholder: 'العنوان',
     phone: 'الهاتف',
+    phone2: 'الهاتف 2',
+    phone3: 'الهاتف 3',
     phonePlaceholder: 'الهاتف',
     email: 'البريد الإلكتروني',
     emailPlaceholder: 'البريد الإلكتروني',

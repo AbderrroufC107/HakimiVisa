@@ -15,6 +15,14 @@ export class UpdateAgencySettingsDto {
 
   @IsString()
   @IsOptional()
+  agencyPhone2?: string;
+
+  @IsString()
+  @IsOptional()
+  agencyPhone3?: string;
+
+  @IsString()
+  @IsOptional()
   agencyEmail?: string;
 
   @IsString()
